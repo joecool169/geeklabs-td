@@ -8,6 +8,8 @@ The current focus is **gameplay and mechanics**, not graphics or visual polish.
 
 GeekLabs-TD exists as a mechanics-first tower defense project where ideas can be tested, refined, and iterated quickly. The goal is to build a tower defense experience that feels good to play before investing time into art, animation, or presentation.
 
+A playable demo is currently hosted at <https://td.geekstreet.tv>
+
 ## Design Priorities
 
 - Responsive and satisfying core gameplay
@@ -35,6 +37,7 @@ Graphics are intentionally minimal at this stage so development effort can focus
 ## Development Philosophy
 
 GeekLabs-TD is a laboratory project:
+
 - Mechanics first
 - Visual polish later
 - Small, controlled changes
