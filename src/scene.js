@@ -57,7 +57,9 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.input.mouse?.disableContextMenu();
-
+    
+    this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+ 
     this.input.on("pointerdown", (p) => {
       if (p.rightButtonDown()) {
         this.trySellTower(p.worldX, p.worldY);
@@ -66,7 +68,7 @@ export class GameScene extends Phaser.Scene {
 
       const t = this.getTowerAt(p.worldX, p.worldY); // NEW
       if (t) {
-        if (p.shiftKey) this.tryUpgradeTower(t); // NEW
+        if (this.keyShift.isDown) this.tryUpgradeTower(t);
         this.selectedTower = t; // NEW
         return;
       }
