@@ -41,6 +41,8 @@ export class GameScene extends Phaser.Scene {
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
 
+    this.selectedTower = null; // NEW
+
     this.ui = this.add.text(14, 12, "", {
       fontFamily: "monospace",
       fontSize: "16px",
@@ -50,7 +52,7 @@ export class GameScene extends Phaser.Scene {
     this.help = this.add.text(
       14,
       34,
-      "Left click: place tower ($50)   Right click: sell tower (+$35)",
+      "Left click: place/select tower ($50)   Shift+Click: upgrade   Right click: sell (+$35)", // CHANGED
       { fontFamily: "monospace", fontSize: "13px", color: "#9fb3d8" }
     );
 
@@ -61,16 +63,16 @@ export class GameScene extends Phaser.Scene {
         this.trySellTower(p.worldX, p.worldY);
         return;
       }
-      this.tryPlaceTower(p.worldX, p.worldY);
-    });
 
-    this.physics.add.overlap(this.bullets, this.enemies, (b, e) => {
-      b.destroy();
-      e.hp -= 10;
-      if (e.hp <= 0) {
-        e.destroy();
-        this.money += 8;
+      const t = this.getTowerAt(p.worldX, p.worldY); // NEW
+      if (t) {
+        if (p.shiftKey) this.tryUpgradeTower(t); // NEW
+        this.selectedTower = t; // NEW
+        return;
       }
+
+      this.selectedTower = null; // NEW
+      this.tryPlaceTower(p.worldX, p.worldY);
     });
 
     this.spawnTimer = this.time.addEvent({
@@ -88,7 +90,7 @@ export class GameScene extends Phaser.Scene {
       const target = this.findTarget(t.x, t.y, t.range);
       if (!target) continue;
       t.nextShotAt = time + t.fireMs;
-      this.fireBullet(t.x, t.y, target);
+      this.fireBullet(t, target); // CHANGED (pass tower for damage)
     }
 
     this.enemies.children.iterate((e) => {
@@ -168,6 +170,37 @@ export class GameScene extends Phaser.Scene {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  getTowerAt(wx, wy) { // NEW
+    const x = snap(wx);
+    const y = snap(wy);
+    return this.towers.find((t) => t.x === x && t.y === y);
+  }
+
+  tryUpgradeTower(t) { // NEW
+    if (t.tier >= 3) return;
+
+    const cost = t.tier === 1 ? 75 : 120;
+    if (this.money < cost) return;
+
+    this.money -= cost;
+    t.tier += 1;
+
+    if (t.tier === 2) {
+      t.damage = 16;
+      t.range = 220;
+      t.fireMs = 210;
+      t.sprite.setTint(0x7cf0ff);
+    }
+
+    if (t.tier === 3) {
+      t.damage = 24;
+      t.range = 260;
+      t.fireMs = 170;
+      t.sprite.setTint(0xb9f5ff);
+      t.sprite.setScale(1.15);
+    }
+  }
+
   tryPlaceTower(wx, wy) {
     const x = snap(wx);
     const y = snap(wy);
@@ -191,6 +224,8 @@ export class GameScene extends Phaser.Scene {
     this.towers.push({
       x,
       y,
+      tier: 1, // NEW
+      damage: 10, // NEW
       range: 190,
       fireMs: 260,
       nextShotAt: 0,
@@ -207,6 +242,7 @@ export class GameScene extends Phaser.Scene {
     t.sprite.destroy();
     this.towers.splice(idx, 1);
     this.money += 35;
+    if (this.selectedTower === t) this.selectedTower = null; // NEW (clean selection)
   }
 
   spawnEnemy() {
@@ -270,58 +306,61 @@ export class GameScene extends Phaser.Scene {
     return best;
   }
 
-fireBullet(x, y, target) {
-  const b = this.add.circle(x, y, 6, 0x00ffff, 1);
-  b.setDepth(50);
+  fireBullet(t, target) { // CHANGED (tower-based damage)
+    const x = t.x;
+    const y = t.y;
 
-  const spd = 780;
-  const dx = target.x - x;
-  const dy = target.y - y;
-  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const b = this.add.circle(x, y, 6, 0x00ffff, 1);
+    b.setDepth(50);
 
-  const vx = (dx / len) * spd;
-  const vy = (dy / len) * spd;
+    const spd = 780;
+    const dx = target.x - x;
+    const dy = target.y - y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
 
-  const step = (t, dt) => {
-    if (!b.active) return;
+    const vx = (dx / len) * spd;
+    const vy = (dy / len) * spd;
 
-    b.x += (vx * dt) / 1000;
-    b.y += (vy * dt) / 1000;
+    const step = (_time, dt) => {
+      if (!b.active) return;
 
-    if (!target.active) {
-      b.destroy();
-      return;
+      b.x += (vx * dt) / 1000;
+      b.y += (vy * dt) / 1000;
+
+      if (!target.active) {
+        b.destroy();
+        return;
+      }
+
+      const dd = (b.x - target.x) * (b.x - target.x) + (b.y - target.y) * (b.y - target.y);
+      if (dd < 14 * 14) {
+        target.hp -= t.damage; // CHANGED
+        if (target.hp <= 0) {
+          target.destroy();
+          this.money += 8;
+        }
+        b.destroy();
+      }
+    };
+
+    b.update = step;
+
+    if (!this.bulletsPlain) {
+      this.bulletsPlain = [];
+      this.events.on("update", (time, dt) => {
+        for (const obj of this.bulletsPlain) {
+          if (obj.active && obj.update) obj.update(time, dt);
+        }
+        this.bulletsPlain = this.bulletsPlain.filter((o) => o.active);
+      });
     }
 
-    const dd = (b.x - target.x) * (b.x - target.x) + (b.y - target.y) * (b.y - target.y);
-    if (dd < 14 * 14) {
-      target.hp -= 10;
-      if (target.hp <= 0) {
-        target.destroy();
-        this.money += 8;
-      }
-      b.destroy();
-    }
-  };
+    this.bulletsPlain.push(b);
 
-  b.update = step;
-
-  if (!this.bulletsPlain) {
-    this.bulletsPlain = [];
-    this.events.on("update", (time, dt) => {
-      for (const obj of this.bulletsPlain) {
-        if (obj.active && obj.update) obj.update(time, dt);
-      }
-      this.bulletsPlain = this.bulletsPlain.filter((o) => o.active);
+    this.time.delayedCall(900, () => {
+      if (b.active) b.destroy();
     });
   }
-
-  this.bulletsPlain.push(b);
-
-  this.time.delayedCall(900, () => {
-    if (b.active) b.destroy();
-  });
-}
 
   updateUI() {
     this.ui.setText(
