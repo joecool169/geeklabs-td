@@ -3,18 +3,35 @@
 This file captures project-level context, conventions, and “current truth” so an assistant can help without re-deriving everything each session.
 
 ## Project
+
 - Name: GeekLabs TD (geeklabs-td)
-- Stack: Vite + Phaser (tower defense prototype)
+- Stack: Phaser 3 + Vite + JavaScript
 - Style: grid-based placement on a fixed path; minimal clean UI; keyboard-forward controls
 
 ## Repo workflow
+
 - Commit frequently (small, coherent commits).
 - Push at the end of a session and before switching devices.
 - Prefer SSH remotes for GitHub pushes.
+- When syncing another device: `git pull --rebase` (unless you intend to discard local work, then `git fetch` + `git reset --hard origin/main`).
+
+## Dev
+
+- Run: `npm run dev`
+- Build: `npm run build`
+
+## Deploy (td.geekstreet.tv)
+
+- Nginx static host: `joe@192.168.7.25`
+- Web root: `/opt/docker/stacks/nginx-static/html/td/`
+- Deploy from project root:
+  - `npm run build`
+  - `rsync -av --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/`
 
 ## Current controls and UX
 
 ### Placement
+
 - T: Toggle placement mode
 - 1: Basic tower
 - 2: Rapid tower
@@ -23,12 +40,14 @@ This file captures project-level context, conventions, and “current truth” s
 - Right click (while placing): Cancel placement
 
 Placement rules:
-- Snap to grid
+
+- Snap to grid (40px)
 - Cannot place on path
 - Cannot overlap an existing tower
 - Must have enough money for the selected tower type
 
 ### Selection and actions
+
 - Left click: Select tower (range ring shows only for selected)
 - Shift+Click on tower: Upgrade
 - U: Upgrade selected tower
@@ -37,6 +56,7 @@ Placement rules:
 - F: Cycle targeting mode (Close → Strong → First)
 
 ### UI
+
 - Bottom-right inspector shows selected tower stats:
   - Type, Tier
   - Target mode
@@ -51,6 +71,7 @@ Placement rules:
 ## Tower system
 
 ### Tower types
+
 - Basic: balanced baseline
 - Rapid: faster fire, lower damage, shorter range (anti-swarm)
 - Sniper: slower fire, high damage, long range (anti-tank)
@@ -58,20 +79,32 @@ Placement rules:
 Tower data is defined in a table (data-driven tiers), not hard-coded tier if/else.
 
 ### Targeting modes
+
 - Close: nearest enemy by distance
 - Strong: highest current HP in range
 - First: furthest progressed along the path (by path segment index + distance to next waypoint)
 
 ### Economy
+
 - Enemies grant money on kill
 - Selling a tower refunds ~70% of total spent (base + upgrades)
 
-## Current gameplay loop
-- Place towers
-- Select towers, upgrade them, sell/reposition
+## Current gameplay
+
+- Grid placement (40px)
+- Enemies follow a fixed path
+- Towers auto-target and fire
+- Manual projectile logic (not Arcade overlap)
 - Enemies spawn continuously; wave number increases over time
 
+## Important implementation notes
+
+- Use keyboard Shift state:
+  - `this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);`
+  - check `this.keyShift.isDown` (pointer.shiftKey was unreliable)
+
 ## Next planned improvements (priority order)
+
 1) Improve discoverability for tower type switching (1/2/3) while placing (placement hint / one-time toast).
 2) Add wave structure: start-wave button, intermission, finite wave size, scaling, pacing.
 3) Add second enemy archetype (fast/weak vs slow/tanky) to make tower roles clearer.
@@ -79,5 +112,12 @@ Tower data is defined in a table (data-driven tiers), not hard-coded tier if/els
 5) Add basic sound cues (place, upgrade, sell, hit, kill).
 
 ## Notes
+
 - Keep rings visible only for the selected tower (no hover rings).
 - Keep UI uncluttered; prefer contextual hints that appear only in placement mode.
+
+## Future candidates (lower priority / exploratory)
+
+- Tower combining
+- Interest-based economy
+- Enemy resistances
