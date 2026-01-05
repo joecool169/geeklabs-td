@@ -16,6 +16,26 @@ function round1(v) {
   return Math.round(v * 10) / 10;
 }
 
+function segCircleHit(x1, y1, x2, y2, cx, cy, r) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const fx = x1 - cx;
+  const fy = y1 - cy;
+
+  const a = dx * dx + dy * dy;
+  const b = 2 * (fx * dx + fy * dy);
+  const c = fx * fx + fy * fy - r * r;
+
+  let disc = b * b - 4 * a * c;
+  if (disc < 0) return false;
+
+  disc = Math.sqrt(disc);
+  const t1 = (-b - disc) / (2 * a);
+  const t2 = (-b + disc) / (2 * a);
+
+  return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+}
+
 const TOWER_DEFS = {
   basic: {
     key: "basic",
@@ -744,26 +764,30 @@ export class GameScene extends Phaser.Scene {
     b.setDepth(50);
 
     const spd = 780;
-    const dx = target.x - x;
-    const dy = target.y - y;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-
-    const vx = (dx / len) * spd;
-    const vy = (dy / len) * spd;
+    const hitR = 14;
 
     const step = (_time, dt) => {
       if (!b.active) return;
 
-      b.x += (vx * dt) / 1000;
-      b.y += (vy * dt) / 1000;
+      const x0 = b.x;
+      const y0 = b.y;
 
       if (!target.active) {
         b.destroy();
         return;
       }
 
-      const dd = (b.x - target.x) * (b.x - target.x) + (b.y - target.y) * (b.y - target.y);
-      if (dd < 14 * 14) {
+      const dx = target.x - b.x;
+      const dy = target.y - b.y;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      const vx = (dx / len) * spd;
+      const vy = (dy / len) * spd;
+
+      b.x += (vx * dt) / 1000;
+      b.y += (vy * dt) / 1000;
+
+      if (segCircleHit(x0, y0, b.x, b.y, target.x, target.y, hitR)) {
         target.hp -= t.damage;
         if (target.hp <= 0) {
           target.destroy();
