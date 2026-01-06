@@ -1,12 +1,13 @@
 {
-  "name": "onslaughtlike",
+  "name": "GeekLabs-TD",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "./scripts/deploy.sh"
   },
   "devDependencies": {
     "vite": "^7.2.4"

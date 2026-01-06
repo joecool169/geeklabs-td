@@ -126,21 +126,20 @@ export class GameScene extends Phaser.Scene {
       color: "#9fb3d8",
     });
 
-    this.input.mouse?.disableContextMenu();
+    // Toast used for placement discoverability (one-time hint)
+    this.toast = this.add.text(14, 78, "", {
+      fontFamily: "monospace",
+      fontSize: "13px",
+      color: "#dbe7ff",
+      backgroundColor: "rgba(0,0,0,0.55)",
+      padding: { x: 8, y: 6 },
+    });
+    this.toast.setDepth(100000);
+    this.toast.setVisible(false);
+    this.toastTimer = null;
+    this.didShowPlaceToast = false;
 
-    this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
-    this.keyT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
-    this.keyU = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
-    this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
-    this.keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-    this.key1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
-    this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
-    this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
-
-    // pause/escape (from your latest changes)
-    this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
-    this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-
+    // Pause overlay
     this.isPaused = false;
     this.pauseText = this.add
       .text(540, 14, "", {
@@ -154,10 +153,23 @@ export class GameScene extends Phaser.Scene {
       .setDepth(100000)
       .setVisible(false);
 
+    this.input.mouse?.disableContextMenu();
+
+    // Keyboard
+    this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+    this.keyT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
+    this.keyU = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
+    this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    this.keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+    this.key1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
+    this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
+    this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
+    this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+    this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+
     this.setPaused = (paused) => {
       const p = !!paused;
       if (p === this.isPaused) return;
-
       this.isPaused = p;
 
       this.physics.world.isPaused = this.isPaused;
@@ -171,6 +183,7 @@ export class GameScene extends Phaser.Scene {
 
     this.togglePause = () => this.setPaused(!this.isPaused);
 
+    // Placement state
     this.ghost = null;
     this.isPlacing = false;
     this.placeType = "basic";
@@ -178,6 +191,7 @@ export class GameScene extends Phaser.Scene {
     this.ghostX = 0;
     this.ghostY = 0;
 
+    // Controls
     this.keyT.on("down", () => {
       if (this.isPaused) return;
       this.togglePlacement();
@@ -202,10 +216,12 @@ export class GameScene extends Phaser.Scene {
       if (this.isPaused) return;
       this.setPlaceType("basic");
     });
+
     this.key2.on("down", () => {
       if (this.isPaused) return;
       this.setPlaceType("rapid");
     });
+
     this.key3.on("down", () => {
       if (this.isPaused) return;
       this.setPlaceType("sniper");
@@ -228,6 +244,7 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    // Pointer
     this.input.on("pointerdown", (p) => {
       const wx = p.worldX;
       const wy = p.worldY;
@@ -278,14 +295,22 @@ export class GameScene extends Phaser.Scene {
     this.updateUI();
   }
 
+  // One-time toast helper (used to improve discoverability while placing)
+  showToast(msg, ms = 2400) {
+    this.toast.setText(msg);
+    this.toast.setVisible(true);
+    if (this.toastTimer) this.toastTimer.remove(false);
+    this.toastTimer = this.time.delayedCall(ms, () => {
+      this.toast.setVisible(false);
+    });
+  }
+
   buildInspector() {
     const pad = 14;
     const w = 300;
     const h = 190;
-
     this.inspectorW = w;
     this.inspectorH = h;
-
     this.inspectorX = this.scale.width - w - pad;
     this.inspectorY = this.scale.height - h - pad;
 
@@ -314,17 +339,10 @@ export class GameScene extends Phaser.Scene {
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
-    this.targetBtn = this.makeButton(
-      this.inspectorX + 12 + (btnW + gap) * 2,
-      btnY,
-      btnW,
-      btnH,
-      "Target (F)",
-      () => {
-        if (this.isPaused) return;
-        if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
-      }
-    );
+    this.targetBtn = this.makeButton(this.inspectorX + 12 + (btnW + gap) * 2, btnY, btnW, btnH, "Target (F)", () => {
+      if (this.isPaused) return;
+      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
+    });
 
     this.setInspectorVisible(false);
     this.drawInspectorBg(false);
@@ -376,15 +394,12 @@ export class GameScene extends Phaser.Scene {
     this.inspectorVisible = v;
     this.inspectorBg.setVisible(v);
     this.panel.setVisible(v);
-
     this.upgradeBtn.bg.setVisible(v);
     this.upgradeBtn.text.setVisible(v);
     this.upgradeBtn.hit.setVisible(v);
-
     this.sellBtn.bg.setVisible(v);
     this.sellBtn.text.setVisible(v);
     this.sellBtn.hit.setVisible(v);
-
     this.targetBtn.bg.setVisible(v);
     this.targetBtn.text.setVisible(v);
     this.targetBtn.hit.setVisible(v);
@@ -396,7 +411,6 @@ export class GameScene extends Phaser.Scene {
     const y = this.inspectorY;
     const w = this.inspectorW;
     const h = this.inspectorH;
-
     this.inspectorBg.fillStyle(0x0b0f14, 0.72);
     this.inspectorBg.fillRoundedRect(x, y, w, h, 10);
     this.inspectorBg.lineStyle(1, hasSelection ? 0x294a6a : 0x1a2a3d, 1);
@@ -454,6 +468,12 @@ export class GameScene extends Phaser.Scene {
 
     if (on) {
       this.clearSelection();
+
+      if (!this.didShowPlaceToast) {
+        this.didShowPlaceToast = true;
+        this.showToast("Placement: press 1/2/3 to switch tower type.", 2600);
+      }
+
       this.ghost = this.add.image(0, 0, "tower");
       this.ghost.setDepth(9000);
       this.ghost.setAlpha(0.5);
@@ -467,6 +487,7 @@ export class GameScene extends Phaser.Scene {
       this.ghost.destroy();
       this.ghost = null;
     }
+
     this.placeHint.setText("");
     this.hideRangeRing();
   }
@@ -511,7 +532,7 @@ export class GameScene extends Phaser.Scene {
     const ok = this.ghostValid ? "OK" : "BLOCKED";
     const need = this.money < tier0.cost ? " (not enough $)" : "";
     this.placeHint.setText(
-      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}`
+      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (1/2/3: switch)`
     );
   }
 
@@ -633,8 +654,6 @@ export class GameScene extends Phaser.Scene {
     t.fireMs = tier.fireMs;
     t.sprite.setTint(tier.tint);
     t.sprite.setScale(tier.scale ?? 1);
-
-    // keep badge visually above the sprite even if scale changes
     if (t.badge) t.badge.setDepth(t.sprite.depth + 1);
   }
 
@@ -650,15 +669,13 @@ export class GameScene extends Phaser.Scene {
 
   tryPlaceTowerAt(x, y) {
     if (!this.canPlaceTowerAt(x, y)) return;
-
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
-
     this.money -= tier0.cost;
 
     const img = this.add.image(x, y, "tower");
 
-    // NEW: sniper badge ("S")
+    // Sniper badge
     let badge = null;
     if (def.key === "sniper") {
       badge = this.add.text(x, y, "S", {
@@ -684,7 +701,7 @@ export class GameScene extends Phaser.Scene {
       spent: tier0.cost,
       targetMode: "close",
       sprite: img,
-      badge, // NEW
+      badge,
     };
 
     img.setTint(tier0.tint);
@@ -698,13 +715,11 @@ export class GameScene extends Phaser.Scene {
     if (!t) return;
     const idx = this.towers.indexOf(t);
     if (idx === -1) return;
-
     const refund = Math.floor((t.spent || 0) * 0.7);
 
-    // NEW: destroy badge if present
     if (t.badge) t.badge.destroy();
-
     t.sprite.destroy();
+
     this.towers.splice(idx, 1);
     this.money += refund;
     if (this.selectedTower === t) this.clearSelection();
@@ -767,6 +782,7 @@ export class GameScene extends Phaser.Scene {
       if (!e) return;
       const d = dist2(tower.x, tower.y, e.x, e.y);
       if (d > r2) return;
+
       if (mode === "close") {
         const m = -d;
         if (m > bestMetric) {
@@ -775,6 +791,7 @@ export class GameScene extends Phaser.Scene {
         }
         return;
       }
+
       if (mode === "strong") {
         const m = e.hp;
         if (m > bestMetric) {
@@ -783,6 +800,7 @@ export class GameScene extends Phaser.Scene {
         }
         return;
       }
+
       if (mode === "first") {
         const m = this.enemyProgressScore(e);
         if (m > bestMetric) {
@@ -847,7 +865,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateUI() {
-    this.ui.setText(`Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}`);
+    this.ui.setText(
+      `Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}`
+    );
 
     if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
       this.setInspectorVisible(false);
