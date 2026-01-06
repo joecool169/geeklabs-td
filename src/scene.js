@@ -47,6 +47,7 @@ const TOWER_DEFS = {
       { cost: 120, damage: 24, range: 130, fireMs: 170, tint: 0xb9f5ff, scale: 1.15 },
     ],
   },
+
   rapid: {
     key: "rapid",
     name: "Rapid",
@@ -57,6 +58,7 @@ const TOWER_DEFS = {
       { cost: 140, damage: 10, range: 105, fireMs: 95, tint: 0xc7ffe5, scale: 1.05 },
     ],
   },
+
   sniper: {
     key: "sniper",
     name: "Sniper",
@@ -133,6 +135,7 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+
     this.keyT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
     this.keyU = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
     this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
@@ -141,6 +144,44 @@ export class GameScene extends Phaser.Scene {
     this.key1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
     this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
     this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
+
+    // NEW: pause + escape
+    this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+    this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+
+    this.isPaused = false;
+    this.pauseText = this.add
+      .text(540, 14, "", {
+        fontFamily: "monospace",
+        fontSize: "18px",
+        color: "#ffffff",
+        backgroundColor: "rgba(0,0,0,0.6)",
+        padding: { x: 10, y: 6 },
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(100000)
+      .setVisible(false);
+
+    this.setPaused = (paused) => {
+      const p = !!paused;
+      if (p === this.isPaused) return;
+
+      this.isPaused = p;
+
+      // pause simulation
+      this.physics.world.isPaused = this.isPaused;
+
+      // pause spawns (uses this.spawnTimer = this.time.addEvent(...)) [2]
+      if (this.spawnTimer) this.spawnTimer.paused = this.isPaused;
+
+      // optional: cancel placement when pausing
+      if (this.isPaused && this.isPlacing) this.setPlacement(false);
+
+      this.pauseText.setText(this.isPaused ? "PAUSED (P to resume)" : "");
+      this.pauseText.setVisible(this.isPaused);
+    };
+
+    this.togglePause = () => this.setPaused(!this.isPaused);
 
     this.ghost = null;
     this.isPlacing = false;
@@ -151,27 +192,63 @@ export class GameScene extends Phaser.Scene {
     this.ghostX = 0;
     this.ghostY = 0;
 
-    this.keyT.on("down", () => this.togglePlacement());
+    this.keyT.on("down", () => {
+      if (this.isPaused) return;
+      this.togglePlacement();
+    });
 
     this.keyU.on("down", () => {
+      if (this.isPaused) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
     });
 
     this.keyX.on("down", () => {
+      if (this.isPaused) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
     this.keyF.on("down", () => {
+      if (this.isPaused) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
     });
 
-    this.key1.on("down", () => this.setPlaceType("basic"));
-    this.key2.on("down", () => this.setPlaceType("rapid"));
-    this.key3.on("down", () => this.setPlaceType("sniper"));
+    this.key1.on("down", () => {
+      if (this.isPaused) return;
+      this.setPlaceType("basic");
+    });
+    this.key2.on("down", () => {
+      if (this.isPaused) return;
+      this.setPlaceType("rapid");
+    });
+    this.key3.on("down", () => {
+      if (this.isPaused) return;
+      this.setPlaceType("sniper");
+    });
+
+    // NEW: pause toggle
+    this.keyP.on("down", () => this.togglePause());
+
+    // NEW: ESC cancels placement / clears selection / unpauses
+    this.keyEsc.on("down", () => {
+      if (this.isPaused) {
+        this.setPaused(false);
+        return;
+      }
+      if (this.isPlacing) {
+        this.setPlacement(false);
+        return;
+      }
+      if (this.selectedTower) {
+        this.clearSelection();
+        return;
+      }
+    });
 
     this.input.on("pointerdown", (p) => {
       const wx = p.worldX;
       const wy = p.worldY;
+
+      if (this.isPaused) return;
 
       if (p.rightButtonDown()) {
         const t = this.getTowerAt(wx, wy);
@@ -179,7 +256,6 @@ export class GameScene extends Phaser.Scene {
           this.trySellTower(t);
           return;
         }
-
         if (this.isPlacing) this.setPlacement(false);
         return;
       }
@@ -203,6 +279,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (p) => {
+      if (this.isPaused) return;
       if (!this.isPlacing) return;
       this.updateGhost(p.worldX, p.worldY);
     });
@@ -245,16 +322,26 @@ export class GameScene extends Phaser.Scene {
     const btnW = Math.floor((w - 24 - gap * 2) / 3);
 
     this.upgradeBtn = this.makeButton(this.inspectorX + 12, btnY, btnW, btnH, "Upgrade (U)", () => {
+      if (this.isPaused) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
     });
 
     this.sellBtn = this.makeButton(this.inspectorX + 12 + btnW + gap, btnY, btnW, btnH, "Sell (X)", () => {
+      if (this.isPaused) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
-    this.targetBtn = this.makeButton(this.inspectorX + 12 + (btnW + gap) * 2, btnY, btnW, btnH, "Target (F)", () => {
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
-    });
+    this.targetBtn = this.makeButton(
+      this.inspectorX + 12 + (btnW + gap) * 2,
+      btnY,
+      btnW,
+      btnH,
+      "Target (F)",
+      () => {
+        if (this.isPaused) return;
+        if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
+      }
+    );
 
     this.setInspectorVisible(false);
     this.drawInspectorBg(false);
@@ -278,16 +365,13 @@ export class GameScene extends Phaser.Scene {
 
     const draw = (enabled, hover = false, down = false) => {
       bg.clear();
-
       const fill = enabled ? 0x101a2a : 0x0a0f18;
       const alpha = enabled ? (hover ? 0.92 : 0.78) : 0.55;
       const stroke = enabled ? (hover ? 0x39ff8f : 0x294a6a) : 0x1a2a3d;
-
       bg.fillStyle(fill, alpha);
       bg.fillRoundedRect(x, y, w, h, 6);
       bg.lineStyle(down ? 2 : 1, stroke, 1);
       bg.strokeRoundedRect(x, y, w, h, 6);
-
       text.setAlpha(enabled ? 1 : 0.5);
     };
 
@@ -307,7 +391,6 @@ export class GameScene extends Phaser.Scene {
 
   setInspectorVisible(v) {
     this.inspectorVisible = v;
-
     this.inspectorBg.setVisible(v);
     this.panel.setVisible(v);
 
@@ -326,7 +409,6 @@ export class GameScene extends Phaser.Scene {
 
   drawInspectorBg(hasSelection) {
     this.inspectorBg.clear();
-
     const x = this.inspectorX;
     const y = this.inspectorY;
     const w = this.inspectorW;
@@ -334,12 +416,13 @@ export class GameScene extends Phaser.Scene {
 
     this.inspectorBg.fillStyle(0x0b0f14, 0.72);
     this.inspectorBg.fillRoundedRect(x, y, w, h, 10);
-
     this.inspectorBg.lineStyle(1, hasSelection ? 0x294a6a : 0x1a2a3d, 1);
     this.inspectorBg.strokeRoundedRect(x, y, w, h, 10);
   }
 
   update(time, dt) {
+    if (this.isPaused) return;
+
     for (const t of this.towers) {
       if (time < t.nextShotAt) continue;
       const target = this.findTarget(t, t.targetMode);
@@ -389,13 +472,13 @@ export class GameScene extends Phaser.Scene {
 
     if (on) {
       this.clearSelection();
-
       this.ghost = this.add.image(0, 0, "tower");
       this.ghost.setDepth(9000);
       this.ghost.setAlpha(0.5);
 
       const p = this.input.activePointer;
       this.updateGhost(p.worldX, p.worldY);
+
       this.hideRangeRing();
       return;
     }
@@ -422,12 +505,10 @@ export class GameScene extends Phaser.Scene {
   updateGhost(wx, wy) {
     const x = snap(wx);
     const y = snap(wy);
-
     if (x === this.ghostX && y === this.ghostY) return;
 
     this.ghostX = x;
     this.ghostY = y;
-
     this.ghostValid = this.canPlaceTowerAt(x, y);
 
     this.refreshGhostVisual();
@@ -447,6 +528,7 @@ export class GameScene extends Phaser.Scene {
 
     const ringCol = this.ghostValid ? 0x39ff8f : 0xff4d6d;
     this.showGhostRing(this.ghostX, this.ghostY, tier0.range, ringCol);
+
     this.updatePlaceHint();
   }
 
@@ -455,9 +537,9 @@ export class GameScene extends Phaser.Scene {
 
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
-
     const ok = this.ghostValid ? "OK" : "BLOCKED";
     const need = this.money < tier0.cost ? " (not enough $)" : "";
+
     this.placeHint.setText(
       `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}`
     );
@@ -510,6 +592,7 @@ export class GameScene extends Phaser.Scene {
   drawGrid() {
     const w = this.scale.width;
     const h = this.scale.height;
+
     this.g.lineStyle(1, 0x142033, 1);
     for (let x = 0; x <= w; x += GRID) this.g.lineBetween(x, 0, x, h);
     for (let y = 0; y <= h; y += GRID) this.g.lineBetween(0, y, w, y);
@@ -522,6 +605,7 @@ export class GameScene extends Phaser.Scene {
       const b = this.path[i + 1];
       this.g.lineBetween(a.x, a.y, b.x, b.y);
     }
+
     this.g.fillStyle(0x2a3f63, 1);
     for (const p of this.path) this.g.fillCircle(p.x, p.y, 6);
   }
@@ -563,12 +647,7 @@ export class GameScene extends Phaser.Scene {
 
     if (this.money < tier0.cost) return false;
 
-    if (
-      x < GRID / 2 ||
-      y < GRID / 2 ||
-      x > this.scale.width - GRID / 2 ||
-      y > this.scale.height - GRID / 2
-    )
+    if (x < GRID / 2 || y < GRID / 2 || x > this.scale.width - GRID / 2 || y > this.scale.height - GRID / 2)
       return false;
 
     if (this.isOnPath(x, y)) return false;
@@ -590,12 +669,10 @@ export class GameScene extends Phaser.Scene {
   applyTowerTier(t, tierIdx) {
     const def = TOWER_DEFS[t.type];
     const tier = def.tiers[tierIdx];
-
     t.tier = tierIdx + 1;
     t.damage = tier.damage;
     t.range = tier.range;
     t.fireMs = tier.fireMs;
-
     t.sprite.setTint(tier.tint);
     t.sprite.setScale(tier.scale ?? 1);
   }
@@ -609,7 +686,6 @@ export class GameScene extends Phaser.Scene {
     t.spent += nextCost;
 
     this.applyTowerTier(t, t.tier);
-
     if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
   }
 
@@ -646,7 +722,6 @@ export class GameScene extends Phaser.Scene {
 
   trySellTower(t) {
     if (!t) return;
-
     const idx = this.towers.indexOf(t);
     if (idx === -1) return;
 
@@ -654,8 +729,8 @@ export class GameScene extends Phaser.Scene {
 
     t.sprite.destroy();
     this.towers.splice(idx, 1);
-    this.money += refund;
 
+    this.money += refund;
     if (this.selectedTower === t) this.clearSelection();
   }
 
@@ -665,7 +740,6 @@ export class GameScene extends Phaser.Scene {
 
   spawnEnemy() {
     const start = this.path[0];
-
     const e = this.physics.add.image(start.x, start.y, "enemy");
     e.setCollideWorldBounds(false);
     e.body.setAllowGravity(false);
@@ -682,6 +756,7 @@ export class GameScene extends Phaser.Scene {
 
   advanceEnemy(e, dt) {
     const i = e.pathIndex;
+
     if (i >= this.path.length - 1) {
       e.destroy();
       this.lives -= 1;
@@ -691,9 +766,11 @@ export class GameScene extends Phaser.Scene {
 
     const a = this.path[i];
     const b = this.path[i + 1];
+
     const vx = b.x - a.x;
     const vy = b.y - a.y;
     const len = Math.sqrt(vx * vx + vy * vy) || 1;
+
     const ux = vx / len;
     const uy = vy / len;
 
@@ -723,6 +800,7 @@ export class GameScene extends Phaser.Scene {
 
     this.enemies.children.iterate((e) => {
       if (!e) return;
+
       const d = dist2(tower.x, tower.y, e.x, e.y);
       if (d > r2) return;
 
@@ -789,10 +867,12 @@ export class GameScene extends Phaser.Scene {
 
       if (segCircleHit(x0, y0, b.x, b.y, target.x, target.y, hitR)) {
         target.hp -= t.damage;
+
         if (target.hp <= 0) {
           target.destroy();
           this.money += 8;
         }
+
         b.destroy();
       }
     };
@@ -855,6 +935,7 @@ Sell: $${refund}`
     );
 
     const canUpgrade = nextCost !== null && this.money >= nextCost;
+
     this.upgradeBtn.hit.enabled = !!canUpgrade;
     this.upgradeBtn.draw(!!canUpgrade, false, false);
 
