@@ -1,9 +1,15 @@
 import Phaser from "phaser";
 
 const GRID = 40;
+const TOP_UI = 120;
 
-function snap(v) {
+function snapX(v) {
   return Math.floor(v / GRID) * GRID + GRID / 2;
+}
+
+function snapY(v) {
+  const vy = v - TOP_UI;
+  return Math.floor(vy / GRID) * GRID + GRID / 2 + TOP_UI;
 }
 
 function dist2(ax, ay, bx, by) {
@@ -159,14 +165,14 @@ export class GameScene extends Phaser.Scene {
     this.swarmNextPackSpawnAt = 0;
 
     this.path = [
-      { x: 80, y: 120 },
-      { x: 980, y: 120 },
-      { x: 980, y: 520 },
-      { x: 140, y: 520 },
-      { x: 140, y: 320 },
-      { x: 860, y: 320 },
+      { x: -120, y: 120 + TOP_UI - GRID / 2 },
+      { x: 980, y: 120 + TOP_UI - GRID / 2 },
+      { x: 980, y: 520 + TOP_UI - GRID / 2 },
+      { x: 140, y: 520 + TOP_UI - GRID / 2 },
+      { x: 140, y: 320 + TOP_UI - GRID / 2 },
+      { x: 860, y: 320 + TOP_UI - GRID / 2 },
     ];
-
+    
     this.makeTextures();
 
     this.g = this.add.graphics();
@@ -744,8 +750,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateGhost(wx, wy) {
-    const x = snap(wx);
-    const y = snap(wy);
+    const x = snapX(wx);
+    const y = snapY(wy);
     if (x === this.ghostX && y === this.ghostY) return;
 
     this.ghostX = x;
@@ -830,9 +836,17 @@ export class GameScene extends Phaser.Scene {
   drawGrid() {
     const w = this.scale.width;
     const h = this.scale.height;
+
+    const gw = Math.floor(w / GRID) * GRID;
+    const gx = Math.floor((w - gw) / 2);
+
     this.g.lineStyle(1, 0x142033, 1);
-    for (let x = 0; x <= w; x += GRID) this.g.lineBetween(x, 0, x, h);
-    for (let y = 0; y <= h; y += GRID) this.g.lineBetween(0, y, w, y);
+
+    for (let x = 0; x <= gw; x += GRID) this.g.lineBetween(gx + x, TOP_UI, gx + x, h);
+    for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y, gx + gw, y);
+
+    this.g.lineStyle(2, 0x294a6a, 1);
+    this.g.lineBetween(0, TOP_UI, w, TOP_UI);
   }
 
   drawPath() {
@@ -875,8 +889,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   getTowerAt(wx, wy) {
-    const x = snap(wx);
-    const y = snap(wy);
+    const x = snapX(wx);
+    const y = snapY(wy);
     return this.towers.find((t) => t.x === x && t.y === y);
   }
 
@@ -885,8 +899,8 @@ export class GameScene extends Phaser.Scene {
     const tier0 = def.tiers[0];
     if (this.money < tier0.cost) return false;
 
-    if (x < GRID / 2 || y < GRID / 2 || x > this.scale.width - GRID / 2 || y > this.scale.height - GRID / 2)
-      return false;
+    if (x < GRID / 2 || y < TOP_UI + GRID / 2 || x > this.scale.width - GRID / 2 || y > this.scale.height - GRID / 2)
+    return false;
 
     if (this.isOnPath(x, y)) return false;
 
