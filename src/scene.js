@@ -27,15 +27,12 @@ function segCircleHit(x1, y1, x2, y2, cx, cy, r) {
   const dy = y2 - y1;
   const fx = x1 - cx;
   const fy = y1 - cy;
-
   const a = dx * dx + dy * dy;
   const b = 2 * (fx * dx + fy * dy);
   const c = fx * fx + fy * fy - r * r;
-
   let disc = b * b - 4 * a * c;
   if (disc < 0) return false;
   disc = Math.sqrt(disc);
-
   const t1 = (-b - disc) / (2 * a);
   const t2 = (-b + disc) / (2 * a);
   return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
@@ -81,8 +78,6 @@ function nextInCycle(arr, v) {
   return arr[(i + 1 + arr.length) % arr.length];
 }
 
-// Enemy options 1–4: runner, brute, swarm (as packs), armored.
-// Scaling is applied per-wave via multipliers.
 const ENEMY_DEFS = {
   runner: {
     key: "runner",
@@ -91,9 +86,10 @@ const ENEMY_DEFS = {
     baseHp: 18,
     baseSpeed: 145,
     reward: 6,
-    armor: 0, // flat DR
+    armor: 0,
     scaleHpPerWave: 0.1,
     scaleSpeedPerWave: 0.02,
+    scoreWeight: 0.7,
   },
   brute: {
     key: "brute",
@@ -105,6 +101,7 @@ const ENEMY_DEFS = {
     armor: 0,
     scaleHpPerWave: 0.14,
     scaleSpeedPerWave: 0.01,
+    scoreWeight: 1.5,
   },
   armored: {
     key: "armored",
@@ -113,9 +110,10 @@ const ENEMY_DEFS = {
     baseHp: 40,
     baseSpeed: 85,
     reward: 10,
-    armor: 4, // flat DR per hit
+    armor: 4,
     scaleHpPerWave: 0.12,
     scaleSpeedPerWave: 0.015,
+    scoreWeight: 1.8,
   },
 };
 
@@ -124,7 +122,6 @@ function clamp01(v) {
 }
 
 function pickWeighted(rng01, entries) {
-  // entries: [{ key, w }]
   const total = entries.reduce((s, e) => s + e.w, 0);
   if (total <= 0) return entries[0]?.key;
   let t = rng01 * total;
@@ -143,23 +140,21 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.money = 120;
     this.lives = 20;
+    this.killCount = 0;
+    this.score = 0;
 
-    // Wave structure state
     this.wave = 1;
-    this.waveState = "intermission"; // "intermission" | "running"
+    this.waveState = "intermission";
     this.waveEnemiesTotal = 0;
     this.waveEnemiesSpawned = 0;
     this.waveSpawnDelayMs = 650;
     this.waveNextSpawnAt = 0;
     this.intermissionMs = 2000;
     this.nextWaveAvailableAt = 0;
-
-    // Default ON: auto-start waves after wave 1
     this.autoStartWaves = true;
     this.autoStartTimer = null;
     this.didStartFirstWave = false;
 
-    // Swarm pack state
     this.swarmPacksRemaining = 0;
     this.swarmPackSpacingMs = 60;
     this.swarmNextPackSpawnAt = 0;
@@ -172,9 +167,8 @@ export class GameScene extends Phaser.Scene {
       { x: 140, y: 320 + TOP_UI - GRID / 2 },
       { x: 860, y: 320 + TOP_UI - GRID / 2 },
     ];
-    
-    this.makeTextures();
 
+    this.makeTextures();
     this.g = this.add.graphics();
     this.drawGrid();
     this.drawPath();
@@ -184,12 +178,23 @@ export class GameScene extends Phaser.Scene {
     this.bullets = this.physics.add.group();
 
     this.selectedTower = null;
-
     this.rangeRing = this.add.graphics();
     this.rangeRing.setDepth(9999);
     this.rangeRing.setVisible(false);
 
     this.ui = this.add.text(14, 12, "", {
+      fontFamily: "monospace",
+      fontSize: "16px",
+      color: "#dbe7ff",
+    });
+
+    this.killText = this.add.text(640, 12, "Kills: 0", {
+      fontFamily: "monospace",
+      fontSize: "16px",
+      color: "#dbe7ff",
+
+    });
+    this.scoreText = this.add.text(780, 12, "Score: 0", {
       fontFamily: "monospace",
       fontSize: "16px",
       color: "#dbe7ff",
@@ -207,8 +212,8 @@ export class GameScene extends Phaser.Scene {
       fontSize: "13px",
       color: "#9fb3d8",
     });
-
-    this.waveHint = this.add.text(14, 78, "", {
+   
+    this.waveHint = this.add.text(14, 114, "", {
       fontFamily: "monospace",
       fontSize: "13px",
       color: "#dbe7ff",
@@ -216,8 +221,7 @@ export class GameScene extends Phaser.Scene {
       padding: { x: 8, y: 6 },
     });
 
-    // Toast used for placement discoverability (one-time hint)
-    this.toast = this.add.text(14, 110, "", {
+    this.toast = this.add.text(14, 146, "", {
       fontFamily: "monospace",
       fontSize: "13px",
       color: "#dbe7ff",
@@ -229,7 +233,6 @@ export class GameScene extends Phaser.Scene {
     this.toastTimer = null;
     this.didShowPlaceToast = false;
 
-    // Pause overlay
     this.isPaused = false;
     this.pauseText = this.add
       .text(540, 14, "", {
@@ -245,7 +248,6 @@ export class GameScene extends Phaser.Scene {
 
     this.input.mouse?.disableContextMenu();
 
-    // Keyboard
     this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
     this.keyT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
     this.keyU = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
@@ -262,22 +264,15 @@ export class GameScene extends Phaser.Scene {
       const p = !!paused;
       if (p === this.isPaused) return;
       this.isPaused = p;
-
-      // Freeze gameplay simulation and spawning [1]
       this.physics.world.isPaused = this.isPaused;
-
-      // Also pause/restart auto-start timer behavior
       if (this.autoStartTimer) this.autoStartTimer.paused = this.isPaused;
-
       if (this.isPaused && this.isPlacing) this.setPlacement(false);
-
       this.pauseText.setText(this.isPaused ? "PAUSED (P to resume)" : "");
       this.pauseText.setVisible(this.isPaused);
     };
 
     this.togglePause = () => this.setPaused(!this.isPaused);
 
-    // Placement state
     this.ghost = null;
     this.isPlacing = false;
     this.placeType = "basic";
@@ -285,7 +280,6 @@ export class GameScene extends Phaser.Scene {
     this.ghostX = 0;
     this.ghostY = 0;
 
-    // Controls
     this.keyT.on("down", () => {
       if (this.isPaused) return;
       this.togglePlacement();
@@ -338,19 +332,14 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // Wave start / skip wait
     this.keySpace.on("down", () => {
       if (this.isPaused) return;
-
-      // Wave 1 requires SPACE; later waves auto-start, but SPACE can skip intermission
       if (this.waveState === "intermission") {
-        // if intermission is still counting down, allow SPACE to skip to ready
         this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, this.time.now);
         this.tryStartWave();
       }
     });
 
-    // Pointer
     this.input.on("pointerdown", (p) => {
       const wx = p.worldX;
       const wy = p.worldY;
@@ -380,7 +369,6 @@ export class GameScene extends Phaser.Scene {
         this.selectTower(t);
         return;
       }
-
       this.clearSelection();
     });
 
@@ -392,12 +380,9 @@ export class GameScene extends Phaser.Scene {
 
     this.buildInspector();
     this.updateUI();
-
-    // Start in intermission (wave 1 ready, but requires SPACE)
     this.enterIntermission(true);
   }
 
-  // One-time toast helper (used to improve discoverability while placing)
   showToast(msg, ms = 2400) {
     this.toast.setText(msg);
     this.toast.setVisible(true);
@@ -407,26 +392,17 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  // -------------------
-  // Wave structure
-  // -------------------
   computeWaveConfig(wave) {
     const w = Math.max(1, wave);
-
     const total = Math.floor(10 + w * 3 + Math.min(18, w * 1.5));
     const spawnDelayMs = Math.max(260, 650 - w * 18);
-
     const bruteW = clamp01((w - 10) / 10) * 0.9;
     const armoredW = clamp01((w - 20) / 10) * 0.8;
-
     const weights = [{ key: "runner", w: 1.6 }];
-
     if (w >= 10) weights.push({ key: "brute", w: 0.6 + bruteW });
     if (w >= 20) weights.push({ key: "armored", w: 0.15 + armoredW });
-
     const packEvery = Math.max(9, 14 - Math.floor(w / 2));
     const packSize = Math.min(7, 3 + Math.floor(w / 3));
-
     return {
       total,
       spawnDelayMs,
@@ -450,13 +426,11 @@ export class GameScene extends Phaser.Scene {
       this.autoStartTimer = null;
     }
 
-    // Wave 1: wait until SPACE
     if (isInitial && !this.didStartFirstWave) {
-      this.nextWaveAvailableAt = this.time.now; // "ready"
+      this.nextWaveAvailableAt = this.time.now;
       return;
     }
 
-    // Later waves: intermission delay, then auto-start (default ON)
     this.nextWaveAvailableAt = this.time.now + this.intermissionMs;
 
     if (this.autoStartWaves) {
@@ -471,9 +445,7 @@ export class GameScene extends Phaser.Scene {
   tryStartWave() {
     if (this.waveState !== "intermission") return;
     if (this.time.now < this.nextWaveAvailableAt) return;
-
     this.startWave(this.wave);
-
     if (!this.didStartFirstWave) this.didStartFirstWave = true;
   }
 
@@ -484,13 +456,9 @@ export class GameScene extends Phaser.Scene {
     this.waveEnemiesSpawned = 0;
     this.waveSpawnDelayMs = cfg.spawnDelayMs;
     this.waveNextSpawnAt = this.time.now + 250;
-
     this.waveCfg = cfg;
   }
 
-  // -------------------
-  // Inspector UI
-  // -------------------
   buildInspector() {
     const pad = 14;
     const w = 300;
@@ -575,7 +543,6 @@ export class GameScene extends Phaser.Scene {
 
     hit.enabled = true;
     draw(true, false, false);
-
     return { bg, text, hit, draw };
   }
 
@@ -583,15 +550,12 @@ export class GameScene extends Phaser.Scene {
     this.inspectorVisible = v;
     this.inspectorBg.setVisible(v);
     this.panel.setVisible(v);
-
     this.upgradeBtn.bg.setVisible(v);
     this.upgradeBtn.text.setVisible(v);
     this.upgradeBtn.hit.setVisible(v);
-
     this.sellBtn.bg.setVisible(v);
     this.sellBtn.text.setVisible(v);
     this.sellBtn.hit.setVisible(v);
-
     this.targetBtn.bg.setVisible(v);
     this.targetBtn.text.setVisible(v);
     this.targetBtn.hit.setVisible(v);
@@ -614,7 +578,6 @@ export class GameScene extends Phaser.Scene {
   update(time, dt) {
     if (this.isPaused) return;
 
-    // Towers fire
     for (const t of this.towers) {
       if (time < t.nextShotAt) continue;
       const target = this.findTarget(t, t.targetMode);
@@ -623,16 +586,13 @@ export class GameScene extends Phaser.Scene {
       this.fireBullet(t, target);
     }
 
-    // Enemy movement
     this.enemies.children.iterate((e) => {
       if (!e) return;
       this.advanceEnemy(e, dt);
     });
 
-    // Wave spawning
     this.updateWaveSpawning(time);
 
-    // Placement ring / selection ring
     if (this.isPlacing) {
       const col = this.ghostValid ? 0x39ff8f : 0xff4d6d;
       const def = this.getPlaceDef();
@@ -645,13 +605,12 @@ export class GameScene extends Phaser.Scene {
       this.hideRangeRing();
     }
 
-    // Wave completion check
     if (this.waveState === "running") {
       const alive = this.enemies.countActive(true);
       if (this.waveEnemiesSpawned >= this.waveEnemiesTotal && alive === 0) {
         const clearBonus = 10 + Math.floor(this.wave * 2);
         this.money += clearBonus;
-
+        this.score += clearBonus;
         this.wave += 1;
         this.enterIntermission(false);
       }
@@ -663,7 +622,6 @@ export class GameScene extends Phaser.Scene {
   updateWaveSpawning(time) {
     if (this.waveState !== "running") return;
 
-    // Spawn remaining members of an active swarm pack
     if (this.swarmPacksRemaining > 0 && time >= this.swarmNextPackSpawnAt) {
       this.spawnEnemyOfType("runner", { isSwarm: true });
       this.waveEnemiesSpawned += 1;
@@ -682,7 +640,6 @@ export class GameScene extends Phaser.Scene {
       const toSpawn = Math.min(cfg.packSize, this.waveEnemiesTotal - this.waveEnemiesSpawned);
       this.spawnEnemyOfType("runner", { isSwarm: true });
       this.waveEnemiesSpawned += 1;
-
       this.swarmPacksRemaining = Math.max(0, toSpawn - 1);
       this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
     } else {
@@ -719,11 +676,9 @@ export class GameScene extends Phaser.Scene {
         this.didShowPlaceToast = true;
         this.showToast("Placement: press 1/2/3 to switch tower type.", 2600);
       }
-
       this.ghost = this.add.image(0, 0, "tower");
       this.ghost.setDepth(9000);
       this.ghost.setAlpha(0.5);
-
       const p = this.input.activePointer;
       this.updateGhost(p.worldX, p.worldY);
       this.hideRangeRing();
@@ -734,7 +689,6 @@ export class GameScene extends Phaser.Scene {
       this.ghost.destroy();
       this.ghost = null;
     }
-
     this.placeHint.setText("");
     this.hideRangeRing();
   }
@@ -753,29 +707,22 @@ export class GameScene extends Phaser.Scene {
     const x = snapX(wx);
     const y = snapY(wy);
     if (x === this.ghostX && y === this.ghostY) return;
-
     this.ghostX = x;
     this.ghostY = y;
-
     this.ghostValid = this.canPlaceTowerAt(x, y);
     this.refreshGhostVisual();
   }
 
   refreshGhostVisual() {
     if (!this.ghost) return;
-
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
-
     this.ghost.setPosition(this.ghostX, this.ghostY);
-
     const col = this.ghostValid ? tier0.tint : 0xff4d6d;
     this.ghost.setTint(col);
     this.ghost.setScale(tier0.scale ?? 1);
-
     const ringCol = this.ghostValid ? 0x39ff8f : 0xff4d6d;
     this.showGhostRing(this.ghostX, this.ghostY, tier0.range, ringCol);
-
     this.updatePlaceHint();
   }
 
@@ -812,7 +759,6 @@ export class GameScene extends Phaser.Scene {
   makeTextures() {
     if (this.textures.exists("tower")) return;
     const g = this.add.graphics();
-
     g.clear();
     g.fillStyle(0xffffff, 1);
     g.fillRect(0, 0, 30, 30);
@@ -829,22 +775,17 @@ export class GameScene extends Phaser.Scene {
     g.fillStyle(0xffffff, 1);
     g.fillCircle(4, 4, 4);
     g.generateTexture("bullet", 8, 8);
-
     g.destroy();
   }
 
   drawGrid() {
     const w = this.scale.width;
     const h = this.scale.height;
-
     const gw = Math.floor(w / GRID) * GRID;
     const gx = Math.floor((w - gw) / 2);
-
     this.g.lineStyle(1, 0x142033, 1);
-
     for (let x = 0; x <= gw; x += GRID) this.g.lineBetween(gx + x, TOP_UI, gx + x, h);
     for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y, gx + gw, y);
-
     this.g.lineStyle(2, 0x294a6a, 1);
     this.g.lineBetween(0, TOP_UI, w, TOP_UI);
   }
@@ -876,13 +817,10 @@ export class GameScene extends Phaser.Scene {
     const aby = by - ay;
     const apx = px - ax;
     const apy = py - ay;
-
     const ab2 = abx * abx + aby * aby;
     const t = ab2 === 0 ? 0 : Math.max(0, Math.min(1, (apx * abx + apy * aby) / ab2));
-
     const cx = ax + t * abx;
     const cy = ay + t * aby;
-
     const dx = px - cx;
     const dy = py - cy;
     return Math.sqrt(dx * dx + dy * dy);
@@ -898,16 +836,11 @@ export class GameScene extends Phaser.Scene {
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
     if (this.money < tier0.cost) return false;
-
-    if (x < GRID / 2 || y < TOP_UI + GRID / 2 || x > this.scale.width - GRID / 2 || y > this.scale.height - GRID / 2)
-    return false;
-
+    if (x < GRID / 2 || y < TOP_UI + GRID / 2 || x > this.scale.width - GRID / 2 || y > this.scale.height - GRID / 2) return false;
     if (this.isOnPath(x, y)) return false;
-
     for (const t of this.towers) {
       if (t.x === x && t.y === y) return false;
     }
-
     return true;
   }
 
@@ -921,12 +854,10 @@ export class GameScene extends Phaser.Scene {
   applyTowerTier(t, tierIdx) {
     const def = TOWER_DEFS[t.type];
     const tier = def.tiers[tierIdx];
-
     t.tier = tierIdx + 1;
     t.damage = tier.damage;
     t.range = tier.range;
     t.fireMs = tier.fireMs;
-
     t.sprite.setTint(tier.tint);
     t.sprite.setScale(tier.scale ?? 1);
     if (t.badge) t.badge.setDepth(t.sprite.depth + 1);
@@ -936,26 +867,18 @@ export class GameScene extends Phaser.Scene {
     const nextCost = this.getNextUpgradeCost(t);
     if (nextCost === null) return;
     if (this.money < nextCost) return;
-
     this.money -= nextCost;
     t.spent += nextCost;
-
     this.applyTowerTier(t, t.tier);
-
     if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
   }
 
   tryPlaceTowerAt(x, y) {
     if (!this.canPlaceTowerAt(x, y)) return;
-
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
-
     this.money -= tier0.cost;
-
     const img = this.add.image(x, y, "tower");
-
-    // Sniper badge
     let badge = null;
     if (def.key === "sniper") {
       badge = this.add.text(x, y, "S", {
@@ -968,7 +891,6 @@ export class GameScene extends Phaser.Scene {
       badge.setOrigin(0.5, 0.5);
       badge.setDepth(img.depth + 1);
     }
-
     const t = {
       x,
       y,
@@ -983,10 +905,8 @@ export class GameScene extends Phaser.Scene {
       sprite: img,
       badge,
     };
-
     img.setTint(tier0.tint);
     img.setScale(tier0.scale ?? 1);
-
     this.towers.push(t);
     this.selectTower(t);
   }
@@ -995,15 +915,11 @@ export class GameScene extends Phaser.Scene {
     if (!t) return;
     const idx = this.towers.indexOf(t);
     if (idx === -1) return;
-
     const refund = Math.floor((t.spent || 0) * 0.7);
-
     if (t.badge) t.badge.destroy();
     t.sprite.destroy();
-
     this.towers.splice(idx, 1);
     this.money += refund;
-
     if (this.selectedTower === t) this.clearSelection();
   }
 
@@ -1011,65 +927,47 @@ export class GameScene extends Phaser.Scene {
     t.targetMode = nextInCycle(TARGET_MODES, t.targetMode);
   }
 
-  // -------------------
-  // Enemies (options 1–4)
-  // -------------------
   spawnEnemyOfType(typeKey, opts = {}) {
     const def = ENEMY_DEFS[typeKey] || ENEMY_DEFS.runner;
     const start = this.path[0];
-
     const e = this.physics.add.image(start.x, start.y, "enemy");
     e.setCollideWorldBounds(false);
     e.body.setAllowGravity(false);
-
     const w = Math.max(1, this.wave);
     const hpMul = 1 + (w - 1) * (def.scaleHpPerWave ?? 0.12);
     const spMul = 1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02);
-
     e.typeKey = def.key;
     e.setTint(def.tint);
-
     e.hp = Math.max(1, Math.floor(def.baseHp * hpMul));
     e.maxHp = e.hp;
-
     e.speed = Math.floor(def.baseSpeed * spMul);
-
-    // Armor: flat DR per hit
     e.armor = def.armor || 0;
-
     e.reward = def.reward || 8;
+    e.scoreWeight = def.scoreWeight ?? 1;
     e.pathIndex = 0;
-
     e.isSwarm = !!opts.isSwarm;
-
     this.enemies.add(e);
     return e;
   }
 
   advanceEnemy(e, dt) {
     const i = e.pathIndex;
-
     if (i >= this.path.length - 1) {
       e.destroy();
       this.lives -= 1;
       if (this.lives <= 0) this.scene.restart();
       return;
     }
-
     const a = this.path[i];
     const b = this.path[i + 1];
-
     const vx = b.x - a.x;
     const vy = b.y - a.y;
     const len = Math.sqrt(vx * vx + vy * vy) || 1;
-
     const ux = vx / len;
     const uy = vy / len;
-
     const move = (e.speed * dt) / 1000;
     e.x += ux * move;
     e.y += uy * move;
-
     if (dist2(e.x, e.y, b.x, b.y) < 14 * 14) {
       e.pathIndex += 1;
       e.x = b.x;
@@ -1088,12 +986,10 @@ export class GameScene extends Phaser.Scene {
     const r2 = tower.range * tower.range;
     let best = null;
     let bestMetric = -Infinity;
-
     this.enemies.children.iterate((e) => {
       if (!e) return;
       const d = dist2(tower.x, tower.y, e.x, e.y);
       if (d > r2) return;
-
       if (mode === "close") {
         const m = -d;
         if (m > bestMetric) {
@@ -1102,7 +998,6 @@ export class GameScene extends Phaser.Scene {
         }
         return;
       }
-
       if (mode === "strong") {
         const m = e.hp;
         if (m > bestMetric) {
@@ -1111,7 +1006,6 @@ export class GameScene extends Phaser.Scene {
         }
         return;
       }
-
       if (mode === "first") {
         const m = this.enemyProgressScore(e);
         if (m > bestMetric) {
@@ -1120,58 +1014,50 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
-
     return best;
   }
 
   fireBullet(t, target) {
     const x = t.x;
     const y = t.y;
-
     const b = this.add.circle(x, y, 6, 0x00ffff, 1);
     b.setDepth(50);
-
     const spd = 780;
     const hitR = 14;
-
     const step = (_time, dt) => {
       if (!b.active) return;
-
       const x0 = b.x;
       const y0 = b.y;
-
       if (!target.active) {
         b.destroy();
         return;
       }
-
       const dx = target.x - b.x;
       const dy = target.y - b.y;
       const len = Math.sqrt(dx * dx + dy * dy) || 1;
-
       const vx = (dx / len) * spd;
       const vy = (dy / len) * spd;
-
       b.x += (vx * dt) / 1000;
       b.y += (vy * dt) / 1000;
-
       if (segCircleHit(x0, y0, b.x, b.y, target.x, target.y, hitR)) {
         const armor = target.armor || 0;
         const dmg = Math.max(1, t.damage - armor);
         target.hp -= dmg;
-
         if (target.hp <= 0) {
           const reward = target.reward ?? 8;
+          const weight = target.scoreWeight ?? 1;
           target.destroy();
           this.money += reward;
+          this.killCount += 1;
+          const scoreGain = reward + Math.round(weight * 10);
+          this.score += scoreGain;
+          this.killText.setText(`Kills: ${this.killCount}`);
+          this.scoreText.setText(`Score: ${this.score}`);
         }
-
         b.destroy();
       }
     };
-
     b.update = step;
-
     if (!this.bulletsPlain) {
       this.bulletsPlain = [];
       this.events.on("update", (time, dt) => {
@@ -1181,9 +1067,7 @@ export class GameScene extends Phaser.Scene {
         this.bulletsPlain = this.bulletsPlain.filter((o) => o.active);
       });
     }
-
     this.bulletsPlain.push(b);
-
     this.time.delayedCall(900, () => {
       if (b.active) b.destroy();
     });
@@ -1194,52 +1078,52 @@ export class GameScene extends Phaser.Scene {
       const wait = Math.max(0, this.nextWaveAvailableAt - this.time.now);
       const ready = wait <= 0;
       const sec = Math.ceil(wait / 1000);
-
       this.waveHint.setVisible(true);
 
-      // Wave 1: explicitly instruct SPACE
       if (!this.didStartFirstWave) {
-        this.waveHint.setText(`Wave ${this.wave} ready. Press SPACE to start.`);
-      } else if (ready) {
-        this.waveHint.setText(this.autoStartWaves ? `Wave ${this.wave} starting...` : `Wave ${this.wave} ready. Press SPACE to start.`);
-      } else {
-        this.waveHint.setText(
-          this.autoStartWaves
-            ? `Next wave in ${sec}s... (SPACE to start now)`
-            : `Wave ${this.wave} ready in ${sec}s... (SPACE to start when ready)`
-        );
-      }
+      this.waveHint.setText(`Wave ${this.wave} ready. Press SPACE to start.`);
+    } else if (ready) {
+      this.waveHint.setText(
+        this.autoStartWaves
+          ? `Wave ${this.wave} starting...`
+          : `Wave ${this.wave} ready. Press SPACE to start.`
+      );
     } else {
-      this.waveHint.setVisible(true);
-      this.waveHint.setText(`Wave ${this.wave} running: ${this.waveEnemiesSpawned}/${this.waveEnemiesTotal}`);
+      this.waveHint.setText(
+        this.autoStartWaves
+          ? `Next wave in ${sec}s... (SPACE to start now)`
+          : `Wave ${this.wave} ready in ${sec}s... (SPACE to start when ready)`
+      );
     }
-
-    this.ui.setText(
-      `Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}`
+  } else {
+    this.waveHint.setVisible(true);
+    this.waveHint.setText(
+      `Wave ${this.wave} running: ${this.waveEnemiesSpawned}/${this.waveEnemiesTotal}`
     );
+  }
 
-    if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
-      this.setInspectorVisible(false);
-      this.panel.setText("");
-      return;
-    }
+  this.ui.setText(
+    `Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}`
+  );
+  this.killText.setText(`Kills: ${this.killCount}`);
+  this.scoreText.setText(`Score: ${this.score}`);
+
+  if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
+    this.setInspectorVisible(false);
+    this.panel.setText("");
+    return;
+  }
 
     this.setInspectorVisible(true);
     this.drawInspectorBg(true);
-
     const t = this.selectedTower;
     const def = TOWER_DEFS[t.type];
-
     const sps = 1000 / t.fireMs;
     const dps = t.damage * sps;
-
     const nextCost = this.getNextUpgradeCost(t);
     const nextText = nextCost === null ? "Max" : `$${nextCost}`;
-
     const refund = Math.floor((t.spent || 0) * 0.7);
-
     const targetLabel = t.targetMode === "close" ? "Close" : t.targetMode === "strong" ? "Strong" : "First";
-
     this.panel.setText(
       `${def.name} Tower (Tier ${t.tier})
 Target: ${targetLabel}
@@ -1250,14 +1134,11 @@ DPS: ${round1(dps)}
 Upgrade: ${nextText}
 Sell: $${refund}`
     );
-
     const canUpgrade = nextCost !== null && this.money >= nextCost;
     this.upgradeBtn.hit.enabled = !!canUpgrade;
     this.upgradeBtn.draw(!!canUpgrade, false, false);
-
     this.sellBtn.hit.enabled = true;
     this.sellBtn.draw(true, false, false);
-
     this.targetBtn.hit.enabled = true;
     this.targetBtn.draw(true, false, false);
   }
