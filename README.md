@@ -54,7 +54,7 @@ Graphics are intentionally minimal at this stage so development effort can focus
 
 ## Development Philosophy
 
-GeekLabs-TD is a laboratory project:
+GeekLabs-TD is a homelab project:
 
 - Mechanics first
 - Visual polish later
