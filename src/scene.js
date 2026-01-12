@@ -84,11 +84,11 @@ const ENEMY_DEFS = {
     name: "Runner",
     tint: 0xff4d6d,
     baseHp: 18,
-    baseSpeed: 145,
+    baseSpeed: 120,
     reward: 6,
     armor: 0,
     scaleHpPerWave: 0.1,
-    scaleSpeedPerWave: 0.02,
+    scaleSpeedPerWave: 0.012,
     scoreWeight: 0.7,
   },
   brute: {
@@ -96,11 +96,11 @@ const ENEMY_DEFS = {
     name: "Brute",
     tint: 0xb54dff,
     baseHp: 70,
-    baseSpeed: 60,
+    baseSpeed: 52,
     reward: 12,
     armor: 0,
     scaleHpPerWave: 0.14,
-    scaleSpeedPerWave: 0.01,
+    scaleSpeedPerWave: 0.007,
     scoreWeight: 1.5,
   },
   armored: {
@@ -108,11 +108,11 @@ const ENEMY_DEFS = {
     name: "Armored",
     tint: 0x8fb3c9,
     baseHp: 40,
-    baseSpeed: 85,
+    baseSpeed: 72,
     reward: 10,
     armor: 4,
     scaleHpPerWave: 0.12,
-    scaleSpeedPerWave: 0.015,
+    scaleSpeedPerWave: 0.010,
     scoreWeight: 1.8,
   },
 };
@@ -213,7 +213,7 @@ export class GameScene extends Phaser.Scene {
       color: "#9fb3d8",
     });
    
-    this.waveHint = this.add.text(14, 114, "", {
+    this.waveHint = this.add.text(14, TOP_UI - 34, "", {
       fontFamily: "monospace",
       fontSize: "13px",
       color: "#dbe7ff",
@@ -608,7 +608,7 @@ export class GameScene extends Phaser.Scene {
     if (this.waveState === "running") {
       const alive = this.enemies.countActive(true);
       if (this.waveEnemiesSpawned >= this.waveEnemiesTotal && alive === 0) {
-        const clearBonus = 10 + Math.floor(this.wave * 2);
+        const clearBonus = 6 + Math.floor(this.wave * 1.5);
         this.money += clearBonus;
         this.score += clearBonus;
         this.wave += 1;
@@ -659,9 +659,11 @@ export class GameScene extends Phaser.Scene {
   setPlaceType(type) {
     if (!TOWER_DEFS[type]) return;
     this.placeType = type;
-    if (this.isPlacing) this.refreshGhostVisual();
+    if (this.isPlacing) {
+      if (this.ghost) this.ghost.setTexture(this.getTowerTextureKey(this.placeType));
+      this.refreshGhostVisual();
+    }
   }
-
   togglePlacement() {
     this.setPlacement(!this.isPlacing);
   }
@@ -676,7 +678,7 @@ export class GameScene extends Phaser.Scene {
         this.didShowPlaceToast = true;
         this.showToast("Placement: press 1/2/3 to switch tower type.", 2600);
       }
-      this.ghost = this.add.image(0, 0, "tower");
+      this.ghost = this.add.image(0, 0, this.getTowerTextureKey(this.placeType));
       this.ghost.setDepth(9000);
       this.ghost.setAlpha(0.5);
       const p = this.input.activePointer;
@@ -757,7 +759,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   makeTextures() {
-    if (this.textures.exists("tower")) return;
+    if (this.textures.exists("tower") && this.textures.exists("tower_rapid")) return;
     const g = this.add.graphics();
     g.clear();
     g.fillStyle(0xffffff, 1);
@@ -765,6 +767,13 @@ export class GameScene extends Phaser.Scene {
     g.lineStyle(2, 0x0b0f14, 1);
     g.strokeRect(0, 0, 30, 30);
     g.generateTexture("tower", 30, 30);
+
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(15, 15, 15);
+    g.lineStyle(2, 0x0b0f14, 1);
+    g.strokeCircle(15, 15, 15);
+    g.generateTexture("tower_rapid", 30, 30);
 
     g.clear();
     g.fillStyle(0xff4d6d, 1);
@@ -832,6 +841,10 @@ export class GameScene extends Phaser.Scene {
     return this.towers.find((t) => t.x === x && t.y === y);
   }
 
+  getTowerTextureKey(type) {
+    return type === "rapid" ? "tower_rapid" : "tower";
+  }
+
   canPlaceTowerAt(x, y) {
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
@@ -878,7 +891,7 @@ export class GameScene extends Phaser.Scene {
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
     this.money -= tier0.cost;
-    const img = this.add.image(x, y, "tower");
+    const img = this.add.image(x, y, this.getTowerTextureKey(def.key));
     let badge = null;
     if (def.key === "sniper") {
       badge = this.add.text(x, y, "S", {
@@ -1107,6 +1120,9 @@ export class GameScene extends Phaser.Scene {
   );
   this.killText.setText(`Kills: ${this.killCount}`);
   this.scoreText.setText(`Score: ${this.score}`);
+  this.killText.setX(this.ui.x + this.ui.width + 24);
+  this.scoreText.setX(this.killText.x + this.killText.width + 24);
+
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
     this.setInspectorVisible(false);
