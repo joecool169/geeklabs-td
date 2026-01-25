@@ -40,9 +40,9 @@ const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const DEFAULT_DIFFICULTY_KEY = "easy";
 const SFX_CONFIG = {
-  place: { url: "/sfx/place.wav", volume: 0.4 },
-  upgrade: { url: "/sfx/upgrade.wav", volume: 0.4 },
-  sell: { url: "/sfx/sell.wav", volume: 0.4 },
+  place: { url: "/sfx/place.wav", volume: 0.26 },
+  upgrade: { url: "/sfx/upgrade.wav", volume: 0.26 },
+  sell: { url: "/sfx/sell.wav", volume: 0.26 },
   wave: { url: "/sfx/wave.wav", volume: 0.35 },
   death: { url: "/sfx/death.wav", volume: 0.35 },
   life: { url: "/sfx/life.wav", volume: 0.35 },
@@ -1844,7 +1844,6 @@ this.hideRangeRing();
     this.killCount += 1;
     const scoreGain = reward + Math.round(weight * 10);
     this.score += scoreGain;
-    if (this.playSfx) this.playSfx("death");
   }
 
   fireBullet(t, target) {
