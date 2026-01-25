@@ -22,6 +22,7 @@ function fireBullet(t, target) {
       const reward = target.reward ?? 8;
       const weight = target.scoreWeight ?? 1;
       target.destroy();
+      if (this.playSfx) this.playSfx("death");
       this.money += reward;
       this.killCount += 1;
       const scoreGain = reward + Math.round(weight * 10);
@@ -66,6 +67,7 @@ function fireBullet(t, target) {
         const reward = target.reward ?? 8;
         const weight = target.scoreWeight ?? 1;
         target.destroy();
+        if (this.playSfx) this.playSfx("death");
         this.money += reward;
         this.killCount += 1;
         const scoreGain = reward + Math.round(weight * 10);

@@ -32,6 +32,15 @@ const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const DEFAULT_DIFFICULTY_KEY = "easy";
+const SFX_CONFIG = {
+  place: { url: "/sfx/place.wav", volume: 0.4 },
+  upgrade: { url: "/sfx/upgrade.wav", volume: 0.4 },
+  sell: { url: "/sfx/sell.wav", volume: 0.4 },
+  wave: { url: "/sfx/wave.wav", volume: 0.35 },
+  death: { url: "/sfx/death.wav", volume: 0.35 },
+  life: { url: "/sfx/life.wav", volume: 0.35 },
+  gameover: { url: "/sfx/gameover.wav", volume: 0.45 },
+};
 const CONTROLS = [
   { key: "T", action: "Toggle placement mode" },
   { key: "Click", action: "Place tower" },
@@ -240,6 +249,13 @@ export class GameScene extends Phaser.Scene {
     super("GameScene");
   }
 
+  preload() {
+    Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
+      if (!cfg?.url) return;
+      this.load.audio(key, cfg.url);
+    });
+  }
+
   init(data) {
     this.startOptions = data || {};
   }
@@ -257,6 +273,28 @@ export class GameScene extends Phaser.Scene {
     if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);
     this.difficulty = DIFFICULTY_CONFIG[this.difficultyKey];
     this.difficultyLabel = this.difficulty.label;
+
+    this.sfx = {};
+    this.sfxLastAt = {};
+    this.playSfx = (key, opts = {}) => {
+      const {
+        allowDuringPause = false,
+        allowDuringStart = false,
+        allowDuringGameOver = false,
+      } = opts;
+      if (!allowDuringStart && this.isStartScreenActive) return;
+      if (!allowDuringPause && this.isPaused) return;
+      if (!allowDuringGameOver && this.isGameOver) return;
+      const sound = this.sfx[key];
+      if (!sound) return;
+      const minInterval = key === "death" ? 100 : 0;
+      const lastAt = this.sfxLastAt[key] || 0;
+      const now = this.time?.now ?? Date.now();
+      if (now - lastAt < minInterval) return;
+      if (sound.isPlaying) return;
+      sound.play();
+      this.sfxLastAt[key] = now;
+    };
 
     this.money = 0;
     this.lives = 20;
@@ -357,6 +395,11 @@ export class GameScene extends Phaser.Scene {
     this.isStartScreenActive = !this.startOptions?.skipStartScreen;
     this.isGameOver = false;
     this.isPaused = false;
+    Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
+      if (!this.cache.audio.exists(key)) return;
+      const volume = typeof cfg.volume === "number" ? cfg.volume : 0.4;
+      this.sfx[key] = this.sound.add(key, { volume });
+    });
     this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
     this.pauseText = this.add
       .text(540, 14, "", {
@@ -1032,6 +1075,7 @@ export class GameScene extends Phaser.Scene {
   triggerGameOver() {
     if (this.isGameOver) return;
     this.isGameOver = true;
+    this.playSfx("gameover", { allowDuringGameOver: true });
     if (this.autoStartTimer) {
       this.autoStartTimer.remove(false);
       this.autoStartTimer = null;
@@ -1111,6 +1155,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   startWave(wave) {
+    this.playSfx("wave");
     startWaveFn.call(this, wave);
   }
 
@@ -1492,7 +1537,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   tryUpgradeTower(t) {
+    const prevTier = t?.tier ?? 0;
     tryUpgradeTowerFn.call(this, t);
+    if (t && t.tier > prevTier) this.playSfx("upgrade");
   }
 
   tryPlaceTowerAt(x, y) {
@@ -1531,10 +1578,13 @@ export class GameScene extends Phaser.Scene {
     img.setScale(tier0.scale ?? 1);
     this.towers.push(t);
     this.selectTower(t);
+    this.playSfx("place");
   }
 
   trySellTower(t) {
+    const hadTower = !!t && this.towers.includes(t);
     trySellTowerFn.call(this, t);
+    if (hadTower && !this.towers.includes(t)) this.playSfx("sell");
   }
 
   cycleTargetMode(t) {
