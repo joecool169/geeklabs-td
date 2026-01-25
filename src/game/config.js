@@ -1,6 +1,8 @@
 export const GRID = 40;
 export const TOP_UI = 120;
 export const LASER_UNLOCK_WAVE = 50;
+export const WAVE_SPAM_WINDOW_MS = 900;
+export const MAX_CONCURRENT_SPAWNERS = 8;
 
 export const DIFFICULTY_CONFIG = {
   easy: {
