@@ -11,32 +11,115 @@ function showToast(msg, ms = 2400) {
   });
 }
 
+function updateWaveHint(text, visible) {
+  const hint = this.waveHint;
+  if (!hint) return;
+  if (this._waveHintTween) {
+    this._waveHintTween.stop();
+    this._waveHintTween.remove();
+    this._waveHintTween = null;
+  }
+
+  const prevText = this._waveHintText;
+  const prevVisible = this._waveHintVisible;
+
+  if (!visible) {
+    if (prevVisible) {
+      this._waveHintVisible = false;
+      hint.setAlpha(1);
+      this._waveHintTween = this.tweens.add({
+        targets: hint,
+        alpha: 0,
+        duration: 140,
+        ease: "Sine.easeOut",
+        onComplete: () => {
+          hint.setVisible(false);
+          this._waveHintTween = null;
+        },
+      });
+    } else {
+      hint.setVisible(false);
+    }
+    return;
+  }
+
+  const shouldAnimate = !prevVisible || prevText !== text;
+  hint.setVisible(true);
+
+  if (shouldAnimate && prevVisible && prevText !== text) {
+    this._waveHintTween = this.tweens.add({
+      targets: hint,
+      alpha: 0,
+      duration: 140,
+      ease: "Sine.easeOut",
+      onComplete: () => {
+        hint.setText(text);
+        hint.setAlpha(0);
+        this._waveHintTween = this.tweens.add({
+          targets: hint,
+          alpha: 1,
+          duration: 160,
+          ease: "Sine.easeIn",
+          onComplete: () => {
+            this._waveHintTween = null;
+          },
+        });
+      },
+    });
+  } else {
+    if (shouldAnimate) hint.setAlpha(0);
+    hint.setText(text);
+    if (shouldAnimate) {
+      this._waveHintTween = this.tweens.add({
+        targets: hint,
+        alpha: 1,
+        duration: 160,
+        ease: "Sine.easeIn",
+        onComplete: () => {
+          this._waveHintTween = null;
+        },
+      });
+    } else {
+      hint.setAlpha(1);
+    }
+  }
+
+  this._waveHintVisible = true;
+  this._waveHintText = text;
+}
+
 function updateUI() {
   if (this.waveState === "intermission") {
     const wait = Math.max(0, this.nextWaveAvailableAt - this.time.now);
     const ready = wait <= 0;
     const sec = Math.ceil(wait / 1000);
-    this.waveHint.setVisible(true);
 
     if (!this.didStartFirstWave) {
-      this.waveHint.setText(`Wave ${this.wave} ready. Press SPACE to start.`);
+      updateWaveHint.call(this, `Wave ${this.wave} ready. Press SPACE to start.`, true);
     } else if (ready) {
-      this.waveHint.setText(
+      updateWaveHint.call(
+        this,
         this.autoStartWaves
           ? `Wave ${this.wave} starting...`
           : `Wave ${this.wave} ready. Press SPACE to start.`
+        ,
+        true
       );
     } else {
-      this.waveHint.setText(
+      updateWaveHint.call(
+        this,
         this.autoStartWaves
           ? `Next wave in ${sec}s... (SPACE to start now)`
           : `Wave ${this.wave} ready in ${sec}s... (SPACE to start when ready)`
+        ,
+        true
       );
     }
   } else {
-    this.waveHint.setVisible(true);
-    this.waveHint.setText(
-      `Wave ${this.wave} running: ${this.waveEnemiesSpawned}/${this.waveEnemiesTotal}`
+    updateWaveHint.call(
+      this,
+      `Wave ${this.wave} running: ${this.waveEnemiesSpawned}/${this.waveEnemiesTotal}`,
+      true
     );
   }
 
