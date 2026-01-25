@@ -1,42 +1,7 @@
 import Phaser from "phaser";
-
-const GRID = 40;
-const TOP_UI = 120;
-
-function snapX(v) {
-  return Math.floor(v / GRID) * GRID + GRID / 2;
-}
-
-function snapY(v) {
-  const vy = v - TOP_UI;
-  return Math.floor(vy / GRID) * GRID + GRID / 2 + TOP_UI;
-}
-
-function dist2(ax, ay, bx, by) {
-  const dx = ax - bx;
-  const dy = ay - by;
-  return dx * dx + dy * dy;
-}
-
-function round1(v) {
-  return Math.round(v * 10) / 10;
-}
-
-function segCircleHit(x1, y1, x2, y2, cx, cy, r) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const fx = x1 - cx;
-  const fy = y1 - cy;
-  const a = dx * dx + dy * dy;
-  const b = 2 * (fx * dx + fy * dy);
-  const c = fx * fx + fy * fy - r * r;
-  let disc = b * b - 4 * a * c;
-  if (disc < 0) return false;
-  disc = Math.sqrt(disc);
-  const t1 = (-b - disc) / (2 * a);
-  const t2 = (-b + disc) / (2 * a);
-  return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
-}
+import { GRID, TOP_UI } from "./game/config.js";
+import { snapX, snapY, dist2, round1, segCircleHit } from './game/utils';
+import { fireBullet } from './game/bullets';
 
 const TOWER_DEFS = {
   basic: {
@@ -56,7 +21,7 @@ const TOWER_DEFS = {
     tiers: [
       { cost: 65, damage: 6, range: 85, fireMs: 140, tint: 0x39ff8f, scale: 0.95 },
       { cost: 90, damage: 8, range: 95, fireMs: 115, tint: 0x7fffc2, scale: 1.0 },
-      { cost: 140, damage: 10, range: 105, fireMs: 95, tint: 0xc7ffe5, scale: 1.05 },
+      { cost: 140, damage: 10, range: 105, fireMs: 95, tint: 0xc7ffe5, scale: 1.1 },
     ],
   },
   sniper: {
@@ -583,7 +548,7 @@ export class GameScene extends Phaser.Scene {
       const target = this.findTarget(t, t.targetMode);
       if (!target) continue;
       t.nextShotAt = time + t.fireMs;
-      this.fireBullet(t, target);
+      fireBullet.call(this, t, target);
     }
 
     this.enemies.children.iterate((e) => {
@@ -871,9 +836,10 @@ export class GameScene extends Phaser.Scene {
     t.damage = tier.damage;
     t.range = tier.range;
     t.fireMs = tier.fireMs;
-    t.sprite.setTint(tier.tint);
-    t.sprite.setScale(tier.scale ?? 1);
-    if (t.badge) t.badge.setDepth(t.sprite.depth + 1);
+    t.nextShotAt = 0;
+    t.spent += nextCost;
+    this.applyTowerTier(t, t.tier);
+    if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
   }
 
   tryUpgradeTower(t) {
@@ -1031,167 +997,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   fireBullet(t, target) {
-  if (!target || !target.active) return;
-
-  if (t.type === "sniper") {
-    const x1 = t.x;
-    const y1 = t.y;
-    const x2 = target.x;
-    const y2 = target.y;
-
-    const tracer = this.add.graphics();
-    tracer.setDepth(80);
-    tracer.lineStyle(3, 0xffedc0, 0.95);
-    tracer.lineBetween(x1, y1, x2, y2);
-
-    const armor = target.armor || 0;
-    const dmg = Math.max(1, t.damage - armor);
-    target.hp -= dmg;
-
-    if (target.hp <= 0) {
-      const reward = target.reward ?? 8;
-      const weight = target.scoreWeight ?? 1;
-      target.destroy();
-      this.money += reward;
-      this.killCount += 1;
-      const scoreGain = reward + Math.round(weight * 10);
-      this.score += scoreGain;
-      this.killText.setText(`Kills: ${this.killCount}`);
-      this.scoreText.setText(`Score: ${this.score}`);
-    }
-
-    this.time.delayedCall(50, () => {
-      tracer.destroy();
-    });
-
-    return;
-  }
-
-  const x = t.x;
-  const y = t.y;
-  const b = this.add.circle(x, y, 6, 0x00ffff, 1);
-  b.setDepth(50);
-  const spd = 780;
-  const hitR = 14;
-  const step = (_time, dt) => {
-    if (!b.active) return;
-    const x0 = b.x;
-    const y0 = b.y;
-    if (!target.active) {
-      b.destroy();
-      return;
-    }
-    const dx = target.x - b.x;
-    const dy = target.y - b.y;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const vx = (dx / len) * spd;
-    const vy = (dy / len) * spd;
-    b.x += (vx * dt) / 1000;
-    b.y += (vy * dt) / 1000;
-    if (segCircleHit(x0, y0, b.x, b.y, target.x, target.y, hitR)) {
-      const armor = target.armor || 0;
-      const dmg = Math.max(1, t.damage - armor);
-      target.hp -= dmg;
-      if (target.hp <= 0) {
-        const reward = target.reward ?? 8;
-        const weight = target.scoreWeight ?? 1;
-        target.destroy();
-        this.money += reward;
-        this.killCount += 1;
-        const scoreGain = reward + Math.round(weight * 10);
-        this.score += scoreGain;
-        this.killText.setText(`Kills: ${this.killCount}`);
-        this.scoreText.setText(`Score: ${this.score}`);
-      }
-      b.destroy();
-    }
-  };
-  b.update = step;
-  if (!this.bulletsPlain) {
-    this.bulletsPlain = [];
-    this.events.on("update", (time, dt) => {
-      for (const obj of this.bulletsPlain) {
-        if (obj.active && obj.update) obj.update(time, dt);
-      }
-      this.bulletsPlain = this.bulletsPlain.filter((o) => o.active);
-    });
-  }
-  this.bulletsPlain.push(b);
-  this.time.delayedCall(900, () => {
-    if (b.active) b.destroy();
-  });
-}
-
-  updateUI() {
-    if (this.waveState === "intermission") {
-      const wait = Math.max(0, this.nextWaveAvailableAt - this.time.now);
-      const ready = wait <= 0;
-      const sec = Math.ceil(wait / 1000);
-      this.waveHint.setVisible(true);
-
-      if (!this.didStartFirstWave) {
-      this.waveHint.setText(`Wave ${this.wave} ready. Press SPACE to start.`);
-    } else if (ready) {
-      this.waveHint.setText(
-        this.autoStartWaves
-          ? `Wave ${this.wave} starting...`
-          : `Wave ${this.wave} ready. Press SPACE to start.`
-      );
-    } else {
-      this.waveHint.setText(
-        this.autoStartWaves
-          ? `Next wave in ${sec}s... (SPACE to start now)`
-          : `Wave ${this.wave} ready in ${sec}s... (SPACE to start when ready)`
-      );
-    }
-  } else {
-    this.waveHint.setVisible(true);
-    this.waveHint.setText(
-      `Wave ${this.wave} running: ${this.waveEnemiesSpawned}/${this.waveEnemiesTotal}`
-    );
-  }
-
-  this.ui.setText(
-    `Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}`
-  );
-  this.killText.setText(`Kills: ${this.killCount}`);
-  this.scoreText.setText(`Score: ${this.score}`);
-  this.killText.setX(this.ui.x + this.ui.width + 24);
-  this.scoreText.setX(this.killText.x + this.killText.width + 24);
-
-
-  if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
-    this.setInspectorVisible(false);
-    this.panel.setText("");
-    return;
-  }
-
-    this.setInspectorVisible(true);
-    this.drawInspectorBg(true);
-    const t = this.selectedTower;
-    const def = TOWER_DEFS[t.type];
-    const sps = 1000 / t.fireMs;
-    const dps = t.damage * sps;
-    const nextCost = this.getNextUpgradeCost(t);
-    const nextText = nextCost === null ? "Max" : `$${nextCost}`;
-    const refund = Math.floor((t.spent || 0) * 0.7);
-    const targetLabel = t.targetMode === "close" ? "Close" : t.targetMode === "strong" ? "Strong" : "First";
-    this.panel.setText(
-      `${def.name} Tower (Tier ${t.tier})
-Target: ${targetLabel}
-Damage: ${t.damage}
-Fire: ${t.fireMs}ms (${round1(sps)}/s)
-Range: ${t.range}
-DPS: ${round1(dps)}
-Upgrade: ${nextText}
-Sell: $${refund}`
-    );
-    const canUpgrade = nextCost !== null && this.money >= nextCost;
-    this.upgradeBtn.hit.enabled = !!canUpgrade;
-    this.upgradeBtn.draw(!!canUpgrade, false, false);
-    this.sellBtn.hit.enabled = true;
-    this.sellBtn.draw(true, false, false);
-    this.targetBtn.hit.enabled = true;
-    this.targetBtn.draw(true, false, false);
+    fireBullet.call(this, t, target);
   }
 }
