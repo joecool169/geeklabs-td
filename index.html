@@ -54,6 +54,40 @@
         text-transform: uppercase;
         letter-spacing: 0.12em;
       }
+      #controls {
+        width: 100%;
+        margin-top: 16px;
+        text-align: left;
+        font-size: 12px;
+        color: #c5d4ee;
+      }
+      #controls-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9fb2cc;
+        margin-bottom: 6px;
+      }
+      #controls-list {
+        display: grid;
+        row-gap: 4px;
+      }
+      .control-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .control-key {
+        color: #f0d7c0;
+        white-space: nowrap;
+      }
+      #brand-version {
+        margin-top: 16px;
+        font-size: 10px;
+        color: #6f839c;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
     </style>
   </head>
   <body>
@@ -63,8 +97,26 @@
         <img src="/brand/defense-protocol.png" alt="Defense Protocol logo" />
         <div id="brand-title">Defense Protocol</div>
         <div id="brand-subtitle">By Geekstreet</div>
+        <section id="controls" aria-label="Controls">
+          <div id="controls-title">Controls</div>
+          <div id="controls-list">
+            <div class="control-row"><span class="control-key">Space</span><span>Start wave</span></div>
+            <div class="control-row"><span class="control-key">1 / 2 / 3</span><span>Select tower</span></div>
+            <div class="control-row"><span class="control-key">Click</span><span>Place tower</span></div>
+            <div class="control-row"><span class="control-key">U</span><span>Upgrade</span></div>
+            <div class="control-row"><span class="control-key">X</span><span>Sell</span></div>
+            <div class="control-row"><span class="control-key">F</span><span>Target mode</span></div>
+            <div class="control-row"><span class="control-key">P</span><span>Pause</span></div>
+          </div>
+        </section>
+        <div id="brand-version"></div>
       </aside>
     </div>
     <script type="module" src="/src/main.js"></script>
+    <script>
+      const APP_VERSION = "v0.3.0";
+      const versionEl = document.getElementById("brand-version");
+      if (versionEl) versionEl.textContent = APP_VERSION;
+    </script>
   </body>
 </html>

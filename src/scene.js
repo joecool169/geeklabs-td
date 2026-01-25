@@ -29,6 +29,7 @@ const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
 const LEADERBOARD_STORAGE_KEY = "geeklabs_td_leaderboard_v1";
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
+const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const DEFAULT_DIFFICULTY_KEY = "easy";
 
 const readStorage = (key) => {
@@ -122,8 +123,15 @@ const makeBrandHeader = () => {
   title.style.color = "#f0d7c0";
   title.style.letterSpacing = "0.03em";
 
+  const tagline = document.createElement("div");
+  tagline.textContent = BRAND_TAGLINE;
+  tagline.style.fontSize = "11px";
+  tagline.style.color = "#9fb2cc";
+  tagline.style.marginTop = "4px";
+
   wrap.appendChild(logo);
   wrap.appendChild(title);
+  wrap.appendChild(tagline);
   return wrap;
 };
 
