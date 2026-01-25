@@ -336,7 +336,10 @@ export class GameScene extends Phaser.Scene {
     this.bullets = this.physics.add.group();
 
     this.selectedTower = null;
-    this.rangeRing = this.add.graphics();
+    
+    this.setInspectorVisible(false);
+    this.panel.setText("");
+this.rangeRing = this.add.graphics();
     this.rangeRing.setDepth(9999);
     this.rangeRing.setVisible(false);
 
@@ -1333,7 +1336,10 @@ export class GameScene extends Phaser.Scene {
       this.showRangeRing(this.selectedTower, 0x00ffff);
     } else if (this.selectedTower && !this.towers.includes(this.selectedTower)) {
       this.selectedTower = null;
-      this.hideRangeRing();
+      
+    this.setInspectorVisible(false);
+    this.panel.setText("");
+this.hideRangeRing();
     }
 
     if (this.waveState === "running") {
@@ -1404,7 +1410,10 @@ export class GameScene extends Phaser.Scene {
 
   clearSelection() {
     this.selectedTower = null;
-    this.hideRangeRing();
+    
+    this.setInspectorVisible(false);
+    this.panel.setText("");
+this.hideRangeRing();
   }
 
   updateGhost(wx, wy) {
