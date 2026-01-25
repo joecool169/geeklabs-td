@@ -40,8 +40,31 @@ function updateUI() {
     );
   }
 
+  const label = this.difficultyLabel || "Easy";
+  const uiSnapshot = {
+    money: this.money,
+    lives: this.lives,
+    towers: this.towers.length,
+    wave: this.wave,
+    kills: this.killCount,
+    score: this.score,
+    diff: label,
+  };
+  if (
+    this._uiCache &&
+    this._uiCache.money === uiSnapshot.money &&
+    this._uiCache.lives === uiSnapshot.lives &&
+    this._uiCache.towers === uiSnapshot.towers &&
+    this._uiCache.wave === uiSnapshot.wave &&
+    this._uiCache.kills === uiSnapshot.kills &&
+    this._uiCache.score === uiSnapshot.score &&
+    this._uiCache.diff === uiSnapshot.diff
+  ) {
+    return;
+  }
+  this._uiCache = uiSnapshot;
   this.ui.setText(
-    `Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}    Kills: ${this.killCount}    Score: ${this.score}    Diff: ${this.difficultyLabel || "Easy"}`
+    `Money: $${uiSnapshot.money}    Lives: ${uiSnapshot.lives}    Towers: ${uiSnapshot.towers}    Wave: ${uiSnapshot.wave}    Kills: ${uiSnapshot.kills}    Score: ${uiSnapshot.score}    Diff: ${uiSnapshot.diff}`
   );
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
