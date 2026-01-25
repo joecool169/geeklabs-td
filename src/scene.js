@@ -31,6 +31,16 @@ const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const DEFAULT_DIFFICULTY_KEY = "easy";
+const CONTROLS = [
+  { key: "T", action: "Toggle placement mode" },
+  { key: "Click", action: "Place tower" },
+  { key: "1 / 2 / 3", action: "Select tower" },
+  { key: "Space", action: "Start wave" },
+  { key: "U", action: "Upgrade (selected tower)" },
+  { key: "X", action: "Sell (selected tower)" },
+  { key: "F", action: "Target mode (selected tower)" },
+  { key: "P", action: "Pause" },
+];
 
 const readStorage = (key) => {
   try {
@@ -100,6 +110,95 @@ const updateLeaderboard = (entry) => {
   const trimmed = entries.slice(0, 10);
   writeLeaderboard(trimmed);
   return trimmed;
+};
+
+const renderControlsList = (container) => {
+  container.innerHTML = "";
+  CONTROLS.forEach((control) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.gap = "10px";
+
+    const key = document.createElement("span");
+    key.textContent = control.key;
+    key.style.color = "#f0d7c0";
+    key.style.whiteSpace = "nowrap";
+
+    const action = document.createElement("span");
+    action.textContent = control.action;
+
+    row.appendChild(key);
+    row.appendChild(action);
+    container.appendChild(row);
+  });
+};
+
+const renderLeaderboardList = (container, currentEntry) => {
+  const isCurrentRun = (entry) => {
+    if (!currentEntry) return false;
+    return (
+      entry.dateISO === currentEntry.dateISO &&
+      Number(entry.score) === Number(currentEntry.score) &&
+      Number(entry.wave) === Number(currentEntry.wave) &&
+      Number(entry.kills) === Number(currentEntry.kills) &&
+      entry.name === currentEntry.name
+    );
+  };
+
+  const entries = safeParseLeaderboard().sort(compareLeaderboardEntries);
+  container.innerHTML = "";
+
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.textContent = "No entries yet.";
+    empty.style.color = "#9fb2cc";
+    container.appendChild(empty);
+    return;
+  }
+
+  const headerRow = document.createElement("div");
+  headerRow.style.display = "grid";
+  headerRow.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
+  headerRow.style.columnGap = "6px";
+  headerRow.style.fontSize = "11px";
+  headerRow.style.color = "#9fb2cc";
+  headerRow.style.textTransform = "uppercase";
+  headerRow.style.letterSpacing = "0.04em";
+  ["#", "Name", "Score", "Wave", "Kills", "Difficulty"].forEach((label) => {
+    const cell = document.createElement("div");
+    cell.textContent = label;
+    headerRow.appendChild(cell);
+  });
+  container.appendChild(headerRow);
+
+  entries.forEach((entry, index) => {
+    const row = document.createElement("div");
+    row.style.display = "grid";
+    row.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
+    row.style.columnGap = "6px";
+    row.style.alignItems = "center";
+    row.style.padding = "4px 0";
+    row.style.borderBottom = "1px solid rgba(43, 63, 94, 0.6)";
+    if (isCurrentRun(entry)) {
+      row.style.background = "rgba(64, 118, 200, 0.2)";
+      row.style.borderRadius = "6px";
+      row.style.padding = "4px 6px";
+    }
+
+    const name = entry.name || "Player";
+    const score = Number(entry.score) || 0;
+    const wave = Number(entry.wave) || 0;
+    const kills = Number(entry.kills) || 0;
+    const difficulty = entry.difficultyLabel || entry.difficultyKey || "-";
+
+    [index + 1, name, score, wave, kills, difficulty].forEach((value) => {
+      const cell = document.createElement("div");
+      cell.textContent = value;
+      row.appendChild(cell);
+    });
+    container.appendChild(row);
+  });
 };
 
 const makeBrandHeader = () => {
@@ -296,6 +395,11 @@ export class GameScene extends Phaser.Scene {
       if (this.isPaused && this.isPlacing) this.setPlacement(false);
       this.pauseText.setText(this.isPaused ? "PAUSED (P to resume)" : "");
       this.pauseText.setVisible(this.isPaused);
+      if (this.isPaused) {
+        this.showPauseMenu();
+      } else {
+        this.hidePauseMenu();
+      }
     };
 
     this.togglePause = () => this.setPaused(!this.isPaused);
@@ -350,6 +454,7 @@ export class GameScene extends Phaser.Scene {
     this.keyEsc.on("down", () => {
       if (this.isStartScreenActive || this.isGameOver) return;
       if (this.isPaused) {
+        this.hidePauseMenu();
         this.setPaused(false);
         return;
       }
@@ -708,72 +813,8 @@ export class GameScene extends Phaser.Scene {
     leaderboardList.style.display = "grid";
     leaderboardList.style.rowGap = "6px";
 
-    const isCurrentRun = (entry) => {
-      const current = this.lastLeaderboardEntry;
-      if (!current) return false;
-      return (
-        entry.dateISO === current.dateISO &&
-        Number(entry.score) === Number(current.score) &&
-        Number(entry.wave) === Number(current.wave) &&
-        Number(entry.kills) === Number(current.kills) &&
-        entry.name === current.name
-      );
-    };
-
     const renderLeaderboard = () => {
-      const entries = safeParseLeaderboard().sort(compareLeaderboardEntries);
-      leaderboardList.innerHTML = "";
-
-      if (!entries.length) {
-        const empty = document.createElement("div");
-        empty.textContent = "No entries yet.";
-        empty.style.color = "#9fb2cc";
-        leaderboardList.appendChild(empty);
-        return;
-      }
-
-      const headerRow = document.createElement("div");
-      headerRow.style.display = "grid";
-      headerRow.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
-      headerRow.style.columnGap = "6px";
-      headerRow.style.fontSize = "11px";
-      headerRow.style.color = "#9fb2cc";
-      headerRow.style.textTransform = "uppercase";
-      headerRow.style.letterSpacing = "0.04em";
-      ["#", "Name", "Score", "Wave", "Kills", "Difficulty"].forEach((label) => {
-        const cell = document.createElement("div");
-        cell.textContent = label;
-        headerRow.appendChild(cell);
-      });
-      leaderboardList.appendChild(headerRow);
-
-      entries.forEach((entry, index) => {
-        const row = document.createElement("div");
-        row.style.display = "grid";
-        row.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
-        row.style.columnGap = "6px";
-        row.style.alignItems = "center";
-        row.style.padding = "4px 0";
-        row.style.borderBottom = "1px solid rgba(43, 63, 94, 0.6)";
-        if (isCurrentRun(entry)) {
-          row.style.background = "rgba(64, 118, 200, 0.2)";
-          row.style.borderRadius = "6px";
-          row.style.padding = "4px 6px";
-        }
-
-        const name = entry.name || "Player";
-        const score = Number(entry.score) || 0;
-        const wave = Number(entry.wave) || 0;
-        const kills = Number(entry.kills) || 0;
-        const difficulty = entry.difficultyLabel || entry.difficultyKey || "-";
-
-        [index + 1, name, score, wave, kills, difficulty].forEach((value) => {
-          const cell = document.createElement("div");
-          cell.textContent = value;
-          row.appendChild(cell);
-        });
-        leaderboardList.appendChild(row);
-      });
+      renderLeaderboardList(leaderboardList, this.lastLeaderboardEntry);
     };
 
     leaderboardHeader.appendChild(leaderboardTitle);
@@ -818,6 +859,155 @@ export class GameScene extends Phaser.Scene {
     panel.appendChild(leaderboardPanel);
     overlay.appendChild(panel);
     host.appendChild(overlay);
+  }
+
+  showPauseMenu() {
+    if (this.isStartScreenActive || this.isGameOver) return;
+    const host = this.game?.canvas?.parentElement;
+    if (!host) return;
+    host.style.position = host.style.position || "relative";
+
+    const overlayId = "geeklabs-td-pause-overlay";
+    const existingOverlay = host.querySelector(`#${overlayId}`);
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = overlayId;
+    overlay.style.position = "absolute";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "rgba(6, 8, 12, 0.85)";
+    overlay.style.zIndex = "6";
+
+    const panel = document.createElement("div");
+    panel.style.minWidth = "340px";
+    panel.style.padding = "22px 26px";
+    panel.style.background = "rgba(11, 15, 20, 0.96)";
+    panel.style.border = "1px solid #3d4f6a";
+    panel.style.borderRadius = "10px";
+    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
+    panel.style.color = "#dbe7ff";
+    panel.style.fontFamily = "monospace";
+
+    const brandHeader = makeBrandHeader();
+
+    const title = document.createElement("div");
+    title.textContent = "Paused";
+    title.style.fontSize = "18px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "12px";
+
+    const btnWrap = document.createElement("div");
+    btnWrap.style.display = "grid";
+    btnWrap.style.gridTemplateColumns = "1fr";
+    btnWrap.style.gap = "8px";
+    btnWrap.style.marginBottom = "10px";
+
+    const makeButton = (label, border, bg, color) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.width = "100%";
+      btn.style.padding = "10px 12px";
+      btn.style.borderRadius = "8px";
+      btn.style.border = border;
+      btn.style.background = bg;
+      btn.style.color = color;
+      btn.style.fontWeight = "700";
+      btn.style.cursor = "pointer";
+      return btn;
+    };
+
+    const resumeBtn = makeButton("Resume", "1px solid #39ff8f", "#10241c", "#e4ffe8");
+    const controlsBtn = makeButton("Controls", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
+    const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
+    const restartBtn = makeButton("Restart", "1px solid #39ff8f", "#10241c", "#e4ffe8");
+    const changeBtn = makeButton("Change name / difficulty", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
+
+    const controlsPanel = document.createElement("div");
+    controlsPanel.style.display = "none";
+    controlsPanel.style.padding = "10px 12px";
+    controlsPanel.style.border = "1px solid #2b3f5e";
+    controlsPanel.style.borderRadius = "8px";
+    controlsPanel.style.background = "rgba(15, 22, 35, 0.95)";
+    controlsPanel.style.color = "#dbe7ff";
+    controlsPanel.style.fontSize = "13px";
+
+    const controlsList = document.createElement("div");
+    controlsList.style.display = "grid";
+    controlsList.style.rowGap = "6px";
+    renderControlsList(controlsList);
+    controlsPanel.appendChild(controlsList);
+
+    const leaderboardPanel = document.createElement("div");
+    leaderboardPanel.style.display = "none";
+    leaderboardPanel.style.padding = "10px 12px";
+    leaderboardPanel.style.border = "1px solid #2b3f5e";
+    leaderboardPanel.style.borderRadius = "8px";
+    leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
+    leaderboardPanel.style.color = "#dbe7ff";
+    leaderboardPanel.style.fontSize = "13px";
+
+    const leaderboardList = document.createElement("div");
+    leaderboardList.style.display = "grid";
+    leaderboardList.style.rowGap = "6px";
+    leaderboardPanel.appendChild(leaderboardList);
+
+    resumeBtn.addEventListener("click", () => {
+      this.setPaused(false);
+    });
+
+    controlsBtn.addEventListener("click", () => {
+      const shouldShow = controlsPanel.style.display === "none";
+      controlsPanel.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) leaderboardPanel.style.display = "none";
+    });
+
+    leaderboardBtn.addEventListener("click", () => {
+      const shouldShow = leaderboardPanel.style.display === "none";
+      leaderboardPanel.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) controlsPanel.style.display = "none";
+      if (shouldShow) renderLeaderboardList(leaderboardList, null);
+    });
+
+    restartBtn.addEventListener("click", () => {
+      this.setPaused(false);
+      this.hidePauseMenu();
+      this.scene.restart({
+        skipStartScreen: true,
+        playerName: this.playerName,
+        difficultyKey: this.difficultyKey,
+      });
+    });
+
+    changeBtn.addEventListener("click", () => {
+      this.setPaused(false);
+      this.hidePauseMenu();
+      this.scene.restart();
+    });
+
+    btnWrap.appendChild(resumeBtn);
+    btnWrap.appendChild(controlsBtn);
+    btnWrap.appendChild(leaderboardBtn);
+    btnWrap.appendChild(restartBtn);
+    btnWrap.appendChild(changeBtn);
+
+    panel.appendChild(brandHeader);
+    panel.appendChild(title);
+    panel.appendChild(btnWrap);
+    panel.appendChild(controlsPanel);
+    panel.appendChild(leaderboardPanel);
+    overlay.appendChild(panel);
+    host.appendChild(overlay);
+  }
+
+  hidePauseMenu() {
+    const host = this.game?.canvas?.parentElement;
+    if (!host) return;
+    const existingOverlay = host.querySelector("#geeklabs-td-pause-overlay");
+    if (existingOverlay) existingOverlay.remove();
   }
 
   triggerGameOver() {
