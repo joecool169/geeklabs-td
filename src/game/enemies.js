@@ -1,4 +1,5 @@
 import { ENEMY_DEFS } from "../constants.js";
+import { DIFFICULTY_CONFIG } from "./config.js";
 import { dist2 } from "./utils.js";
 
 function pickWeighted(rng01, entries) {
@@ -19,15 +20,17 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.setCollideWorldBounds(false);
   e.body.setAllowGravity(false);
   const w = Math.max(1, this.wave);
-  const hpMul = 1 + (w - 1) * (def.scaleHpPerWave ?? 0.12);
-  const spMul = 1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02);
+  const difficulty = this.difficulty || DIFFICULTY_CONFIG.easy;
+  const hpMul = (1 + (w - 1) * (def.scaleHpPerWave ?? 0.12)) * difficulty.enemyHpMul;
+  const spMul = (1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02)) * difficulty.enemySpeedMul;
   e.typeKey = def.key;
   e.setTint(def.tint);
   e.hp = Math.max(1, Math.floor(def.baseHp * hpMul));
   e.maxHp = e.hp;
   e.speed = Math.floor(def.baseSpeed * spMul);
   e.armor = def.armor || 0;
-  e.reward = def.reward || 8;
+  const baseReward = def.reward || 8;
+  e.reward = Math.max(1, Math.floor(baseReward * difficulty.enemyRewardMul));
   e.scoreWeight = def.scoreWeight ?? 1;
   e.pathIndex = 0;
   e.isSwarm = !!opts.isSwarm;

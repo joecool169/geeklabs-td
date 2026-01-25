@@ -47,6 +47,11 @@ function updateUI() {
   this.scoreText.setText(`Score: ${this.score}`);
   this.killText.setX(this.ui.x + this.ui.width + 24);
   this.scoreText.setX(this.killText.x + this.killText.width + 24);
+  if (this.diffText) {
+    const label = this.difficultyLabel || "Easy";
+    this.diffText.setText(`Diff: ${label}`);
+    this.diffText.setX(this.scoreText.x + this.scoreText.width + 24);
+  }
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
     this.setInspectorVisible(false);

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GRID, TOP_UI } from "./game/config.js";
+import { DIFFICULTY_CONFIG, GRID, TOP_UI } from "./game/config.js";
 import { snapX, snapY } from "./game/utils.js";
 import { fireBullet as fireBulletFn } from "./game/bullets.js";
 import {
@@ -24,13 +24,47 @@ import {
 } from "./game/waves.js";
 import { TOWER_DEFS } from "./constants.js";
 
+const PLAYER_NAME_STORAGE_KEY = "geeklabs_td_player_name_v1";
+const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
+const DEFAULT_DIFFICULTY_KEY = "easy";
+
+const readStorage = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const normalizePlayerName = (raw) => {
+  const name = (raw || "").trim();
+  return name.length ? name : "Player";
+};
+
+const normalizeDifficultyKey = (key) =>
+  DIFFICULTY_CONFIG[key] ? key : DEFAULT_DIFFICULTY_KEY;
+
 export class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
   }
 
   create() {
-    this.money = 120;
+    this.playerName = normalizePlayerName(readStorage(PLAYER_NAME_STORAGE_KEY));
+    this.difficultyKey = normalizeDifficultyKey(readStorage(DIFFICULTY_STORAGE_KEY));
+    this.difficulty = DIFFICULTY_CONFIG[this.difficultyKey];
+    this.difficultyLabel = this.difficulty.label;
+
+    this.money = 0;
     this.lives = 20;
     this.killCount = 0;
     this.score = 0;
@@ -91,6 +125,11 @@ export class GameScene extends Phaser.Scene {
       fontSize: "16px",
       color: "#dbe7ff",
     });
+    this.diffText = this.add.text(920, 14, "", {
+      fontFamily: "monospace",
+      fontSize: "13px",
+      color: "#9fb3d8",
+    });
 
     this.help = this.add.text(
       14,
@@ -125,6 +164,7 @@ export class GameScene extends Phaser.Scene {
     this.toastTimer = null;
     this.didShowPlaceToast = false;
 
+    this.isStartScreenActive = true;
     this.isPaused = false;
     this.pauseText = this.add
       .text(540, 14, "", {
@@ -173,43 +213,47 @@ export class GameScene extends Phaser.Scene {
     this.ghostY = 0;
 
     this.keyT.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       this.togglePlacement();
     });
 
     this.keyU.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
     });
 
     this.keyX.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
     this.keyF.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
     });
 
     this.key1.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       this.setPlaceType("basic");
     });
 
     this.key2.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       this.setPlaceType("rapid");
     });
 
     this.key3.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       this.setPlaceType("sniper");
     });
 
-    this.keyP.on("down", () => this.togglePause());
+    this.keyP.on("down", () => {
+      if (this.isStartScreenActive) return;
+      this.togglePause();
+    });
 
     this.keyEsc.on("down", () => {
+      if (this.isStartScreenActive) return;
       if (this.isPaused) {
         this.setPaused(false);
         return;
@@ -225,7 +269,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.keySpace.on("down", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive) return;
       if (this.waveState === "intermission") {
         this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, this.time.now);
         this.tryStartWave();
@@ -233,6 +277,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointerdown", (p) => {
+      if (this.isStartScreenActive) return;
       const wx = p.worldX;
       const wy = p.worldY;
       if (this.isPaused) return;
@@ -265,6 +310,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (p) => {
+      if (this.isStartScreenActive) return;
       if (this.isPaused) return;
       if (!this.isPlacing) return;
       this.updateGhost(p.worldX, p.worldY);
@@ -273,6 +319,7 @@ export class GameScene extends Phaser.Scene {
     this.buildInspector();
     this.updateUI();
     this.enterIntermission(true);
+    this.showStartScreen();
   }
 
   showToast(msg, ms = 2400) {
@@ -281,6 +328,174 @@ export class GameScene extends Phaser.Scene {
 
   updateUI() {
     updateUIFn.call(this);
+  }
+
+  applyDifficulty(key, opts = {}) {
+    const { updateUi = true } = opts;
+    const normalized = normalizeDifficultyKey(key);
+    const cfg = DIFFICULTY_CONFIG[normalized];
+    this.difficultyKey = normalized;
+    this.difficulty = cfg;
+    this.difficultyLabel = cfg.label;
+    this.money = cfg.startingMoney;
+    if (updateUi) this.updateUI();
+  }
+
+  showStartScreen() {
+    const host = this.game?.canvas?.parentElement;
+    if (!host) {
+      this.isStartScreenActive = false;
+      this.applyDifficulty(this.difficultyKey);
+      return;
+    }
+    host.style.position = host.style.position || "relative";
+
+    const overlay = document.createElement("div");
+    const overlayId = "geeklabs-td-start-overlay";
+    const existingOverlay = host.querySelector(`#${overlayId}`);
+    if (existingOverlay) existingOverlay.remove();
+    overlay.id = overlayId;
+    overlay.style.position = "absolute";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "rgba(7, 12, 18, 0.88)";
+    overlay.style.zIndex = "5";
+
+    const panel = document.createElement("div");
+    panel.style.minWidth = "320px";
+    panel.style.padding = "22px 26px";
+    panel.style.background = "rgba(11, 15, 20, 0.95)";
+    panel.style.border = "1px solid #294a6a";
+    panel.style.borderRadius = "10px";
+    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.45)";
+    panel.style.color = "#dbe7ff";
+    panel.style.fontFamily = "monospace";
+
+    const title = document.createElement("div");
+    title.textContent = "GeekLabs TD";
+    title.style.fontSize = "18px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "12px";
+
+    const nameLabel = document.createElement("label");
+    nameLabel.textContent = "Player name";
+    nameLabel.style.display = "block";
+    nameLabel.style.fontSize = "12px";
+    nameLabel.style.color = "#9fb3d8";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.value = this.playerName;
+    nameInput.placeholder = "Player";
+    nameInput.style.width = "100%";
+    nameInput.style.marginTop = "6px";
+    nameInput.style.marginBottom = "14px";
+    nameInput.style.padding = "8px 10px";
+    nameInput.style.borderRadius = "6px";
+    nameInput.style.border = "1px solid #294a6a";
+    nameInput.style.background = "#0f1623";
+    nameInput.style.color = "#dbe7ff";
+
+    const diffLabel = document.createElement("div");
+    diffLabel.textContent = "Difficulty";
+    diffLabel.style.fontSize = "12px";
+    diffLabel.style.color = "#9fb3d8";
+    diffLabel.style.marginBottom = "6px";
+
+    const diffWrap = document.createElement("div");
+    diffWrap.style.display = "grid";
+    diffWrap.style.gridTemplateColumns = "1fr 1fr 1fr";
+    diffWrap.style.gap = "8px";
+    diffWrap.style.marginBottom = "16px";
+
+    let selectedKey = this.difficultyKey;
+
+    const syncAllDiffStyles = () => {
+      diffWrap.querySelectorAll("label").forEach((lbl) => {
+        const radio = lbl.querySelector('input[type="radio"]');
+        const active = !!radio?.checked;
+        lbl.style.borderColor = active ? "#39ff8f" : "#1a2a3d";
+        lbl.style.background = active ? "rgba(17, 36, 28, 0.8)" : "#0f1623";
+        lbl.style.color = active ? "#e4ffe8" : "#dbe7ff";
+      });
+    };
+
+    const makeDiffOption = (key, label) => {
+      const option = document.createElement("label");
+      option.style.display = "flex";
+      option.style.alignItems = "center";
+      option.style.justifyContent = "center";
+      option.style.padding = "8px 10px";
+      option.style.border = "1px solid #1a2a3d";
+      option.style.borderRadius = "6px";
+      option.style.background = "#0f1623";
+      option.style.cursor = "pointer";
+      option.style.fontSize = "13px";
+
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "difficulty";
+      radio.value = key;
+      radio.checked = key === selectedKey;
+      radio.style.marginRight = "6px";
+
+      const text = document.createElement("span");
+      text.textContent = label;
+
+      option.appendChild(radio);
+      option.appendChild(text);
+
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        selectedKey = key;
+        syncAllDiffStyles();
+      });
+
+      return option;
+    };
+
+    diffWrap.appendChild(makeDiffOption("easy", "Easy"));
+    diffWrap.appendChild(makeDiffOption("medium", "Medium"));
+    diffWrap.appendChild(makeDiffOption("hard", "Hard"));
+    syncAllDiffStyles();
+
+    const startBtn = document.createElement("button");
+    startBtn.type = "button";
+    startBtn.textContent = "Start";
+    startBtn.style.width = "100%";
+    startBtn.style.padding = "10px 12px";
+    startBtn.style.borderRadius = "8px";
+    startBtn.style.border = "1px solid #39ff8f";
+    startBtn.style.background = "#10241c";
+    startBtn.style.color = "#e4ffe8";
+    startBtn.style.fontWeight = "700";
+    startBtn.style.cursor = "pointer";
+
+    const onStart = () => {
+      const name = normalizePlayerName(nameInput.value);
+      this.playerName = name;
+      writeStorage(PLAYER_NAME_STORAGE_KEY, name);
+      this.applyDifficulty(selectedKey);
+      writeStorage(DIFFICULTY_STORAGE_KEY, selectedKey);
+      this.isStartScreenActive = false;
+      overlay.remove();
+    };
+
+    startBtn.addEventListener("click", onStart);
+    nameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") onStart();
+    });
+
+    panel.appendChild(title);
+    panel.appendChild(nameLabel);
+    panel.appendChild(nameInput);
+    panel.appendChild(diffLabel);
+    panel.appendChild(diffWrap);
+    panel.appendChild(startBtn);
+    overlay.appendChild(panel);
+    host.appendChild(overlay);
   }
 
   computeWaveConfig(wave) {
@@ -416,7 +631,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, dt) {
-    if (this.isPaused) return;
+    if (this.isPaused || this.isStartScreenActive) return;
 
     for (const t of this.towers) {
       if (time < t.nextShotAt) continue;
