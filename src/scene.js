@@ -58,9 +58,21 @@ export class GameScene extends Phaser.Scene {
     super("GameScene");
   }
 
+  init(data) {
+    this.startOptions = data || {};
+  }
+
   create() {
+    const overlayHost = this.game?.canvas?.parentElement;
+    if (overlayHost) {
+      const oldOverlay = overlayHost.querySelector("#geeklabs-td-gameover-overlay");
+      if (oldOverlay) oldOverlay.remove();
+    }
+
     this.playerName = normalizePlayerName(readStorage(PLAYER_NAME_STORAGE_KEY));
     this.difficultyKey = normalizeDifficultyKey(readStorage(DIFFICULTY_STORAGE_KEY));
+    if (this.startOptions?.playerName) this.playerName = normalizePlayerName(this.startOptions.playerName);
+    if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);
     this.difficulty = DIFFICULTY_CONFIG[this.difficultyKey];
     this.difficultyLabel = this.difficulty.label;
 
@@ -164,7 +176,8 @@ export class GameScene extends Phaser.Scene {
     this.toastTimer = null;
     this.didShowPlaceToast = false;
 
-    this.isStartScreenActive = true;
+    this.isStartScreenActive = !this.startOptions?.skipStartScreen;
+    this.isGameOver = false;
     this.isPaused = false;
     this.pauseText = this.add
       .text(540, 14, "", {
@@ -213,47 +226,47 @@ export class GameScene extends Phaser.Scene {
     this.ghostY = 0;
 
     this.keyT.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.togglePlacement();
     });
 
     this.keyU.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
     });
 
     this.keyX.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
     this.keyF.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
     });
 
     this.key1.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("basic");
     });
 
     this.key2.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("rapid");
     });
 
     this.key3.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("sniper");
     });
 
     this.keyP.on("down", () => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       this.togglePause();
     });
 
     this.keyEsc.on("down", () => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       if (this.isPaused) {
         this.setPaused(false);
         return;
@@ -269,7 +282,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.keySpace.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.waveState === "intermission") {
         this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, this.time.now);
         this.tryStartWave();
@@ -277,7 +290,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointerdown", (p) => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       const wx = p.worldX;
       const wy = p.worldY;
       if (this.isPaused) return;
@@ -310,7 +323,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (p) => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       if (this.isPaused) return;
       if (!this.isPlacing) return;
       this.updateGhost(p.worldX, p.worldY);
@@ -319,7 +332,11 @@ export class GameScene extends Phaser.Scene {
     this.buildInspector();
     this.updateUI();
     this.enterIntermission(true);
-    this.showStartScreen();
+    if (this.isStartScreenActive) {
+      this.showStartScreen();
+    } else {
+      this.applyDifficulty(this.difficultyKey);
+    }
   }
 
   showToast(msg, ms = 2400) {
@@ -498,6 +515,139 @@ export class GameScene extends Phaser.Scene {
     host.appendChild(overlay);
   }
 
+  showGameOverScreen() {
+    const host = this.game?.canvas?.parentElement;
+    if (!host) return;
+    host.style.position = host.style.position || "relative";
+
+    const overlayId = "geeklabs-td-gameover-overlay";
+    const existingOverlay = host.querySelector(`#${overlayId}`);
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = overlayId;
+    overlay.style.position = "absolute";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "rgba(6, 8, 12, 0.9)";
+    overlay.style.zIndex = "6";
+
+    const panel = document.createElement("div");
+    panel.style.minWidth = "360px";
+    panel.style.padding = "22px 26px";
+    panel.style.background = "rgba(11, 15, 20, 0.96)";
+    panel.style.border = "1px solid #6a294a";
+    panel.style.borderRadius = "10px";
+    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
+    panel.style.color = "#f5d6e6";
+    panel.style.fontFamily = "monospace";
+
+    const title = document.createElement("div");
+    title.textContent = "Game Over";
+    title.style.fontSize = "20px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "12px";
+
+    const stats = document.createElement("div");
+    stats.style.display = "grid";
+    stats.style.gridTemplateColumns = "1fr";
+    stats.style.rowGap = "6px";
+    stats.style.marginBottom = "14px";
+    stats.style.color = "#dbe7ff";
+
+    const makeStat = (label, value) => {
+      const row = document.createElement("div");
+      row.textContent = `${label}: ${value}`;
+      return row;
+    };
+
+    stats.appendChild(makeStat("Player", this.playerName));
+    stats.appendChild(makeStat("Difficulty", this.difficultyLabel));
+    stats.appendChild(makeStat("Wave", this.wave));
+    stats.appendChild(makeStat("Total Kills", this.killCount));
+    stats.appendChild(makeStat("Final Score", this.score));
+
+    const btnWrap = document.createElement("div");
+    btnWrap.style.display = "grid";
+    btnWrap.style.gridTemplateColumns = "1fr";
+    btnWrap.style.gap = "8px";
+    btnWrap.style.marginBottom = "10px";
+
+    const makeButton = (label, border, bg, color) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.width = "100%";
+      btn.style.padding = "10px 12px";
+      btn.style.borderRadius = "8px";
+      btn.style.border = border;
+      btn.style.background = bg;
+      btn.style.color = color;
+      btn.style.fontWeight = "700";
+      btn.style.cursor = "pointer";
+      return btn;
+    };
+
+    const restartBtn = makeButton("Restart", "1px solid #39ff8f", "#10241c", "#e4ffe8");
+    const changeBtn = makeButton("Change name / difficulty", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
+    const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
+
+    const leaderboardPanel = document.createElement("div");
+    leaderboardPanel.textContent = "Leaderboard coming soon";
+    leaderboardPanel.style.display = "none";
+    leaderboardPanel.style.padding = "10px 12px";
+    leaderboardPanel.style.border = "1px solid #2b3f5e";
+    leaderboardPanel.style.borderRadius = "8px";
+    leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
+    leaderboardPanel.style.color = "#dbe7ff";
+    leaderboardPanel.style.fontSize = "13px";
+
+    restartBtn.addEventListener("click", () => {
+      overlay.remove();
+      this.scene.restart({
+        skipStartScreen: true,
+        playerName: this.playerName,
+        difficultyKey: this.difficultyKey,
+      });
+    });
+
+    changeBtn.addEventListener("click", () => {
+      overlay.remove();
+      this.scene.restart();
+    });
+
+    leaderboardBtn.addEventListener("click", () => {
+      leaderboardPanel.style.display = leaderboardPanel.style.display === "none" ? "block" : "none";
+    });
+
+    btnWrap.appendChild(restartBtn);
+    btnWrap.appendChild(changeBtn);
+    btnWrap.appendChild(leaderboardBtn);
+
+    panel.appendChild(title);
+    panel.appendChild(stats);
+    panel.appendChild(btnWrap);
+    panel.appendChild(leaderboardPanel);
+    overlay.appendChild(panel);
+    host.appendChild(overlay);
+  }
+
+  triggerGameOver() {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
+    if (this.autoStartTimer) {
+      this.autoStartTimer.remove(false);
+      this.autoStartTimer = null;
+    }
+    if (this.isPlacing) this.setPlacement(false);
+    this.clearSelection();
+    this.setInspectorVisible(false);
+    this.hideRangeRing();
+    this.showGameOverScreen();
+  }
+
   computeWaveConfig(wave) {
     return computeWaveConfigFn.call(this, wave);
   }
@@ -539,17 +689,17 @@ export class GameScene extends Phaser.Scene {
     const btnW = Math.floor((w - 24 - gap * 2) / 3);
 
     this.upgradeBtn = this.makeButton(this.inspectorX + 12, btnY, btnW, btnH, "Upgrade (U)", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
     });
 
     this.sellBtn = this.makeButton(this.inspectorX + 12 + btnW + gap, btnY, btnW, btnH, "Sell (X)", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
     this.targetBtn = this.makeButton(this.inspectorX + 12 + (btnW + gap) * 2, btnY, btnW, btnH, "Target (F)", () => {
-      if (this.isPaused) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
     });
 
@@ -631,7 +781,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, dt) {
-    if (this.isPaused || this.isStartScreenActive) return;
+    if (this.isGameOver || this.isPaused || this.isStartScreenActive) return;
 
     for (const t of this.towers) {
       if (time < t.nextShotAt) continue;

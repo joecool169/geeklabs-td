@@ -43,7 +43,7 @@ function advanceEnemy(e, dt) {
   if (i >= this.path.length - 1) {
     e.destroy();
     this.lives -= 1;
-    if (this.lives <= 0) this.scene.restart();
+    if (this.lives <= 0) this.triggerGameOver();
     return;
   }
   const a = this.path[i];

@@ -80,6 +80,7 @@ function fireBullet(t, target) {
   if (!this.bulletsPlain) {
     this.bulletsPlain = [];
     this.events.on("update", (time, dt) => {
+      if (this.isGameOver) return;
       for (const obj of this.bulletsPlain) {
         if (obj.active && obj.update) obj.update(time, dt);
       }
