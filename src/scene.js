@@ -27,6 +27,8 @@ import { TOWER_DEFS } from "./constants.js";
 const PLAYER_NAME_STORAGE_KEY = "geeklabs_td_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
 const LEADERBOARD_STORAGE_KEY = "geeklabs_td_leaderboard_v1";
+const BRAND_LOGO_URL = "/brand/defense-protocol.png";
+const BRAND_TITLE = "Defense Protocol";
 const DEFAULT_DIFFICULTY_KEY = "easy";
 
 const readStorage = (key) => {
@@ -97,6 +99,32 @@ const updateLeaderboard = (entry) => {
   const trimmed = entries.slice(0, 10);
   writeLeaderboard(trimmed);
   return trimmed;
+};
+
+const makeBrandHeader = () => {
+  const wrap = document.createElement("div");
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.alignItems = "center";
+  wrap.style.marginBottom = "12px";
+
+  const logo = document.createElement("img");
+  logo.src = BRAND_LOGO_URL;
+  logo.alt = "Defense Protocol logo";
+  logo.style.width = "160px";
+  logo.style.height = "auto";
+  logo.style.marginBottom = "8px";
+
+  const title = document.createElement("div");
+  title.textContent = BRAND_TITLE;
+  title.style.fontSize = "18px";
+  title.style.fontWeight = "700";
+  title.style.color = "#f0d7c0";
+  title.style.letterSpacing = "0.03em";
+
+  wrap.appendChild(logo);
+  wrap.appendChild(title);
+  return wrap;
 };
 
 export class GameScene extends Phaser.Scene {
@@ -436,11 +464,7 @@ export class GameScene extends Phaser.Scene {
     panel.style.color = "#dbe7ff";
     panel.style.fontFamily = "monospace";
 
-    const title = document.createElement("div");
-    title.textContent = "GeekLabs TD";
-    title.style.fontSize = "18px";
-    title.style.fontWeight = "700";
-    title.style.marginBottom = "12px";
+    const brandHeader = makeBrandHeader();
 
     const nameLabel = document.createElement("label");
     nameLabel.textContent = "Player name";
@@ -551,7 +575,7 @@ export class GameScene extends Phaser.Scene {
       if (e.key === "Enter") onStart();
     });
 
-    panel.appendChild(title);
+    panel.appendChild(brandHeader);
     panel.appendChild(nameLabel);
     panel.appendChild(nameInput);
     panel.appendChild(diffLabel);
@@ -589,6 +613,8 @@ export class GameScene extends Phaser.Scene {
     panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
     panel.style.color = "#f5d6e6";
     panel.style.fontFamily = "monospace";
+
+    const brandHeader = makeBrandHeader();
 
     const title = document.createElement("div");
     title.textContent = "Game Over";
@@ -777,6 +803,7 @@ export class GameScene extends Phaser.Scene {
     btnWrap.appendChild(changeBtn);
     btnWrap.appendChild(leaderboardBtn);
 
+    panel.appendChild(brandHeader);
     panel.appendChild(title);
     panel.appendChild(stats);
     panel.appendChild(btnWrap);
