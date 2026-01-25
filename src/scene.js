@@ -346,30 +346,6 @@ export class GameScene extends Phaser.Scene {
       color: "#dbe7ff",
     });
     this.uiBaseColor = "#dbe7ff";
-    this.lifeText = this.add.text(14, 12, "", {
-      fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#dbe7ff",
-    });
-    this.lifeText.setDepth(1000);
-    this.lifeTextBaseColor = "#dbe7ff";
-
-    this.killText = this.add.text(640, 12, "Kills: 0", {
-      fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#dbe7ff",
-
-    });
-    this.scoreText = this.add.text(780, 12, "Score: 0", {
-      fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#dbe7ff",
-    });
-    this.diffText = this.add.text(920, 14, "", {
-      fontFamily: "monospace",
-      fontSize: "13px",
-      color: "#9fb3d8",
-    });
 
     this.helpIndicator = null;
     this.helpIndicatorTween = null;
@@ -404,7 +380,7 @@ export class GameScene extends Phaser.Scene {
     this.lifeFlashRect.setDepth(90000);
     this.lifeFlashRect.setVisible(false);
     this.lifeFlashTween = null;
-    this.lifeTextTween = null;
+    this.lifeHudTween = null;
 
     this.isStartScreenActive = !this.startOptions?.skipStartScreen;
     this.isGameOver = false;
@@ -599,14 +575,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   applyDifficulty(key, opts = {}) {
-    const { updateUi = true } = opts;
     const normalized = normalizeDifficultyKey(key);
     const cfg = DIFFICULTY_CONFIG[normalized];
     this.difficultyKey = normalized;
     this.difficulty = cfg;
     this.difficultyLabel = cfg.label;
     this.money = cfg.startingMoney;
-    if (updateUi) this.updateUI();
   }
 
   showStartScreen() {
@@ -1076,25 +1050,25 @@ export class GameScene extends Phaser.Scene {
 
   triggerLifeLossFeedback() {
     if (this.isStartScreenActive || this.isPaused) return;
-    if (this.lifeTextTween) {
-      this.lifeTextTween.stop();
-      this.lifeTextTween = null;
+    if (this.lifeHudTween) {
+      this.lifeHudTween.stop();
+      this.lifeHudTween = null;
     }
     if (this.lifeFlashTween) {
       this.lifeFlashTween.stop();
       this.lifeFlashTween = null;
     }
 
-    if (this.lifeText) {
-      this.lifeText.setColor("#ffd1d1");
-      this.lifeText.setAlpha(0.7);
-      this.lifeTextTween = this.tweens.add({
-        targets: this.lifeText,
+    if (this.ui) {
+      this.ui.setColor("#ffd1d1");
+      this.ui.setAlpha(0.7);
+      this.lifeHudTween = this.tweens.add({
+        targets: this.ui,
         alpha: 1,
         duration: 150,
         onComplete: () => {
-          this.lifeText.setColor(this.lifeTextBaseColor || "#dbe7ff");
-          this.lifeTextTween = null;
+          this.ui.setColor(this.uiBaseColor || "#dbe7ff");
+          this.lifeHudTween = null;
         },
       });
     }

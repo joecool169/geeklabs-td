@@ -48,8 +48,6 @@ function fireBullet(t, target) {
       this.killCount += 1;
       const scoreGain = reward + Math.round(weight * 10);
       this.score += scoreGain;
-      this.killText.setText(`Kills: ${this.killCount}`);
-      this.scoreText.setText(`Score: ${this.score}`);
     }
 
     this.time.delayedCall(50, () => {
@@ -98,8 +96,6 @@ function fireBullet(t, target) {
         this.killCount += 1;
         const scoreGain = reward + Math.round(weight * 10);
         this.score += scoreGain;
-        this.killText.setText(`Kills: ${this.killCount}`);
-        this.scoreText.setText(`Score: ${this.score}`);
       }
       b.destroy();
     }
