@@ -5,7 +5,6 @@ import { fireBullet as fireBulletFn } from "./game/bullets.js";
 import {
   advanceEnemy as advanceEnemyFn,
   findTarget as findTargetFn,
-  pickWeighted as pickWeightedFn,
   spawnEnemyOfType as spawnEnemyOfTypeFn,
 } from "./game/enemies.js";
 import { showToast as showToastFn, updateUI as updateUIFn } from "./game/ui.js";
@@ -16,7 +15,14 @@ import {
   trySellTower as trySellTowerFn,
   tryUpgradeTower as tryUpgradeTowerFn,
 } from "./game/towers.js";
-import { TOWER_DEFS, clamp01 } from "./constants.js";
+import {
+  computeWaveConfig as computeWaveConfigFn,
+  enterIntermission as enterIntermissionFn,
+  startWave as startWaveFn,
+  tryStartWave as tryStartWaveFn,
+  updateWaveSpawning as updateWaveSpawningFn,
+} from "./game/waves.js";
+import { TOWER_DEFS } from "./constants.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -278,70 +284,19 @@ export class GameScene extends Phaser.Scene {
   }
 
   computeWaveConfig(wave) {
-    const w = Math.max(1, wave);
-    const total = Math.floor(10 + w * 3 + Math.min(18, w * 1.5));
-    const spawnDelayMs = Math.max(260, 650 - w * 18);
-    const bruteW = clamp01((w - 10) / 10) * 0.9;
-    const armoredW = clamp01((w - 20) / 10) * 0.8;
-    const weights = [{ key: "runner", w: 1.6 }];
-    if (w >= 10) weights.push({ key: "brute", w: 0.6 + bruteW });
-    if (w >= 20) weights.push({ key: "armored", w: 0.15 + armoredW });
-    const packEvery = Math.max(9, 14 - Math.floor(w / 2));
-    const packSize = Math.min(7, 3 + Math.floor(w / 3));
-    return {
-      total,
-      spawnDelayMs,
-      weights,
-      packEvery,
-      packSize,
-      intermissionMs: this.intermissionMs,
-    };
+    return computeWaveConfigFn.call(this, wave);
   }
 
   enterIntermission(isInitial = false) {
-    this.waveState = "intermission";
-    this.waveEnemiesTotal = 0;
-    this.waveEnemiesSpawned = 0;
-    this.waveNextSpawnAt = 0;
-    this.swarmPacksRemaining = 0;
-    this.swarmNextPackSpawnAt = 0;
-
-    if (this.autoStartTimer) {
-      this.autoStartTimer.remove(false);
-      this.autoStartTimer = null;
-    }
-
-    if (isInitial && !this.didStartFirstWave) {
-      this.nextWaveAvailableAt = this.time.now;
-      return;
-    }
-
-    this.nextWaveAvailableAt = this.time.now + this.intermissionMs;
-
-    if (this.autoStartWaves) {
-      this.autoStartTimer = this.time.delayedCall(this.intermissionMs, () => {
-        if (this.isPaused) return;
-        if (this.waveState !== "intermission") return;
-        this.startWave(this.wave);
-      });
-    }
+    enterIntermissionFn.call(this, isInitial);
   }
 
   tryStartWave() {
-    if (this.waveState !== "intermission") return;
-    if (this.time.now < this.nextWaveAvailableAt) return;
-    this.startWave(this.wave);
-    if (!this.didStartFirstWave) this.didStartFirstWave = true;
+    tryStartWaveFn.call(this);
   }
 
   startWave(wave) {
-    const cfg = this.computeWaveConfig(wave);
-    this.waveState = "running";
-    this.waveEnemiesTotal = cfg.total;
-    this.waveEnemiesSpawned = 0;
-    this.waveSpawnDelayMs = cfg.spawnDelayMs;
-    this.waveNextSpawnAt = this.time.now + 250;
-    this.waveCfg = cfg;
+    startWaveFn.call(this, wave);
   }
 
   buildInspector() {
@@ -505,36 +460,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateWaveSpawning(time) {
-    if (this.waveState !== "running") return;
-
-    if (this.swarmPacksRemaining > 0 && time >= this.swarmNextPackSpawnAt) {
-      spawnEnemyOfTypeFn.call(this, "runner", { isSwarm: true });
-      this.waveEnemiesSpawned += 1;
-      this.swarmPacksRemaining -= 1;
-      this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
-      return;
-    }
-
-    if (this.waveEnemiesSpawned >= this.waveEnemiesTotal) return;
-    if (time < this.waveNextSpawnAt) return;
-
-    const cfg = this.waveCfg || this.computeWaveConfig(this.wave);
-    const shouldPack = cfg.packEvery > 0 && this.waveEnemiesSpawned > 0 && this.waveEnemiesSpawned % cfg.packEvery === 0;
-
-    if (shouldPack) {
-      const toSpawn = Math.min(cfg.packSize, this.waveEnemiesTotal - this.waveEnemiesSpawned);
-      spawnEnemyOfTypeFn.call(this, "runner", { isSwarm: true });
-      this.waveEnemiesSpawned += 1;
-      this.swarmPacksRemaining = Math.max(0, toSpawn - 1);
-      this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
-    } else {
-      const r = Math.random();
-      const type = pickWeightedFn.call(this, r, cfg.weights) || "runner";
-      spawnEnemyOfTypeFn.call(this, type);
-      this.waveEnemiesSpawned += 1;
-    }
-
-    this.waveNextSpawnAt = time + this.waveSpawnDelayMs;
+    updateWaveSpawningFn.call(this, time);
   }
 
   getPlaceDef() {
@@ -798,6 +724,10 @@ export class GameScene extends Phaser.Scene {
 
   cycleTargetMode(t) {
     cycleTargetModeFn.call(this, t);
+  }
+
+  spawnEnemyOfType(typeKey, opts = {}) {
+    return spawnEnemyOfTypeFn.call(this, typeKey, opts);
   }
 
   fireBullet(t, target) {
