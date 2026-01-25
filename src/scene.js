@@ -27,6 +27,7 @@ import { TOWER_DEFS } from "./constants.js";
 const PLAYER_NAME_STORAGE_KEY = "geeklabs_td_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
 const LEADERBOARD_STORAGE_KEY = "geeklabs_td_leaderboard_v1";
+const HELP_OVERLAY_STORAGE_KEY = "geeklabs_td_help_overlay_v1";
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
@@ -324,12 +325,8 @@ export class GameScene extends Phaser.Scene {
       color: "#9fb3d8",
     });
 
-    this.help = this.add.text(
-      14,
-      34,
-      "T: place mode   1/2/3: type   Click: select   Shift+Click/U: upgrade   X/Right click: sell   F: target mode   SPACE: start/skip wait",
-      { fontFamily: "monospace", fontSize: "13px", color: "#9fb3d8" }
-    );
+    this.helpIndicator = null;
+    this.helpIndicatorTween = null;
 
     this.placeHint = this.add.text(14, 56, "", {
       fontFamily: "monospace",
@@ -360,6 +357,7 @@ export class GameScene extends Phaser.Scene {
     this.isStartScreenActive = !this.startOptions?.skipStartScreen;
     this.isGameOver = false;
     this.isPaused = false;
+    this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
     this.pauseText = this.add
       .text(540, 14, "", {
         fontFamily: "monospace",
@@ -372,6 +370,8 @@ export class GameScene extends Phaser.Scene {
       .setDepth(100000)
       .setVisible(false);
 
+    this.setHelpOverlay(this.showHelp);
+
     this.input.mouse?.disableContextMenu();
 
     this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
@@ -383,6 +383,7 @@ export class GameScene extends Phaser.Scene {
     this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
     this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
     this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+    this.keyH = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
@@ -449,6 +450,12 @@ export class GameScene extends Phaser.Scene {
     this.keyP.on("down", () => {
       if (this.isStartScreenActive || this.isGameOver) return;
       this.togglePause();
+    });
+
+    this.keyH.on("down", () => {
+      if (this.isStartScreenActive || this.isGameOver) return;
+      this.emphasizeControlsPanel();
+      this.setHelpOverlay(!this.showHelp);
     });
 
     this.keyEsc.on("down", () => {
@@ -1010,6 +1017,18 @@ export class GameScene extends Phaser.Scene {
     if (existingOverlay) existingOverlay.remove();
   }
 
+  emphasizeControlsPanel() {
+    const controls = document.getElementById("controls");
+    if (!controls) return;
+    controls.classList.remove("controls-emphasis");
+    void controls.offsetWidth;
+    controls.classList.add("controls-emphasis");
+    if (this.controlsEmphasisTimer) window.clearTimeout(this.controlsEmphasisTimer);
+    this.controlsEmphasisTimer = window.setTimeout(() => {
+      controls.classList.remove("controls-emphasis");
+    }, 1600);
+  }
+
   triggerGameOver() {
     if (this.isGameOver) return;
     this.isGameOver = true;
@@ -1036,6 +1055,51 @@ export class GameScene extends Phaser.Scene {
 
   computeWaveConfig(wave) {
     return computeWaveConfigFn.call(this, wave);
+  }
+
+  setHelpOverlay(show) {
+    this.showHelp = !!show;
+    writeStorage(HELP_OVERLAY_STORAGE_KEY, this.showHelp ? "true" : "false");
+
+    if (!this.showHelp) {
+      if (this.helpIndicatorTween) {
+        this.helpIndicatorTween.stop();
+        this.helpIndicatorTween.remove();
+        this.helpIndicatorTween = null;
+      }
+      if (this.helpIndicator) {
+        this.helpIndicator.destroy();
+        this.helpIndicator = null;
+      }
+      return;
+    }
+
+    if (!this.path?.length) return;
+
+    const first = this.path[0];
+    const indicator = this.add.circle(first.x, first.y, 4, 0xf0d7c0, 0.45);
+    indicator.setDepth(5);
+    indicator.setBlendMode(Phaser.BlendModes.ADD);
+
+    const curve = new Phaser.Curves.Path(first.x, first.y);
+    for (let i = 1; i < this.path.length; i += 1) {
+      const p = this.path[i];
+      curve.lineTo(p.x, p.y);
+    }
+
+    this.helpIndicator = indicator;
+    this.helpIndicatorTween = this.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 9000,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+      onUpdate: (tween) => {
+        const t = tween.getValue();
+        const point = curve.getPoint(t);
+        if (point) indicator.setPosition(point.x, point.y);
+      },
+    });
   }
 
   enterIntermission(isInitial = false) {
