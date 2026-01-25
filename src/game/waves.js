@@ -24,6 +24,7 @@ function computeWaveConfig(wave) {
 
 function enterIntermission(isInitial = false) {
   this.waveState = "intermission";
+  this.activeWaves = [];
   this.waveEnemiesTotal = 0;
   this.waveEnemiesSpawned = 0;
   this.waveNextSpawnAt = 0;
@@ -60,45 +61,56 @@ function tryStartWave() {
 
 function startWave(wave) {
   const cfg = computeWaveConfig.call(this, wave);
+  if (!this.activeWaves) this.activeWaves = [];
+  this.activeWaves.push({
+    waveNumber: wave,
+    cfg,
+    enemiesTotal: cfg.total,
+    enemiesSpawned: 0,
+    spawnDelayMs: cfg.spawnDelayMs,
+    nextSpawnAt: this.time.now + 250,
+    swarmPacksRemaining: 0,
+    swarmNextPackSpawnAt: 0,
+  });
   this.waveState = "running";
-  this.waveEnemiesTotal = cfg.total;
-  this.waveEnemiesSpawned = 0;
-  this.waveSpawnDelayMs = cfg.spawnDelayMs;
-  this.waveNextSpawnAt = this.time.now + 250;
-  this.waveCfg = cfg;
 }
 
 function updateWaveSpawning(time) {
   if (this.waveState !== "running") return;
 
-  if (this.swarmPacksRemaining > 0 && time >= this.swarmNextPackSpawnAt) {
-    this.spawnEnemyOfType("runner", { isSwarm: true });
-    this.waveEnemiesSpawned += 1;
-    this.swarmPacksRemaining -= 1;
-    this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
-    return;
+  if (!this.activeWaves || this.activeWaves.length === 0) return;
+
+  for (const spawner of this.activeWaves) {
+    if (spawner.swarmPacksRemaining > 0 && time >= spawner.swarmNextPackSpawnAt) {
+      this.spawnEnemyOfType("runner", { isSwarm: true });
+      spawner.enemiesSpawned += 1;
+      spawner.swarmPacksRemaining -= 1;
+      spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
+      continue;
+    }
+
+    if (spawner.enemiesSpawned >= spawner.enemiesTotal) continue;
+    if (time < spawner.nextSpawnAt) continue;
+
+    const cfg = spawner.cfg;
+    const shouldPack =
+      cfg.packEvery > 0 && spawner.enemiesSpawned > 0 && spawner.enemiesSpawned % cfg.packEvery === 0;
+
+    if (shouldPack) {
+      const toSpawn = Math.min(cfg.packSize, spawner.enemiesTotal - spawner.enemiesSpawned);
+      this.spawnEnemyOfType("runner", { isSwarm: true });
+      spawner.enemiesSpawned += 1;
+      spawner.swarmPacksRemaining = Math.max(0, toSpawn - 1);
+      spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
+    } else {
+      const r = Math.random();
+      const type = pickWeighted.call(this, r, cfg.weights) || "runner";
+      this.spawnEnemyOfType(type);
+      spawner.enemiesSpawned += 1;
+    }
+
+    spawner.nextSpawnAt = time + spawner.spawnDelayMs;
   }
-
-  if (this.waveEnemiesSpawned >= this.waveEnemiesTotal) return;
-  if (time < this.waveNextSpawnAt) return;
-
-  const cfg = this.waveCfg || computeWaveConfig.call(this, this.wave);
-  const shouldPack = cfg.packEvery > 0 && this.waveEnemiesSpawned > 0 && this.waveEnemiesSpawned % cfg.packEvery === 0;
-
-  if (shouldPack) {
-    const toSpawn = Math.min(cfg.packSize, this.waveEnemiesTotal - this.waveEnemiesSpawned);
-    this.spawnEnemyOfType("runner", { isSwarm: true });
-    this.waveEnemiesSpawned += 1;
-    this.swarmPacksRemaining = Math.max(0, toSpawn - 1);
-    this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
-  } else {
-    const r = Math.random();
-    const type = pickWeighted.call(this, r, cfg.weights) || "runner";
-    this.spawnEnemyOfType(type);
-    this.waveEnemiesSpawned += 1;
-  }
-
-  this.waveNextSpawnAt = time + this.waveSpawnDelayMs;
 }
 
 export { computeWaveConfig, enterIntermission, tryStartWave, startWave, updateWaveSpawning };

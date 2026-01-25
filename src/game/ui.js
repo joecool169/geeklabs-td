@@ -109,16 +109,18 @@ function updateUI() {
       updateWaveHint.call(
         this,
         this.autoStartWaves
-          ? `Next wave in ${sec}s... (SPACE to start now)`
-          : `Wave ${this.wave} ready in ${sec}s... (SPACE to start when ready)`
+          ? `Next wave in ${sec}s... (SPACE twice to start now)`
+          : `Wave ${this.wave} ready in ${sec}s... (SPACE twice to start now)`
         ,
         true
       );
     }
   } else {
+    const spawners = this.activeWaves?.length ?? 0;
+    const alive = this.enemies.countActive(true);
     updateWaveHint.call(
       this,
-      `Wave ${this.wave} running: ${this.waveEnemiesSpawned}/${this.waveEnemiesTotal}`,
+      `Wave ${this.wave} running | Spawners: ${spawners} | Alive: ${alive}`,
       true
     );
   }

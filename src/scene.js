@@ -1,5 +1,12 @@
 import Phaser from "phaser";
-import { DIFFICULTY_CONFIG, GRID, LASER_UNLOCK_WAVE, TOP_UI } from "./game/config.js";
+import {
+  DIFFICULTY_CONFIG,
+  GRID,
+  LASER_UNLOCK_WAVE,
+  MAX_CONCURRENT_SPAWNERS,
+  TOP_UI,
+  WAVE_SPAM_WINDOW_MS,
+} from "./game/config.js";
 import { dist2, segCircleHit, snapX, snapY } from "./game/utils.js";
 import { fireBullet as fireBulletFn } from "./game/bullets.js";
 import {
@@ -313,6 +320,11 @@ export class GameScene extends Phaser.Scene {
     this.autoStartWaves = true;
     this.autoStartTimer = null;
     this.didStartFirstWave = false;
+    this.activeWaves = [];
+    this.spaceArmedAt = 0;
+    this.spaceArmMode = null;
+    this.nextWaveNumberToSpawn = this.wave;
+    this.blockWaveStart = this.wave;
 
     this.swarmPacksRemaining = 0;
     this.swarmPackSpacingMs = 60;
@@ -524,9 +536,45 @@ export class GameScene extends Phaser.Scene {
 
     this.keySpace.on("down", () => {
       if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+      const now = this.time.now;
       if (this.waveState === "intermission") {
-        this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, this.time.now);
-        this.tryStartWave();
+        if (now < this.nextWaveAvailableAt) {
+          if (this.spaceArmMode === "intermission" && now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS) {
+            this.spaceArmedAt = 0;
+            this.spaceArmMode = null;
+            this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, now);
+            this.startWave(this.nextWaveNumberToSpawn);
+            this.nextWaveNumberToSpawn += 1;
+            if (!this.didStartFirstWave) this.didStartFirstWave = true;
+          } else {
+            this.spaceArmedAt = now;
+            this.spaceArmMode = "intermission";
+            this.showToast("Press SPACE again to start early.", 1400);
+          }
+          return;
+        }
+        this.spaceArmedAt = 0;
+        this.spaceArmMode = null;
+        this.startWave(this.nextWaveNumberToSpawn);
+        this.nextWaveNumberToSpawn += 1;
+        if (!this.didStartFirstWave) this.didStartFirstWave = true;
+        return;
+      }
+      if (this.waveState === "running") {
+        if ((this.activeWaves?.length || 0) >= MAX_CONCURRENT_SPAWNERS) {
+          this.showToast(`Spawner cap reached (${MAX_CONCURRENT_SPAWNERS}).`, 1400);
+          return;
+        }
+        if (this.spaceArmMode === "running" && now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS) {
+          this.spaceArmedAt = 0;
+          this.spaceArmMode = null;
+          this.startWave(this.nextWaveNumberToSpawn);
+          this.nextWaveNumberToSpawn += 1;
+          return;
+        }
+        this.spaceArmedAt = now;
+        this.spaceArmMode = "running";
+        this.showToast("Press SPACE again to add a spawner.", 1400);
       }
     });
 
@@ -1198,6 +1246,8 @@ export class GameScene extends Phaser.Scene {
 
   enterIntermission(isInitial = false) {
     enterIntermissionFn.call(this, isInitial);
+    this.nextWaveNumberToSpawn = this.wave;
+    this.blockWaveStart = this.wave;
   }
 
   tryStartWave() {
@@ -1364,11 +1414,17 @@ export class GameScene extends Phaser.Scene {
 
     if (this.waveState === "running") {
       const alive = this.enemies.countActive(true);
-      if (this.waveEnemiesSpawned >= this.waveEnemiesTotal && alive === 0) {
-        const clearBonus = 6 + Math.floor(this.wave * 1.5);
-        this.money += clearBonus;
-        this.score += clearBonus;
-        this.wave += 1;
+      const spawners = this.activeWaves || [];
+      const allDone = spawners.length > 0 && spawners.every((spawner) => spawner.enemiesSpawned >= spawner.enemiesTotal);
+      if (allDone && alive === 0) {
+        const wavesCleared = Math.max(1, this.nextWaveNumberToSpawn - this.blockWaveStart);
+        for (let i = 0; i < wavesCleared; i += 1) {
+          const waveNum = this.blockWaveStart + i;
+          const clearBonus = 6 + Math.floor(waveNum * 1.5);
+          this.money += clearBonus;
+          this.score += clearBonus;
+        }
+        this.wave = this.nextWaveNumberToSpawn;
         this.enterIntermission(false);
       }
     }
@@ -1528,9 +1584,13 @@ this.hideRangeRing();
     const h = this.scale.height;
     const gw = Math.floor(w / GRID) * GRID;
     const gx = Math.floor((w - gw) / 2);
+    const gridRight = gx + gw - 1;
     this.g.lineStyle(1, 0x142033, 1);
-    for (let x = 0; x <= gw; x += GRID) this.g.lineBetween(gx + x, TOP_UI, gx + x, h);
-    for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y, gx + gw, y);
+    for (let x = 0; x < gw; x += GRID) this.g.lineBetween(gx + x + 0.5, TOP_UI, gx + x + 0.5, h);
+    this.g.lineStyle(2, 0x142033, 1);
+    this.g.lineBetween(gridRight + 0.5, TOP_UI, gridRight + 0.5, h);
+    this.g.lineStyle(1, 0x142033, 1);
+    for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y + 0.5, gridRight, y + 0.5);
     this.g.lineStyle(2, 0x294a6a, 1);
     this.g.lineBetween(0, TOP_UI, w, TOP_UI);
   }
