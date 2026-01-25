@@ -40,12 +40,18 @@ function updateUI() {
     );
   }
 
-  this.ui.setText(
-    `Money: $${this.money}    Lives: ${this.lives}    Towers: ${this.towers.length}    Wave: ${this.wave}`
-  );
+  this.ui.setText(`Money: $${this.money}    Towers: ${this.towers.length}    Wave: ${this.wave}`);
+  if (this.lifeText) {
+    this.lifeText.setText(`Lives: ${this.lives}`);
+    this.lifeText.setPosition(this.ui.x + this.ui.width + 18, this.ui.y);
+  }
   this.killText.setText(`Kills: ${this.killCount}`);
   this.scoreText.setText(`Score: ${this.score}`);
-  this.killText.setX(this.ui.x + this.ui.width + 24);
+  if (this.lifeText) {
+    this.killText.setX(this.lifeText.x + this.lifeText.width + 24);
+  } else {
+    this.killText.setX(this.ui.x + this.ui.width + 24);
+  }
   this.scoreText.setX(this.killText.x + this.killText.width + 24);
   if (this.diffText) {
     const label = this.difficultyLabel || "Easy";

@@ -345,6 +345,14 @@ export class GameScene extends Phaser.Scene {
       fontSize: "16px",
       color: "#dbe7ff",
     });
+    this.uiBaseColor = "#dbe7ff";
+    this.lifeText = this.add.text(14, 12, "", {
+      fontFamily: "monospace",
+      fontSize: "16px",
+      color: "#dbe7ff",
+    });
+    this.lifeText.setDepth(1000);
+    this.lifeTextBaseColor = "#dbe7ff";
 
     this.killText = this.add.text(640, 12, "Kills: 0", {
       fontFamily: "monospace",
@@ -391,6 +399,12 @@ export class GameScene extends Phaser.Scene {
     this.toast.setVisible(false);
     this.toastTimer = null;
     this.didShowPlaceToast = false;
+    this.lifeFlashRect = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xff3b3b, 0.18);
+    this.lifeFlashRect.setOrigin(0, 0);
+    this.lifeFlashRect.setDepth(90000);
+    this.lifeFlashRect.setVisible(false);
+    this.lifeFlashTween = null;
+    this.lifeTextTween = null;
 
     this.isStartScreenActive = !this.startOptions?.skipStartScreen;
     this.isGameOver = false;
@@ -1058,6 +1072,48 @@ export class GameScene extends Phaser.Scene {
     if (!host) return;
     const existingOverlay = host.querySelector("#geeklabs-td-pause-overlay");
     if (existingOverlay) existingOverlay.remove();
+  }
+
+  triggerLifeLossFeedback() {
+    if (this.isStartScreenActive || this.isPaused) return;
+    if (this.lifeTextTween) {
+      this.lifeTextTween.stop();
+      this.lifeTextTween = null;
+    }
+    if (this.lifeFlashTween) {
+      this.lifeFlashTween.stop();
+      this.lifeFlashTween = null;
+    }
+
+    if (this.lifeText) {
+      this.lifeText.setColor("#ffd1d1");
+      this.lifeText.setAlpha(0.7);
+      this.lifeTextTween = this.tweens.add({
+        targets: this.lifeText,
+        alpha: 1,
+        duration: 150,
+        onComplete: () => {
+          this.lifeText.setColor(this.lifeTextBaseColor || "#dbe7ff");
+          this.lifeTextTween = null;
+        },
+      });
+    }
+
+    if (this.lifeFlashRect) {
+      this.lifeFlashRect.width = this.scale.width;
+      this.lifeFlashRect.height = this.scale.height;
+      this.lifeFlashRect.setAlpha(0.18);
+      this.lifeFlashRect.setVisible(true);
+      this.lifeFlashTween = this.tweens.add({
+        targets: this.lifeFlashRect,
+        alpha: 0,
+        duration: 120,
+        onComplete: () => {
+          this.lifeFlashRect.setVisible(false);
+          this.lifeFlashTween = null;
+        },
+      });
+    }
   }
 
   emphasizeControlsPanel() {
