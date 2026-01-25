@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { DIFFICULTY_CONFIG, GRID, TOP_UI } from "./game/config.js";
-import { snapX, snapY } from "./game/utils.js";
+import { DIFFICULTY_CONFIG, GRID, LASER_UNLOCK_WAVE, TOP_UI } from "./game/config.js";
+import { dist2, segCircleHit, snapX, snapY } from "./game/utils.js";
 import { fireBullet as fireBulletFn } from "./game/bullets.js";
 import {
   advanceEnemy as advanceEnemyFn,
@@ -41,10 +41,11 @@ const SFX_CONFIG = {
   life: { url: "/sfx/life.wav", volume: 0.35 },
   gameover: { url: "/sfx/gameover.wav", volume: 0.45 },
 };
+const LASER_MAX_PIERCE = 5;
 const CONTROLS = [
   { key: "T", action: "Toggle placement mode" },
   { key: "Click", action: "Place tower" },
-  { key: "1 / 2 / 3", action: "Select tower" },
+  { key: "1 / 2 / 3 / 4", action: "Select tower" },
   { key: "Space", action: "Start wave" },
   { key: "U", action: "Upgrade (selected tower)" },
   { key: "X", action: "Sell (selected tower)" },
@@ -418,6 +419,7 @@ export class GameScene extends Phaser.Scene {
     this.key1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
     this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
     this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
+    this.key4 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR);
     this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
     this.keyH = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
@@ -481,6 +483,15 @@ export class GameScene extends Phaser.Scene {
     this.key3.on("down", () => {
       if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("sniper");
+    });
+
+    this.key4.on("down", () => {
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+      if (this.wave < LASER_UNLOCK_WAVE) {
+        this.showToast(`Laser unlocks at Wave ${LASER_UNLOCK_WAVE}.`, 2200);
+        return;
+      }
+      this.setPlaceType("laser");
     });
 
     this.keyP.on("down", () => {
@@ -1109,6 +1120,12 @@ export class GameScene extends Phaser.Scene {
     if (this.isGameOver) return;
     this.isGameOver = true;
     this.playSfx("gameover", { allowDuringGameOver: true });
+    for (const t of this.towers) {
+      if (t.beam) {
+        t.beam.destroy();
+        t.beam = null;
+      }
+    }
     if (this.autoStartTimer) {
       this.autoStartTimer.remove(false);
       this.autoStartTimer = null;
@@ -1313,6 +1330,10 @@ export class GameScene extends Phaser.Scene {
     if (this.isGameOver || this.isPaused || this.isStartScreenActive) return;
 
     for (const t of this.towers) {
+      if (t.type === "laser") {
+        this.updateLaserTower(t, time, dt);
+        continue;
+      }
       if (time < t.nextShotAt) continue;
       const target = findTargetFn.call(this, t, t.targetMode);
       if (!target) continue;
@@ -1336,10 +1357,9 @@ export class GameScene extends Phaser.Scene {
       this.showRangeRing(this.selectedTower, 0x00ffff);
     } else if (this.selectedTower && !this.towers.includes(this.selectedTower)) {
       this.selectedTower = null;
-      
-    this.setInspectorVisible(false);
-    this.panel.setText("");
-this.hideRangeRing();
+      this.setInspectorVisible(false);
+      this.panel.setText("");
+      this.hideRangeRing();
     }
 
     if (this.waveState === "running") {
@@ -1387,7 +1407,8 @@ this.hideRangeRing();
       this.clearSelection();
       if (!this.didShowPlaceToast) {
         this.didShowPlaceToast = true;
-        this.showToast("Placement: press 1/2/3 to switch tower type.", 2600);
+        const hint = this.wave >= LASER_UNLOCK_WAVE ? "1/2/3/4" : "1/2/3";
+        this.showToast(`Placement: press ${hint} to switch tower type.`, 2600);
       }
       this.ghost = this.add.image(0, 0, this.getTowerTextureKey(this.placeType));
       this.ghost.setDepth(9000);
@@ -1448,8 +1469,9 @@ this.hideRangeRing();
     const tier0 = def.tiers[0];
     const ok = this.ghostValid ? "OK" : "BLOCKED";
     const need = this.money < tier0.cost ? " (not enough $)" : "";
+    const switchHint = this.wave >= LASER_UNLOCK_WAVE ? "1/2/3/4" : "1/2/3";
     this.placeHint.setText(
-      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (1/2/3: switch)`
+      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (${switchHint}: switch)`
     );
   }
 
@@ -1617,6 +1639,15 @@ this.hideRangeRing();
       sprite: img,
       badge,
     };
+    if (def.key === "laser") {
+      t.beamTickMs = tier0.fireMs;
+      t.beamAcc = 0;
+      t.lockTarget = null;
+      t.lockMs = 0;
+      t.beam = this.add.graphics();
+      t.beam.setDepth(70);
+      t.beam.setVisible(false);
+    }
     img.setTint(tier0.tint);
     img.setScale(tier0.scale ?? 1);
     this.towers.push(t);
@@ -1626,6 +1657,10 @@ this.hideRangeRing();
 
   trySellTower(t) {
     const hadTower = !!t && this.towers.includes(t);
+    if (t?.beam) {
+      t.beam.destroy();
+      t.beam = null;
+    }
     trySellTowerFn.call(this, t);
     if (hadTower && !this.towers.includes(t)) this.playSfx("sell");
   }
@@ -1636,6 +1671,120 @@ this.hideRangeRing();
 
   spawnEnemyOfType(typeKey, opts = {}) {
     return spawnEnemyOfTypeFn.call(this, typeKey, opts);
+  }
+
+  updateLaserTower(tower, _time, dt) {
+    const range2 = tower.range * tower.range;
+    const hasTarget =
+      tower.lockTarget &&
+      tower.lockTarget.active &&
+      dist2(tower.x, tower.y, tower.lockTarget.x, tower.lockTarget.y) <= range2;
+
+    if (!hasTarget) {
+      const nextTarget = findTargetFn.call(this, tower, tower.targetMode);
+      if (!nextTarget) {
+        tower.lockTarget = null;
+        tower.lockMs = 0;
+        tower.beamAcc = 0;
+        if (tower.beam) {
+          tower.beam.clear();
+          tower.beam.setVisible(false);
+        }
+        return;
+      }
+      if (tower.lockTarget !== nextTarget) {
+        tower.lockMs = 0;
+        tower.beamAcc = 0;
+      }
+      tower.lockTarget = nextTarget;
+    }
+
+    const target = tower.lockTarget;
+    if (!target) return;
+    const dx = target.x - tower.x;
+    const dy = target.y - tower.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const endX = tower.x + ux * tower.range;
+    const endY = tower.y + uy * tower.range;
+    tower.lockMs += dt;
+    tower.beamAcc += dt;
+
+    if (tower.beam) {
+      tower.beam.clear();
+      tower.beam.lineStyle(2, 0xff9cf2, 0.55);
+      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
+      tower.beam.setVisible(true);
+    }
+
+    const tickMs = tower.beamTickMs || tower.fireMs || 110;
+    while (tower.beamAcc >= tickMs) {
+      tower.beamAcc -= tickMs;
+      if (!tower.lockTarget || !tower.lockTarget.active) break;
+      this.applyLaserTick(tower, tower.lockTarget, endX, endY);
+    }
+
+    if (tower.lockTarget && !tower.lockTarget.active) {
+      tower.lockTarget = null;
+      tower.lockMs = 0;
+      tower.beamAcc = 0;
+      if (tower.beam) {
+        tower.beam.clear();
+        tower.beam.setVisible(false);
+      }
+    }
+  }
+
+  applyLaserTick(tower, target, endX, endY) {
+    const hits = [];
+
+    this.enemies.children.iterate((e) => {
+      if (!e || !e.active) return;
+      if (!segCircleHit(tower.x, tower.y, endX, endY, e.x, e.y, 14)) return;
+      hits.push({ enemy: e, dist2: dist2(tower.x, tower.y, e.x, e.y) });
+    });
+
+    hits.sort((a, b) => a.dist2 - b.dist2);
+    const primaryIndex = hits.findIndex((hit) => hit.enemy === target);
+    if (primaryIndex === -1) {
+      tower.lockTarget = null;
+      tower.lockMs = 0;
+      tower.beamAcc = 0;
+      return;
+    }
+    if (primaryIndex > 0) {
+      const [primary] = hits.splice(primaryIndex, 1);
+      hits.unshift(primary);
+    }
+
+    const ramp = 1 + Math.min(tower.lockMs / 2000, 1.5);
+    const falloff = 0.7;
+
+    for (let i = 0; i < hits.length && i < LASER_MAX_PIERCE; i += 1) {
+      const enemy = hits[i].enemy;
+      if (!enemy || !enemy.active) continue;
+      const base = tower.damage * ramp * Math.pow(falloff, i);
+      const armor = enemy.armor || 0;
+      const dmg = Math.max(1, Math.floor(base) - armor);
+      enemy.hp -= dmg;
+      if (enemy.hp <= 0) this.handleEnemyKilled(enemy);
+    }
+  }
+
+  handleEnemyKilled(enemy) {
+    const reward = enemy.reward ?? 8;
+    const weight = enemy.scoreWeight ?? 1;
+    if (enemy.flashTween) {
+      enemy.flashTween.remove(false);
+      enemy.flashTween = null;
+    }
+    enemy.destroy();
+    this.money += reward;
+    this.killCount += 1;
+    const scoreGain = reward + Math.round(weight * 10);
+    this.score += scoreGain;
+    if (this.playSfx) this.playSfx("death");
   }
 
   fireBullet(t, target) {

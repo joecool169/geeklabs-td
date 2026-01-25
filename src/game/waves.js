@@ -3,15 +3,15 @@ import { pickWeighted } from "./enemies.js";
 
 function computeWaveConfig(wave) {
   const w = Math.max(1, wave);
-  const total = Math.floor(10 + w * 3 + Math.min(18, w * 1.5));
-  const spawnDelayMs = Math.max(260, 650 - w * 18);
+  const total = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
+  const spawnDelayMs = Math.max(280, 700 - w * 16);
   const bruteW = clamp01((w - 10) / 10) * 0.9;
   const armoredW = clamp01((w - 20) / 10) * 0.8;
   const weights = [{ key: "runner", w: 1.6 }];
   if (w >= 10) weights.push({ key: "brute", w: 0.6 + bruteW });
   if (w >= 20) weights.push({ key: "armored", w: 0.15 + armoredW });
-  const packEvery = Math.max(9, 14 - Math.floor(w / 2));
-  const packSize = Math.min(7, 3 + Math.floor(w / 3));
+  const packEvery = Math.max(10, 16 - Math.floor(w / 2));
+  const packSize = Math.min(6, 2 + Math.floor(w / 4));
   return {
     total,
     spawnDelayMs,

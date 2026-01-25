@@ -1,5 +1,6 @@
 export const GRID = 40;
 export const TOP_UI = 120;
+export const LASER_UNLOCK_WAVE = 50;
 
 export const DIFFICULTY_CONFIG = {
   easy: {
