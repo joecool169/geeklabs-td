@@ -407,6 +407,36 @@ export class GameScene extends Phaser.Scene {
     this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
     this.controlsSelectedEl = document.getElementById("controls-selected");
     this.controlsPlacementEl = document.getElementById("controls-placement");
+    this.selectedTowerPanelEl = document.getElementById("selected-tower-panel");
+    this.selectedTowerNameEl = document.getElementById("tower-name");
+    this.selectedTowerTargetEl = document.getElementById("tower-target");
+    this.selectedTowerDmgEl = document.getElementById("tower-dmg");
+    this.selectedTowerFireEl = document.getElementById("tower-fire");
+    this.selectedTowerRangeEl = document.getElementById("tower-range");
+    this.selectedTowerDpsEl = document.getElementById("tower-dps");
+    this.selectedTowerUpgradeEl = document.getElementById("tower-upgrade");
+    this.selectedTowerSellEl = document.getElementById("tower-sell");
+    this.selectedTowerUpgradeBtnEl = document.getElementById("tower-upgrade-btn");
+    this.selectedTowerSellBtnEl = document.getElementById("tower-sell-btn");
+    this.selectedTowerTargetBtnEl = document.getElementById("tower-target-btn");
+    if (this.selectedTowerUpgradeBtnEl) {
+      this.selectedTowerUpgradeBtnEl.addEventListener("click", () => {
+        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
+        this.tryUpgradeTower(this.selectedTower);
+      });
+    }
+    if (this.selectedTowerSellBtnEl) {
+      this.selectedTowerSellBtnEl.addEventListener("click", () => {
+        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
+        this.trySellTower(this.selectedTower);
+      });
+    }
+    if (this.selectedTowerTargetBtnEl) {
+      this.selectedTowerTargetBtnEl.addEventListener("click", () => {
+        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
+        this.cycleTargetMode(this.selectedTower);
+      });
+    }
     this.pauseText = this.add
       .text(540, 14, "", {
         fontFamily: "monospace",
@@ -618,7 +648,6 @@ export class GameScene extends Phaser.Scene {
       this.updateGhost(p.worldX, p.worldY);
     });
 
-    this.buildInspector();
     this.updateUI();
     this.enterIntermission(true);
     if (this.isStartScreenActive) {
@@ -1180,7 +1209,6 @@ export class GameScene extends Phaser.Scene {
     }
     if (this.isPlacing) this.setPlacement(false);
     this.clearSelection();
-    this.setInspectorVisible(false);
     this.hideRangeRing();
     this.lastLeaderboardEntry = {
       name: this.playerName,
@@ -1259,123 +1287,6 @@ export class GameScene extends Phaser.Scene {
     startWaveFn.call(this, wave);
   }
 
-  buildInspector() {
-    const pad = 14;
-    const w = 300;
-    const h = 190;
-    this.inspectorW = w;
-    this.inspectorH = h;
-    this.inspectorX = this.scale.width - w - pad;
-    this.inspectorY = this.scale.height - h - pad;
-
-    this.inspectorBg = this.add.graphics();
-    this.inspectorBg.setDepth(10000);
-
-    this.panel = this.add.text(this.inspectorX + 12, this.inspectorY + 10, "", {
-      fontFamily: "monospace",
-      fontSize: "13px",
-      color: "#dbe7ff",
-    });
-    this.panel.setDepth(10001);
-
-    const btnY = this.inspectorY + h - 44;
-    const btnH = 28;
-    const gap = 10;
-    const btnW = Math.floor((w - 24 - gap * 2) / 3);
-
-    this.upgradeBtn = this.makeButton(this.inspectorX + 12, btnY, btnW, btnH, "Upgrade (U)", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
-    });
-
-    this.sellBtn = this.makeButton(this.inspectorX + 12 + btnW + gap, btnY, btnW, btnH, "Sell (X)", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
-    });
-
-    this.targetBtn = this.makeButton(this.inspectorX + 12 + (btnW + gap) * 2, btnY, btnW, btnH, "Target (F)", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
-    });
-
-    this.setInspectorVisible(false);
-    this.drawInspectorBg(false);
-  }
-
-  makeButton(x, y, w, h, label, onClick) {
-    const bg = this.add.graphics();
-    bg.setDepth(10002);
-
-    const text = this.add.text(x + w / 2, y + h / 2, label, {
-      fontFamily: "monospace",
-      fontSize: "13px",
-      color: "#dbe7ff",
-    });
-    text.setOrigin(0.5, 0.5);
-    text.setDepth(10003);
-
-    const hit = this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0);
-    hit.setDepth(10004);
-    hit.setInteractive({ useHandCursor: true });
-
-    const draw = (enabled, hover = false, down = false) => {
-      bg.clear();
-      const fill = enabled ? 0x101a2a : 0x0a0f18;
-      const alpha = enabled ? (hover ? 0.92 : 0.78) : 0.55;
-      const stroke = enabled ? (hover ? 0x39ff8f : 0x294a6a) : 0x1a2a3d;
-
-      bg.fillStyle(fill, alpha);
-      bg.fillRoundedRect(x, y, w, h, 6);
-
-      bg.lineStyle(down ? 2 : 1, stroke, 1);
-      bg.strokeRoundedRect(x, y, w, h, 6);
-
-      text.setAlpha(enabled ? 1 : 0.5);
-    };
-
-    hit.on("pointerover", () => draw(hit.enabled, true, false));
-    hit.on("pointerout", () => draw(hit.enabled, false, false));
-    hit.on("pointerdown", () => draw(hit.enabled, true, true));
-    hit.on("pointerup", () => {
-      draw(hit.enabled, true, false);
-      if (hit.enabled) onClick();
-    });
-
-    hit.enabled = true;
-    draw(true, false, false);
-    return { bg, text, hit, draw };
-  }
-
-  setInspectorVisible(v) {
-    this.inspectorVisible = v;
-    if (!this.inspectorBg || !this.panel || !this.upgradeBtn || !this.sellBtn || !this.targetBtn) return;
-    this.inspectorBg.setVisible(v);
-    this.panel.setVisible(v);
-    this.upgradeBtn.bg.setVisible(v);
-    this.upgradeBtn.text.setVisible(v);
-    this.upgradeBtn.hit.setVisible(v);
-    this.sellBtn.bg.setVisible(v);
-    this.sellBtn.text.setVisible(v);
-    this.sellBtn.hit.setVisible(v);
-    this.targetBtn.bg.setVisible(v);
-    this.targetBtn.text.setVisible(v);
-    this.targetBtn.hit.setVisible(v);
-  }
-
-  drawInspectorBg(hasSelection) {
-    this.inspectorBg.clear();
-    const x = this.inspectorX;
-    const y = this.inspectorY;
-    const w = this.inspectorW;
-    const h = this.inspectorH;
-
-    this.inspectorBg.fillStyle(0x0b0f14, 0.72);
-    this.inspectorBg.fillRoundedRect(x, y, w, h, 10);
-
-    this.inspectorBg.lineStyle(1, hasSelection ? 0x294a6a : 0x1a2a3d, 1);
-    this.inspectorBg.strokeRoundedRect(x, y, w, h, 10);
-  }
-
   update(time, dt) {
     if (this.isGameOver || this.isPaused || this.isStartScreenActive) return;
 
@@ -1412,8 +1323,6 @@ export class GameScene extends Phaser.Scene {
       this.showRangeRing(this.selectedTower, 0x00ffff);
     } else if (this.selectedTower && !this.towers.includes(this.selectedTower)) {
       this.selectedTower = null;
-      this.setInspectorVisible(false);
-      this.panel.setText("");
       this.hideRangeRing();
     }
 
@@ -1495,10 +1404,7 @@ export class GameScene extends Phaser.Scene {
 
   clearSelection() {
     this.selectedTower = null;
-    
-    this.setInspectorVisible(false);
-    this.panel.setText("");
-this.hideRangeRing();
+    this.hideRangeRing();
   }
 
   updateGhost(wx, wy) {

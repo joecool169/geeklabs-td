@@ -152,18 +152,19 @@ function updateUI() {
   }
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
-    this.setInspectorVisible(false);
-    this.panel.setText("");
     const selectedGroup = this.controlsSelectedEl;
     if (selectedGroup) selectedGroup.classList.add("is-inactive");
+    if (this.selectedTowerPanelEl) this.selectedTowerPanelEl.style.display = "none";
+    if (this.selectedTowerUpgradeBtnEl) this.selectedTowerUpgradeBtnEl.disabled = true;
+    if (this.selectedTowerSellBtnEl) this.selectedTowerSellBtnEl.disabled = true;
+    if (this.selectedTowerTargetBtnEl) this.selectedTowerTargetBtnEl.disabled = true;
     return;
   }
 
   const selectedGroup = this.controlsSelectedEl;
   if (selectedGroup) selectedGroup.classList.remove("is-inactive");
+  if (this.selectedTowerPanelEl) this.selectedTowerPanelEl.style.display = "block";
 
-  this.setInspectorVisible(true);
-  this.drawInspectorBg(true);
   const t = this.selectedTower;
   const def = TOWER_DEFS[t.type];
   const sps = 1000 / t.fireMs;
@@ -172,23 +173,18 @@ function updateUI() {
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
   const targetLabel = t.targetMode === "close" ? "Close" : t.targetMode === "strong" ? "Strong" : "First";
-  this.panel.setText(
-    `${def.name} Tower (Tier ${t.tier})
-Target: ${targetLabel}
-Damage: ${t.damage}
-Fire: ${t.fireMs}ms (${round1(sps)}/s)
-Range: ${t.range}
-DPS: ${round1(dps)}
-Upgrade: ${nextText}
-Sell: $${refund}`
-  );
+  if (this.selectedTowerNameEl) this.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
+  if (this.selectedTowerTargetEl) this.selectedTowerTargetEl.textContent = targetLabel;
+  if (this.selectedTowerDmgEl) this.selectedTowerDmgEl.textContent = `${t.damage}`;
+  if (this.selectedTowerFireEl) this.selectedTowerFireEl.textContent = `${t.fireMs}ms (${round1(sps)}/s)`;
+  if (this.selectedTowerRangeEl) this.selectedTowerRangeEl.textContent = `${t.range}`;
+  if (this.selectedTowerDpsEl) this.selectedTowerDpsEl.textContent = `${round1(dps)}`;
+  if (this.selectedTowerUpgradeEl) this.selectedTowerUpgradeEl.textContent = `${nextText}`;
+  if (this.selectedTowerSellEl) this.selectedTowerSellEl.textContent = `$${refund}`;
   const canUpgrade = nextCost !== null && this.money >= nextCost;
-  this.upgradeBtn.hit.enabled = !!canUpgrade;
-  this.upgradeBtn.draw(!!canUpgrade, false, false);
-  this.sellBtn.hit.enabled = true;
-  this.sellBtn.draw(true, false, false);
-  this.targetBtn.hit.enabled = true;
-  this.targetBtn.draw(true, false, false);
+  if (this.selectedTowerUpgradeBtnEl) this.selectedTowerUpgradeBtnEl.disabled = !canUpgrade;
+  if (this.selectedTowerSellBtnEl) this.selectedTowerSellBtnEl.disabled = false;
+  if (this.selectedTowerTargetBtnEl) this.selectedTowerTargetBtnEl.disabled = false;
 }
 
 export { showToast, updateUI };

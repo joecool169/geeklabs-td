@@ -80,6 +80,68 @@
         color: #9fb2cc;
         margin-bottom: 6px;
       }
+      #selected-tower-panel {
+        width: 100%;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(43, 63, 94, 0.6);
+        color: #dbe7ff;
+        font-size: 12px;
+        text-align: left;
+      }
+      #selected-tower-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9fb2cc;
+        margin-bottom: 6px;
+      }
+      #selected-tower-stats {
+        display: grid;
+        row-gap: 6px;
+      }
+      .tower-divider {
+        height: 1px;
+        background: rgba(43, 63, 94, 0.5);
+        margin: 6px 0;
+      }
+      .tower-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 10px;
+        align-items: center;
+      }
+      .tower-label {
+        color: rgba(219, 231, 255, 0.6);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .tower-value {
+        color: #dbe7ff;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      #selected-tower-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .tower-action {
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #2b3f5e;
+        background: #0f1623;
+        color: #dbe7ff;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .tower-action:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       .controls-group {
         padding-top: 8px;
         margin-top: 10px;
@@ -179,6 +241,25 @@
               <div class="control-row"><span class="control-key">P</span><span>Pause</span></div>
               <div class="control-row"><span class="control-key">Esc</span><span>Cancel / clear</span></div>
             </div>
+          </div>
+        </section>
+        <section id="selected-tower-panel" aria-label="Selected tower">
+          <div id="selected-tower-title">Selected Tower</div>
+          <div id="selected-tower-stats">
+            <div class="tower-row"><span class="tower-label">Name</span><span class="tower-value" id="tower-name">—</span></div>
+            <div class="tower-row"><span class="tower-label">Target</span><span class="tower-value" id="tower-target">—</span></div>
+            <div class="tower-row"><span class="tower-label">DMG</span><span class="tower-value" id="tower-dmg">—</span></div>
+            <div class="tower-row"><span class="tower-label">Fire</span><span class="tower-value" id="tower-fire">—</span></div>
+            <div class="tower-row"><span class="tower-label">Range</span><span class="tower-value" id="tower-range">—</span></div>
+            <div class="tower-row"><span class="tower-label">DPS</span><span class="tower-value" id="tower-dps">—</span></div>
+            <div class="tower-divider"></div>
+            <div class="tower-row"><span class="tower-label">Upgrade</span><span class="tower-value" id="tower-upgrade">—</span></div>
+            <div class="tower-row"><span class="tower-label">Sell</span><span class="tower-value" id="tower-sell">—</span></div>
+          </div>
+          <div id="selected-tower-actions">
+            <button id="tower-upgrade-btn" class="tower-action" type="button">Upgrade (U)</button>
+            <button id="tower-sell-btn" class="tower-action" type="button">Sell (X)</button>
+            <button id="tower-target-btn" class="tower-action" type="button">Target (F)</button>
           </div>
         </section>
         <div id="brand-version"></div>
