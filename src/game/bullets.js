@@ -1,5 +1,21 @@
 import { dist2, segCircleHit } from "./utils.js";
 
+const flashEnemy = (scene, target) => {
+  if (!target || !target.active || target.flashTween) return;
+  target.baseTint ??= (target.tintTopLeft ?? 0xffffff);
+  const baseTint = target.baseTint;
+  const isArmored = (target.armor || 0) > 0;
+  const flashTint = isArmored ? 0x84d8ff : 0xffffff;
+  target.setTint(flashTint);
+  target.setAlpha(0.55);
+  target.flashTween = scene.time.delayedCall(80, () => {
+    if (!target.active) return;
+    target.setTint(baseTint);
+    target.setAlpha(1);
+    target.flashTween = null;
+  });
+};
+
 function fireBullet(t, target) {
   if (!target || !target.active) return;
 
@@ -16,11 +32,16 @@ function fireBullet(t, target) {
 
     const armor = target.armor || 0;
     const dmg = Math.max(1, t.damage - armor);
+    flashEnemy(this, target);
     target.hp -= dmg;
 
     if (target.hp <= 0) {
       const reward = target.reward ?? 8;
       const weight = target.scoreWeight ?? 1;
+      if (target.flashTween) {
+        target.flashTween.remove(false);
+        target.flashTween = null;
+      }
       target.destroy();
       if (this.playSfx) this.playSfx("death");
       this.money += reward;
@@ -62,10 +83,15 @@ function fireBullet(t, target) {
     if (segCircleHit(x0, y0, b.x, b.y, target.x, target.y, hitR)) {
       const armor = target.armor || 0;
       const dmg = Math.max(1, t.damage - armor);
+      flashEnemy(this, target);
       target.hp -= dmg;
       if (target.hp <= 0) {
         const reward = target.reward ?? 8;
         const weight = target.scoreWeight ?? 1;
+        if (target.flashTween) {
+          target.flashTween.remove(false);
+          target.flashTween = null;
+        }
         target.destroy();
         if (this.playSfx) this.playSfx("death");
         this.money += reward;
