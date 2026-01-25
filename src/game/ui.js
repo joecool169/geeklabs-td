@@ -133,7 +133,7 @@ function updateUI() {
     score: this.score,
     diff: label,
   };
-  if (
+  const hudUnchanged =
     this._uiCache &&
     this._uiCache.money === uiSnapshot.money &&
     this._uiCache.lives === uiSnapshot.lives &&
@@ -141,14 +141,13 @@ function updateUI() {
     this._uiCache.wave === uiSnapshot.wave &&
     this._uiCache.kills === uiSnapshot.kills &&
     this._uiCache.score === uiSnapshot.score &&
-    this._uiCache.diff === uiSnapshot.diff
-  ) {
-    return;
+    this._uiCache.diff === uiSnapshot.diff;
+  if (!hudUnchanged) {
+    this._uiCache = uiSnapshot;
+    this.ui.setText(
+      `Money: $${uiSnapshot.money}    Lives: ${uiSnapshot.lives}    Towers: ${uiSnapshot.towers}    Wave: ${uiSnapshot.wave}    Kills: ${uiSnapshot.kills}    Score: ${uiSnapshot.score}    Diff: ${uiSnapshot.diff}`
+    );
   }
-  this._uiCache = uiSnapshot;
-  this.ui.setText(
-    `Money: $${uiSnapshot.money}    Lives: ${uiSnapshot.lives}    Towers: ${uiSnapshot.towers}    Wave: ${uiSnapshot.wave}    Kills: ${uiSnapshot.kills}    Score: ${uiSnapshot.score}    Diff: ${uiSnapshot.diff}`
-  );
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
     this.setInspectorVisible(false);

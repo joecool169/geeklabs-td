@@ -336,10 +336,8 @@ export class GameScene extends Phaser.Scene {
     this.bullets = this.physics.add.group();
 
     this.selectedTower = null;
-    
-    this.setInspectorVisible(false);
-    this.panel.setText("");
-this.rangeRing = this.add.graphics();
+
+    this.rangeRing = this.add.graphics();
     this.rangeRing.setDepth(9999);
     this.rangeRing.setVisible(false);
 
@@ -395,6 +393,7 @@ this.rangeRing = this.add.graphics();
     });
     this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
     this.controlsSelectedEl = document.getElementById("controls-selected");
+    this.controlsPlacementEl = document.getElementById("controls-placement");
     this.pauseText = this.add
       .text(540, 14, "", {
         fontFamily: "monospace",
@@ -1282,6 +1281,7 @@ this.rangeRing = this.add.graphics();
 
   setInspectorVisible(v) {
     this.inspectorVisible = v;
+    if (!this.inspectorBg || !this.panel || !this.upgradeBtn || !this.sellBtn || !this.targetBtn) return;
     this.inspectorBg.setVisible(v);
     this.panel.setVisible(v);
     this.upgradeBtn.bg.setVisible(v);
@@ -1379,6 +1379,9 @@ this.hideRangeRing();
   setPlacement(on) {
     if (on === this.isPlacing) return;
     this.isPlacing = on;
+    if (this.controlsPlacementEl) {
+      this.controlsPlacementEl.classList.toggle("is-active", this.isPlacing);
+    }
 
     if (on) {
       this.clearSelection();
