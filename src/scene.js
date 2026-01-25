@@ -1399,6 +1399,11 @@ export class GameScene extends Phaser.Scene {
     this.updateWaveSpawning(time);
 
     if (this.isPlacing) {
+      const nowValid = this.canPlaceTowerAt(this.ghostX, this.ghostY);
+      if (nowValid !== this.ghostValid) {
+        this.ghostValid = nowValid;
+        this.refreshGhostVisual();
+      }
       const col = this.ghostValid ? 0x39ff8f : 0xff4d6d;
       const def = this.getPlaceDef();
       this.showGhostRing(this.ghostX, this.ghostY, def.tiers[0].range, col);
