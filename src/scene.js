@@ -26,6 +26,7 @@ import { TOWER_DEFS } from "./constants.js";
 
 const PLAYER_NAME_STORAGE_KEY = "geeklabs_td_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
+const LEADERBOARD_STORAGE_KEY = "geeklabs_td_leaderboard_v1";
 const DEFAULT_DIFFICULTY_KEY = "easy";
 
 const readStorage = (key) => {
@@ -52,6 +53,51 @@ const normalizePlayerName = (raw) => {
 
 const normalizeDifficultyKey = (key) =>
   DIFFICULTY_CONFIG[key] ? key : DEFAULT_DIFFICULTY_KEY;
+
+const safeParseLeaderboard = () => {
+  const raw = readStorage(LEADERBOARD_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error("Leaderboard data not array.");
+    return parsed.filter((entry) => entry && typeof entry === "object");
+  } catch {
+    writeStorage(LEADERBOARD_STORAGE_KEY, "[]");
+    return [];
+  }
+};
+
+const compareLeaderboardEntries = (a, b) => {
+  const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+  if (scoreDiff) return scoreDiff;
+  const waveDiff = (Number(b.wave) || 0) - (Number(a.wave) || 0);
+  if (waveDiff) return waveDiff;
+  const killsDiff = (Number(b.kills) || 0) - (Number(a.kills) || 0);
+  if (killsDiff) return killsDiff;
+  const dateA = typeof a.dateISO === "string" ? a.dateISO : "9999-12-31T23:59:59.999Z";
+  const dateB = typeof b.dateISO === "string" ? b.dateISO : "9999-12-31T23:59:59.999Z";
+  if (dateA < dateB) return -1;
+  if (dateA > dateB) return 1;
+  return 0;
+};
+
+const writeLeaderboard = (entries) => {
+  try {
+    writeStorage(LEADERBOARD_STORAGE_KEY, JSON.stringify(entries));
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const updateLeaderboard = (entry) => {
+  const entries = safeParseLeaderboard();
+  entries.push(entry);
+  entries.sort(compareLeaderboardEntries);
+  const trimmed = entries.slice(0, 10);
+  writeLeaderboard(trimmed);
+  return trimmed;
+};
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -595,7 +641,6 @@ export class GameScene extends Phaser.Scene {
     const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
 
     const leaderboardPanel = document.createElement("div");
-    leaderboardPanel.textContent = "Leaderboard coming soon";
     leaderboardPanel.style.display = "none";
     leaderboardPanel.style.padding = "10px 12px";
     leaderboardPanel.style.border = "1px solid #2b3f5e";
@@ -603,6 +648,104 @@ export class GameScene extends Phaser.Scene {
     leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
     leaderboardPanel.style.color = "#dbe7ff";
     leaderboardPanel.style.fontSize = "13px";
+
+    const leaderboardHeader = document.createElement("div");
+    leaderboardHeader.style.display = "flex";
+    leaderboardHeader.style.alignItems = "center";
+    leaderboardHeader.style.justifyContent = "space-between";
+    leaderboardHeader.style.marginBottom = "8px";
+
+    const leaderboardTitle = document.createElement("div");
+    leaderboardTitle.textContent = "Top 10";
+    leaderboardTitle.style.fontWeight = "700";
+
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.textContent = "Clear leaderboard";
+    clearBtn.style.border = "1px solid #5b3a2a";
+    clearBtn.style.background = "#1a120c";
+    clearBtn.style.color = "#f0d7c0";
+    clearBtn.style.borderRadius = "6px";
+    clearBtn.style.padding = "4px 8px";
+    clearBtn.style.fontSize = "11px";
+    clearBtn.style.cursor = "pointer";
+
+    const leaderboardList = document.createElement("div");
+    leaderboardList.style.display = "grid";
+    leaderboardList.style.rowGap = "6px";
+
+    const isCurrentRun = (entry) => {
+      const current = this.lastLeaderboardEntry;
+      if (!current) return false;
+      return (
+        entry.dateISO === current.dateISO &&
+        Number(entry.score) === Number(current.score) &&
+        Number(entry.wave) === Number(current.wave) &&
+        Number(entry.kills) === Number(current.kills) &&
+        entry.name === current.name
+      );
+    };
+
+    const renderLeaderboard = () => {
+      const entries = safeParseLeaderboard().sort(compareLeaderboardEntries);
+      leaderboardList.innerHTML = "";
+
+      if (!entries.length) {
+        const empty = document.createElement("div");
+        empty.textContent = "No entries yet.";
+        empty.style.color = "#9fb2cc";
+        leaderboardList.appendChild(empty);
+        return;
+      }
+
+      const headerRow = document.createElement("div");
+      headerRow.style.display = "grid";
+      headerRow.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
+      headerRow.style.columnGap = "6px";
+      headerRow.style.fontSize = "11px";
+      headerRow.style.color = "#9fb2cc";
+      headerRow.style.textTransform = "uppercase";
+      headerRow.style.letterSpacing = "0.04em";
+      ["#", "Name", "Score", "Wave", "Kills", "Difficulty"].forEach((label) => {
+        const cell = document.createElement("div");
+        cell.textContent = label;
+        headerRow.appendChild(cell);
+      });
+      leaderboardList.appendChild(headerRow);
+
+      entries.forEach((entry, index) => {
+        const row = document.createElement("div");
+        row.style.display = "grid";
+        row.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
+        row.style.columnGap = "6px";
+        row.style.alignItems = "center";
+        row.style.padding = "4px 0";
+        row.style.borderBottom = "1px solid rgba(43, 63, 94, 0.6)";
+        if (isCurrentRun(entry)) {
+          row.style.background = "rgba(64, 118, 200, 0.2)";
+          row.style.borderRadius = "6px";
+          row.style.padding = "4px 6px";
+        }
+
+        const name = entry.name || "Player";
+        const score = Number(entry.score) || 0;
+        const wave = Number(entry.wave) || 0;
+        const kills = Number(entry.kills) || 0;
+        const difficulty = entry.difficultyLabel || entry.difficultyKey || "-";
+
+        [index + 1, name, score, wave, kills, difficulty].forEach((value) => {
+          const cell = document.createElement("div");
+          cell.textContent = value;
+          row.appendChild(cell);
+        });
+        leaderboardList.appendChild(row);
+      });
+    };
+
+    leaderboardHeader.appendChild(leaderboardTitle);
+    leaderboardHeader.appendChild(clearBtn);
+    leaderboardPanel.appendChild(leaderboardHeader);
+    leaderboardPanel.appendChild(leaderboardList);
 
     restartBtn.addEventListener("click", () => {
       overlay.remove();
@@ -619,7 +762,15 @@ export class GameScene extends Phaser.Scene {
     });
 
     leaderboardBtn.addEventListener("click", () => {
-      leaderboardPanel.style.display = leaderboardPanel.style.display === "none" ? "block" : "none";
+      const shouldShow = leaderboardPanel.style.display === "none";
+      leaderboardPanel.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) renderLeaderboard();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (!confirm("Clear leaderboard?")) return;
+      writeLeaderboard([]);
+      renderLeaderboard();
     });
 
     btnWrap.appendChild(restartBtn);
@@ -645,6 +796,16 @@ export class GameScene extends Phaser.Scene {
     this.clearSelection();
     this.setInspectorVisible(false);
     this.hideRangeRing();
+    this.lastLeaderboardEntry = {
+      name: this.playerName,
+      score: this.score,
+      wave: this.wave,
+      kills: this.killCount,
+      difficultyKey: this.difficultyKey,
+      difficultyLabel: this.difficultyLabel,
+      dateISO: new Date().toISOString(),
+    };
+    updateLeaderboard(this.lastLeaderboardEntry);
     this.showGameOverScreen();
   }
 
