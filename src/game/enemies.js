@@ -1,5 +1,5 @@
-import { ENEMY_DEFS } from '../constants';
-import { dist2 } from './utils';
+import { ENEMY_DEFS } from "../constants.js";
+import { dist2 } from "./utils.js";
 
 function pickWeighted(rng01, entries) {
   const total = entries.reduce((s, e) => s + e.w, 0);
@@ -92,7 +92,7 @@ function findTarget(tower, mode) {
       return;
     }
     if (mode === "first") {
-      const m = this.enemyProgressScore(e);
+      const m = enemyProgressScore.call(this, e);
       if (m > bestMetric) {
         bestMetric = m;
         best = e;

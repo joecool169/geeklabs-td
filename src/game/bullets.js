@@ -1,4 +1,4 @@
-import { dist2, segCircleHit } from './utils';
+import { dist2, segCircleHit } from "./utils.js";
 
 function fireBullet(t, target) {
   if (!target || !target.active) return;

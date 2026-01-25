@@ -1,4 +1,6 @@
-import { Phaser } from 'phaser';
+import { TOWER_DEFS } from "../constants.js";
+import { round1 } from "./utils.js";
+import { getNextUpgradeCost } from "./towers.js";
 
 function showToast(msg, ms = 2400) {
   this.toast.setText(msg);
@@ -47,13 +49,13 @@ function updateUI() {
   this.scoreText.setX(this.killText.x + this.killText.width + 24);
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
-    setInspectorVisible(false);
-    panel.setText("");
+    this.setInspectorVisible(false);
+    this.panel.setText("");
     return;
   }
 
-  setInspectorVisible(true);
-  drawInspectorBg(true);
+  this.setInspectorVisible(true);
+  this.drawInspectorBg(true);
   const t = this.selectedTower;
   const def = TOWER_DEFS[t.type];
   const sps = 1000 / t.fireMs;
@@ -62,7 +64,7 @@ function updateUI() {
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
   const targetLabel = t.targetMode === "close" ? "Close" : t.targetMode === "strong" ? "Strong" : "First";
-  panel.setText(
+  this.panel.setText(
     `${def.name} Tower (Tier ${t.tier})
 Target: ${targetLabel}
 Damage: ${t.damage}
@@ -73,12 +75,12 @@ Upgrade: ${nextText}
 Sell: $${refund}`
   );
   const canUpgrade = nextCost !== null && this.money >= nextCost;
-  upgradeBtn.hit.enabled = !!canUpgrade;
-  upgradeBtn.draw(!!canUpgrade, false, false);
-  sellBtn.hit.enabled = true;
-  sellBtn.draw(true, false, false);
-  targetBtn.hit.enabled = true;
-  targetBtn.draw(true, false, false);
+  this.upgradeBtn.hit.enabled = !!canUpgrade;
+  this.upgradeBtn.draw(!!canUpgrade, false, false);
+  this.sellBtn.hit.enabled = true;
+  this.sellBtn.draw(true, false, false);
+  this.targetBtn.hit.enabled = true;
+  this.targetBtn.draw(true, false, false);
 }
 
 export { showToast, updateUI };

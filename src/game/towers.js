@@ -1,5 +1,4 @@
-import { TOWER_DEFS } from '../constants';
-import { dist2, segCircleHit } from './utils';
+import { TOWER_DEFS, TARGET_MODES, nextInCycle } from "../constants.js";
 
 function getNextUpgradeCost(t) {
   const def = TOWER_DEFS[t.type];
@@ -15,6 +14,7 @@ function applyTowerTier(t, tierIdx) {
   t.damage = tier.damage;
   t.range = tier.range;
   t.fireMs = tier.fireMs;
+  t.nextShotAt = 0;
   t.sprite.setTint(tier.tint);
   t.sprite.setScale(tier.scale ?? 1);
   if (t.badge) t.badge.setDepth(t.sprite.depth + 1);
@@ -27,45 +27,7 @@ function tryUpgradeTower(t) {
   this.money -= nextCost;
   t.spent += nextCost;
   applyTowerTier(t, t.tier);
-  if (this.selectedTower === t) showRangeRing(t, 0x00ffff);
-}
-
-function tryPlaceTowerAt(x, y) {
-  if (!canPlaceTowerAt(x, y)) return;
-  const def = getPlaceDef();
-  const tier0 = def.tiers[0];
-  this.money -= tier0.cost;
-  const img = this.add.image(x, y, getTowerTextureKey(def.key));
-  let badge = null;
-  if (def.key === "sniper") {
-    badge = this.add.text(x, y, "S", {
-      fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#0b0f14",
-      backgroundColor: "#ffc857",
-      padding: { x: 4, y: 2 },
-    });
-    badge.setOrigin(0.5, 0.5);
-    badge.setDepth(img.depth + 1);
-  }
-  const t = {
-    x,
-    y,
-    type: def.key,
-    tier: 1,
-    damage: tier0.damage,
-    range: tier0.range,
-    fireMs: tier0.fireMs,
-    nextShotAt: 0,
-    spent: tier0.cost,
-    targetMode: "close",
-    sprite: img,
-    badge,
-  };
-  img.setTint(tier0.tint);
-  img.setScale(tier0.scale ?? 1);
-  this.towers.push(t);
-  selectTower(t);
+  if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
 }
 
 function trySellTower(t) {
@@ -77,11 +39,11 @@ function trySellTower(t) {
   t.sprite.destroy();
   this.towers.splice(idx, 1);
   this.money += refund;
-  if (this.selectedTower === t) clearSelection();
+  if (this.selectedTower === t) this.clearSelection();
 }
 
 function cycleTargetMode(t) {
   t.targetMode = nextInCycle(TARGET_MODES, t.targetMode);
 }
 
-export { getNextUpgradeCost, applyTowerTier, tryUpgradeTower, tryPlaceTowerAt, trySellTower, cycleTargetMode };
+export { getNextUpgradeCost, applyTowerTier, tryUpgradeTower, trySellTower, cycleTargetMode };

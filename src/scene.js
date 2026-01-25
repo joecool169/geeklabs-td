@@ -1,101 +1,22 @@
 import Phaser from "phaser";
 import { GRID, TOP_UI } from "./game/config.js";
-import { snapX, snapY, dist2, round1, segCircleHit } from './game/utils';
-import { fireBullet } from './game/bullets';
-
-const TOWER_DEFS = {
-  basic: {
-    key: "basic",
-    name: "Basic",
-    hotkey: "1",
-    tiers: [
-      { cost: 50, damage: 10, range: 95, fireMs: 260, tint: 0x3bd3ff, scale: 1.0 },
-      { cost: 75, damage: 16, range: 110, fireMs: 210, tint: 0x7cf0ff, scale: 1.0 },
-      { cost: 120, damage: 24, range: 130, fireMs: 170, tint: 0xb9f5ff, scale: 1.15 },
-    ],
-  },
-  rapid: {
-    key: "rapid",
-    name: "Rapid",
-    hotkey: "2",
-    tiers: [
-      { cost: 65, damage: 6, range: 85, fireMs: 140, tint: 0x39ff8f, scale: 0.95 },
-      { cost: 90, damage: 8, range: 95, fireMs: 115, tint: 0x7fffc2, scale: 1.0 },
-      { cost: 140, damage: 10, range: 105, fireMs: 95, tint: 0xc7ffe5, scale: 1.1 },
-    ],
-  },
-  sniper: {
-    key: "sniper",
-    name: "Sniper",
-    hotkey: "3",
-    tiers: [
-      { cost: 90, damage: 28, range: 165, fireMs: 520, tint: 0xffc857, scale: 1.05 },
-      { cost: 140, damage: 42, range: 185, fireMs: 470, tint: 0xffda85, scale: 1.1 },
-      { cost: 210, damage: 64, range: 205, fireMs: 420, tint: 0xffedc0, scale: 1.15 },
-    ],
-  },
-};
-
-const TARGET_MODES = ["close", "strong", "first"];
-
-function nextInCycle(arr, v) {
-  const i = arr.indexOf(v);
-  return arr[(i + 1 + arr.length) % arr.length];
-}
-
-const ENEMY_DEFS = {
-  runner: {
-    key: "runner",
-    name: "Runner",
-    tint: 0xff4d6d,
-    baseHp: 18,
-    baseSpeed: 120,
-    reward: 6,
-    armor: 0,
-    scaleHpPerWave: 0.1,
-    scaleSpeedPerWave: 0.012,
-    scoreWeight: 0.7,
-  },
-  brute: {
-    key: "brute",
-    name: "Brute",
-    tint: 0xb54dff,
-    baseHp: 70,
-    baseSpeed: 52,
-    reward: 12,
-    armor: 0,
-    scaleHpPerWave: 0.14,
-    scaleSpeedPerWave: 0.007,
-    scoreWeight: 1.5,
-  },
-  armored: {
-    key: "armored",
-    name: "Armored",
-    tint: 0x8fb3c9,
-    baseHp: 40,
-    baseSpeed: 72,
-    reward: 10,
-    armor: 4,
-    scaleHpPerWave: 0.12,
-    scaleSpeedPerWave: 0.010,
-    scoreWeight: 1.8,
-  },
-};
-
-function clamp01(v) {
-  return Math.max(0, Math.min(1, v));
-}
-
-function pickWeighted(rng01, entries) {
-  const total = entries.reduce((s, e) => s + e.w, 0);
-  if (total <= 0) return entries[0]?.key;
-  let t = rng01 * total;
-  for (const e of entries) {
-    t -= e.w;
-    if (t <= 0) return e.key;
-  }
-  return entries[entries.length - 1]?.key;
-}
+import { snapX, snapY } from "./game/utils.js";
+import { fireBullet as fireBulletFn } from "./game/bullets.js";
+import {
+  advanceEnemy as advanceEnemyFn,
+  findTarget as findTargetFn,
+  pickWeighted as pickWeightedFn,
+  spawnEnemyOfType as spawnEnemyOfTypeFn,
+} from "./game/enemies.js";
+import { showToast as showToastFn, updateUI as updateUIFn } from "./game/ui.js";
+import {
+  applyTowerTier as applyTowerTierFn,
+  cycleTargetMode as cycleTargetModeFn,
+  getNextUpgradeCost as getNextUpgradeCostFn,
+  trySellTower as trySellTowerFn,
+  tryUpgradeTower as tryUpgradeTowerFn,
+} from "./game/towers.js";
+import { TOWER_DEFS, clamp01 } from "./constants.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -349,12 +270,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   showToast(msg, ms = 2400) {
-    this.toast.setText(msg);
-    this.toast.setVisible(true);
-    if (this.toastTimer) this.toastTimer.remove(false);
-    this.toastTimer = this.time.delayedCall(ms, () => {
-      this.toast.setVisible(false);
-    });
+    showToastFn.call(this, msg, ms);
+  }
+
+  updateUI() {
+    updateUIFn.call(this);
   }
 
   computeWaveConfig(wave) {
@@ -545,15 +465,15 @@ export class GameScene extends Phaser.Scene {
 
     for (const t of this.towers) {
       if (time < t.nextShotAt) continue;
-      const target = this.findTarget(t, t.targetMode);
+      const target = findTargetFn.call(this, t, t.targetMode);
       if (!target) continue;
       t.nextShotAt = time + t.fireMs;
-      fireBullet.call(this, t, target);
+      fireBulletFn.call(this, t, target);
     }
 
     this.enemies.children.iterate((e) => {
       if (!e) return;
-      this.advanceEnemy(e, dt);
+      advanceEnemyFn.call(this, e, dt);
     });
 
     this.updateWaveSpawning(time);
@@ -588,7 +508,7 @@ export class GameScene extends Phaser.Scene {
     if (this.waveState !== "running") return;
 
     if (this.swarmPacksRemaining > 0 && time >= this.swarmNextPackSpawnAt) {
-      this.spawnEnemyOfType("runner", { isSwarm: true });
+      spawnEnemyOfTypeFn.call(this, "runner", { isSwarm: true });
       this.waveEnemiesSpawned += 1;
       this.swarmPacksRemaining -= 1;
       this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
@@ -603,14 +523,14 @@ export class GameScene extends Phaser.Scene {
 
     if (shouldPack) {
       const toSpawn = Math.min(cfg.packSize, this.waveEnemiesTotal - this.waveEnemiesSpawned);
-      this.spawnEnemyOfType("runner", { isSwarm: true });
+      spawnEnemyOfTypeFn.call(this, "runner", { isSwarm: true });
       this.waveEnemiesSpawned += 1;
       this.swarmPacksRemaining = Math.max(0, toSpawn - 1);
       this.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
     } else {
       const r = Math.random();
-      const type = pickWeighted(r, cfg.weights) || "runner";
-      this.spawnEnemyOfType(type);
+      const type = pickWeightedFn.call(this, r, cfg.weights) || "runner";
+      spawnEnemyOfTypeFn.call(this, type);
       this.waveEnemiesSpawned += 1;
     }
 
@@ -823,33 +743,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   getNextUpgradeCost(t) {
-    const def = TOWER_DEFS[t.type];
-    if (!def) return null;
-    if (t.tier >= def.tiers.length) return null;
-    return def.tiers[t.tier]?.cost ?? null;
+    return getNextUpgradeCostFn.call(this, t);
   }
 
   applyTowerTier(t, tierIdx) {
-    const def = TOWER_DEFS[t.type];
-    const tier = def.tiers[tierIdx];
-    t.tier = tierIdx + 1;
-    t.damage = tier.damage;
-    t.range = tier.range;
-    t.fireMs = tier.fireMs;
-    t.nextShotAt = 0;
-    t.spent += nextCost;
-    this.applyTowerTier(t, t.tier);
-    if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
+    applyTowerTierFn.call(this, t, tierIdx);
   }
 
   tryUpgradeTower(t) {
-    const nextCost = this.getNextUpgradeCost(t);
-    if (nextCost === null) return;
-    if (this.money < nextCost) return;
-    this.money -= nextCost;
-    t.spent += nextCost;
-    this.applyTowerTier(t, t.tier);
-    if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
+    tryUpgradeTowerFn.call(this, t);
   }
 
   tryPlaceTowerAt(x, y) {
@@ -891,112 +793,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   trySellTower(t) {
-    if (!t) return;
-    const idx = this.towers.indexOf(t);
-    if (idx === -1) return;
-    const refund = Math.floor((t.spent || 0) * 0.7);
-    if (t.badge) t.badge.destroy();
-    t.sprite.destroy();
-    this.towers.splice(idx, 1);
-    this.money += refund;
-    if (this.selectedTower === t) this.clearSelection();
+    trySellTowerFn.call(this, t);
   }
 
   cycleTargetMode(t) {
-    t.targetMode = nextInCycle(TARGET_MODES, t.targetMode);
-  }
-
-  spawnEnemyOfType(typeKey, opts = {}) {
-    const def = ENEMY_DEFS[typeKey] || ENEMY_DEFS.runner;
-    const start = this.path[0];
-    const e = this.physics.add.image(start.x, start.y, "enemy");
-    e.setCollideWorldBounds(false);
-    e.body.setAllowGravity(false);
-    const w = Math.max(1, this.wave);
-    const hpMul = 1 + (w - 1) * (def.scaleHpPerWave ?? 0.12);
-    const spMul = 1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02);
-    e.typeKey = def.key;
-    e.setTint(def.tint);
-    e.hp = Math.max(1, Math.floor(def.baseHp * hpMul));
-    e.maxHp = e.hp;
-    e.speed = Math.floor(def.baseSpeed * spMul);
-    e.armor = def.armor || 0;
-    e.reward = def.reward || 8;
-    e.scoreWeight = def.scoreWeight ?? 1;
-    e.pathIndex = 0;
-    e.isSwarm = !!opts.isSwarm;
-    this.enemies.add(e);
-    return e;
-  }
-
-  advanceEnemy(e, dt) {
-    const i = e.pathIndex;
-    if (i >= this.path.length - 1) {
-      e.destroy();
-      this.lives -= 1;
-      if (this.lives <= 0) this.scene.restart();
-      return;
-    }
-    const a = this.path[i];
-    const b = this.path[i + 1];
-    const vx = b.x - a.x;
-    const vy = b.y - a.y;
-    const len = Math.sqrt(vx * vx + vy * vy) || 1;
-    const ux = vx / len;
-    const uy = vy / len;
-    const move = (e.speed * dt) / 1000;
-    e.x += ux * move;
-    e.y += uy * move;
-    if (dist2(e.x, e.y, b.x, b.y) < 14 * 14) {
-      e.pathIndex += 1;
-      e.x = b.x;
-      e.y = b.y;
-    }
-  }
-
-  enemyProgressScore(e) {
-    const i = e.pathIndex;
-    const next = this.path[Math.min(i + 1, this.path.length - 1)];
-    const d = Math.sqrt(dist2(e.x, e.y, next.x, next.y));
-    return i * 100000 - d;
-  }
-
-  findTarget(tower, mode) {
-    const r2 = tower.range * tower.range;
-    let best = null;
-    let bestMetric = -Infinity;
-    this.enemies.children.iterate((e) => {
-      if (!e) return;
-      const d = dist2(tower.x, tower.y, e.x, e.y);
-      if (d > r2) return;
-      if (mode === "close") {
-        const m = -d;
-        if (m > bestMetric) {
-          bestMetric = m;
-          best = e;
-        }
-        return;
-      }
-      if (mode === "strong") {
-        const m = e.hp;
-        if (m > bestMetric) {
-          bestMetric = m;
-          best = e;
-        }
-        return;
-      }
-      if (mode === "first") {
-        const m = this.enemyProgressScore(e);
-        if (m > bestMetric) {
-          bestMetric = m;
-          best = e;
-        }
-      }
-    });
-    return best;
+    cycleTargetModeFn.call(this, t);
   }
 
   fireBullet(t, target) {
-    fireBullet.call(this, t, target);
+    fireBulletFn.call(this, t, target);
   }
 }

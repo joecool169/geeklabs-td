@@ -1,4 +1,4 @@
-import { GRID, TOP_UI } from './config';
+import { GRID, TOP_UI } from "./config.js";
 
 function snapX(v) {
   return Math.floor(v / GRID) * GRID + GRID / 2;
