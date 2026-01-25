@@ -85,6 +85,9 @@
         color: rgba(219, 231, 255, 0.6);
         margin-bottom: 6px;
       }
+      .controls-group.is-inactive {
+        opacity: 0.45;
+      }
       .controls-list {
         display: grid;
         row-gap: 4px;
@@ -141,7 +144,7 @@
               <div class="control-row"><span class="control-key">Click</span><span>Place tower</span></div>
             </div>
           </div>
-          <div class="controls-group">
+          <div class="controls-group" id="controls-selected">
             <div class="controls-group-title">Selected Tower</div>
             <div class="controls-list">
               <div class="control-row"><span class="control-key">U</span><span>Upgrade (selected tower)</span></div>

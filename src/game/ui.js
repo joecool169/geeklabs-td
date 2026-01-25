@@ -153,8 +153,13 @@ function updateUI() {
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
     this.setInspectorVisible(false);
     this.panel.setText("");
+    const selectedGroup = this.controlsSelectedEl;
+    if (selectedGroup) selectedGroup.classList.add("is-inactive");
     return;
   }
+
+  const selectedGroup = this.controlsSelectedEl;
+  if (selectedGroup) selectedGroup.classList.remove("is-inactive");
 
   this.setInspectorVisible(true);
   this.drawInspectorBg(true);

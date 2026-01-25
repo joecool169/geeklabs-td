@@ -391,6 +391,7 @@ export class GameScene extends Phaser.Scene {
       this.sfx[key] = this.sound.add(key, { volume });
     });
     this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
+    this.controlsSelectedEl = document.getElementById("controls-selected");
     this.pauseText = this.add
       .text(540, 14, "", {
         fontFamily: "monospace",
