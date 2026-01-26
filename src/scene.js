@@ -85,15 +85,18 @@ const normalizePlayerName = (raw) => {
 const normalizeDifficultyKey = (key) =>
   DIFFICULTY_CONFIG[key] ? key : DEFAULT_DIFFICULTY_KEY;
 
-const safeParseLeaderboard = () => {
-  const raw = readStorage(LEADERBOARD_STORAGE_KEY);
+const getLeaderboardStorageKey = (difficultyKey) =>
+  `${LEADERBOARD_STORAGE_KEY}:${normalizeDifficultyKey(difficultyKey)}`;
+
+const safeParseLeaderboard = (difficultyKey) => {
+  const raw = readStorage(getLeaderboardStorageKey(difficultyKey));
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) throw new Error("Leaderboard data not array.");
     return parsed.filter((entry) => entry && typeof entry === "object");
   } catch {
-    writeStorage(LEADERBOARD_STORAGE_KEY, "[]");
+    writeStorage(getLeaderboardStorageKey(difficultyKey), "[]");
     return [];
   }
 };
@@ -112,21 +115,21 @@ const compareLeaderboardEntries = (a, b) => {
   return 0;
 };
 
-const writeLeaderboard = (entries) => {
+const writeLeaderboard = (entries, difficultyKey) => {
   try {
-    writeStorage(LEADERBOARD_STORAGE_KEY, JSON.stringify(entries));
+    writeStorage(getLeaderboardStorageKey(difficultyKey), JSON.stringify(entries));
   } catch {
     return null;
   }
   return null;
 };
 
-const updateLeaderboard = (entry) => {
-  const entries = safeParseLeaderboard();
+const updateLeaderboard = (entry, difficultyKey) => {
+  const entries = safeParseLeaderboard(difficultyKey);
   entries.push(entry);
   entries.sort(compareLeaderboardEntries);
   const trimmed = entries.slice(0, 10);
-  writeLeaderboard(trimmed);
+  writeLeaderboard(trimmed, difficultyKey);
   return trimmed;
 };
 
@@ -152,7 +155,7 @@ const renderControlsList = (container) => {
   });
 };
 
-const renderLeaderboardList = (container, currentEntry) => {
+const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
   const isCurrentRun = (entry) => {
     if (!currentEntry) return false;
     return (
@@ -164,7 +167,7 @@ const renderLeaderboardList = (container, currentEntry) => {
     );
   };
 
-  const entries = safeParseLeaderboard().sort(compareLeaderboardEntries);
+  const entries = safeParseLeaderboard(difficultyKey).sort(compareLeaderboardEntries);
   container.innerHTML = "";
 
   if (!entries.length) {
@@ -927,27 +930,15 @@ export class GameScene extends Phaser.Scene {
     leaderboardTitle.textContent = "Top 10";
     leaderboardTitle.style.fontWeight = "700";
 
-    const clearBtn = document.createElement("button");
-    clearBtn.type = "button";
-    clearBtn.textContent = "Clear leaderboard";
-    clearBtn.style.border = "1px solid #5b3a2a";
-    clearBtn.style.background = "#1a120c";
-    clearBtn.style.color = "#f0d7c0";
-    clearBtn.style.borderRadius = "6px";
-    clearBtn.style.padding = "4px 8px";
-    clearBtn.style.fontSize = "11px";
-    clearBtn.style.cursor = "pointer";
-
     const leaderboardList = document.createElement("div");
     leaderboardList.style.display = "grid";
     leaderboardList.style.rowGap = "6px";
 
     const renderLeaderboard = () => {
-      renderLeaderboardList(leaderboardList, this.lastLeaderboardEntry);
+      renderLeaderboardList(leaderboardList, this.lastLeaderboardEntry, this.difficultyKey);
     };
 
     leaderboardHeader.appendChild(leaderboardTitle);
-    leaderboardHeader.appendChild(clearBtn);
     leaderboardPanel.appendChild(leaderboardHeader);
     leaderboardPanel.appendChild(leaderboardList);
 
@@ -969,12 +960,6 @@ export class GameScene extends Phaser.Scene {
       const shouldShow = leaderboardPanel.style.display === "none";
       leaderboardPanel.style.display = shouldShow ? "block" : "none";
       if (shouldShow) renderLeaderboard();
-    });
-
-    clearBtn.addEventListener("click", () => {
-      if (!confirm("Clear leaderboard?")) return;
-      writeLeaderboard([]);
-      renderLeaderboard();
     });
 
     btnWrap.appendChild(restartBtn);
@@ -1098,7 +1083,7 @@ export class GameScene extends Phaser.Scene {
       const shouldShow = leaderboardPanel.style.display === "none";
       leaderboardPanel.style.display = shouldShow ? "block" : "none";
       if (shouldShow) controlsPanel.style.display = "none";
-      if (shouldShow) renderLeaderboardList(leaderboardList, null);
+      if (shouldShow) renderLeaderboardList(leaderboardList, null, this.difficultyKey);
     });
 
     restartBtn.addEventListener("click", () => {
@@ -1219,7 +1204,7 @@ export class GameScene extends Phaser.Scene {
       difficultyLabel: this.difficultyLabel,
       dateISO: new Date().toISOString(),
     };
-    updateLeaderboard(this.lastLeaderboardEntry);
+    updateLeaderboard(this.lastLeaderboardEntry, this.difficultyKey);
     this.showGameOverScreen();
   }
 
@@ -1753,7 +1738,9 @@ export class GameScene extends Phaser.Scene {
     enemy.destroy();
     this.money += reward;
     this.killCount += 1;
-    const scoreGain = reward + Math.round(weight * 10);
+    const baseScoreGain = reward + Math.round(weight * 10);
+    const scoreMul = this.difficulty?.scoreMul ?? 1;
+    const scoreGain = Math.round(baseScoreGain * scoreMul);
     this.score += scoreGain;
   }
 

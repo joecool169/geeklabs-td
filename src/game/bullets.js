@@ -45,7 +45,9 @@ function fireBullet(t, target) {
       target.destroy();
       this.money += reward;
       this.killCount += 1;
-      const scoreGain = reward + Math.round(weight * 10);
+      const baseScoreGain = reward + Math.round(weight * 10);
+      const scoreMul = this.difficulty?.scoreMul ?? 1;
+      const scoreGain = Math.round(baseScoreGain * scoreMul);
       this.score += scoreGain;
     }
 
@@ -92,7 +94,9 @@ function fireBullet(t, target) {
         target.destroy();
         this.money += reward;
         this.killCount += 1;
-        const scoreGain = reward + Math.round(weight * 10);
+        const baseScoreGain = reward + Math.round(weight * 10);
+        const scoreMul = this.difficulty?.scoreMul ?? 1;
+        const scoreGain = Math.round(baseScoreGain * scoreMul);
         this.score += scoreGain;
       }
       b.destroy();
