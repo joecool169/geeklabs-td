@@ -4,7 +4,7 @@ This file captures project-level context, conventions, and “current truth” s
 
 ## Project
 
-- Name: GeekLabs TD (geeklabs-td)
+- Name: Defense Protocol (defense-protocol)
 - Stack: Phaser 3 + Vite + JavaScript
 - Style: grid-based placement on a fixed path; minimal clean UI; keyboard-forward controls
 
@@ -263,7 +263,7 @@ Implementation direction:
 - Prefer adding new state as explicit scene fields (kept near other run-state).
 - Prefer UI overlays built as Phaser Containers with depth above gameplay.
 - Keep difficulty/name selection and game-over UI self-contained (avoid scattering checks across update loops).
-- For persistence, use `localStorage` keys with a project prefix (e.g., `geeklabs_td_leaderboard_v1`).
+- For persistence, use `localStorage` keys with a project prefix (e.g., `defense_protocol_leaderboard_v1`).
 
 ## Known current issues / tuning watchlist
 

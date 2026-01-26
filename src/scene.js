@@ -30,10 +30,10 @@ import {
 } from "./game/waves.js";
 import { TOWER_DEFS } from "./constants.js";
 
-const PLAYER_NAME_STORAGE_KEY = "geeklabs_td_player_name_v1";
-const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
-const LEADERBOARD_STORAGE_KEY = "geeklabs_td_leaderboard_v1";
-const HELP_OVERLAY_STORAGE_KEY = "geeklabs_td_help_overlay_v1";
+const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
+const DIFFICULTY_STORAGE_KEY = "defense_protocol_difficulty_v1";
+const LEADERBOARD_STORAGE_KEY = "defense_protocol_leaderboard_v1";
+const HELP_OVERLAY_STORAGE_KEY = "defense_protocol_help_overlay_v1";
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
@@ -132,29 +132,7 @@ const updateLeaderboard = (entry, difficultyKey) => {
   return trimmed;
 };
 
-const renderControlsList = (container) => {
-  container.innerHTML = "";
-  CONTROLS.forEach((control) => {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.justifyContent = "space-between";
-    row.style.gap = "10px";
-
-    const key = document.createElement("span");
-    key.textContent = control.key;
-    key.style.color = "#f0d7c0";
-    key.style.whiteSpace = "nowrap";
-
-    const action = document.createElement("span");
-    action.textContent = control.action;
-
-    row.appendChild(key);
-    row.appendChild(action);
-    container.appendChild(row);
-  });
-};
-
-const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
+const renderLeaderboardEntries = (container, entries, currentEntry) => {
   const isCurrentRun = (entry) => {
     if (!currentEntry) return false;
     return (
@@ -166,7 +144,6 @@ const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
     );
   };
 
-  const entries = safeParseLeaderboard(difficultyKey).sort(compareLeaderboardEntries);
   container.innerHTML = "";
 
   if (!entries.length) {
@@ -221,6 +198,84 @@ const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
   });
 };
 
+const renderLeaderboardMessage = (container, message) => {
+  container.innerHTML = "";
+  const text = document.createElement("div");
+  text.textContent = message;
+  text.style.color = "#9fb2cc";
+  container.appendChild(text);
+};
+
+const renderControlsList = (container) => {
+  container.innerHTML = "";
+  CONTROLS.forEach((control) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.gap = "10px";
+
+    const key = document.createElement("span");
+    key.textContent = control.key;
+    key.style.color = "#f0d7c0";
+    key.style.whiteSpace = "nowrap";
+
+    const action = document.createElement("span");
+    action.textContent = control.action;
+
+    row.appendChild(key);
+    row.appendChild(action);
+    container.appendChild(row);
+  });
+};
+
+const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
+  const entries = safeParseLeaderboard(difficultyKey).sort(compareLeaderboardEntries);
+  renderLeaderboardEntries(container, entries, currentEntry);
+};
+
+const fetchGlobalLeaderboard = async (difficultyKey, limit = 10) => {
+  const diff = normalizeDifficultyKey(difficultyKey);
+  const url = `/api/leaderboard?difficulty=${encodeURIComponent(diff)}&limit=${limit}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Global leaderboard request failed");
+  const data = await res.json();
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return items.map((item) => {
+    const key = item.difficulty || diff;
+    return {
+      name: item.name || "Player",
+      score: Number(item.score) || 0,
+      wave: Number(item.wave) || 0,
+      kills: Number(item.kills) || 0,
+      difficultyKey: key,
+      difficultyLabel: DIFFICULTY_CONFIG[key]?.label ?? key,
+      dateISO: item.created_at,
+    };
+  });
+};
+
+const submitGlobalScore = async (entry) => {
+  const rawDifficulty = entry?.difficultyKey ?? entry?.difficultyLabel ?? DEFAULT_DIFFICULTY_KEY;
+  const difficulty = normalizeDifficultyKey(rawDifficulty);
+  const payload = {
+    name: entry?.name,
+    difficulty,
+    score: entry?.score ?? 0,
+    wave: entry?.wave ?? 0,
+    kills: entry?.kills ?? 0,
+  };
+  try {
+    fetch("/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => null);
+  } catch {
+    return null;
+  }
+  return null;
+};
+
 const makeBrandHeader = () => {
   const wrap = document.createElement("div");
   wrap.style.display = "flex";
@@ -273,7 +328,7 @@ export class GameScene extends Phaser.Scene {
   create() {
     const overlayHost = this.game?.canvas?.parentElement;
     if (overlayHost) {
-      const oldOverlay = overlayHost.querySelector("#geeklabs-td-gameover-overlay");
+      const oldOverlay = overlayHost.querySelector("#defense-protocol-gameover-overlay");
       if (oldOverlay) oldOverlay.remove();
     }
 
@@ -715,7 +770,7 @@ export class GameScene extends Phaser.Scene {
     host.style.position = host.style.position || "relative";
 
     const overlay = document.createElement("div");
-    const overlayId = "geeklabs-td-start-overlay";
+    const overlayId = "defense-protocol-start-overlay";
     const existingOverlay = host.querySelector(`#${overlayId}`);
     if (existingOverlay) existingOverlay.remove();
     overlay.id = overlayId;
@@ -863,7 +918,7 @@ export class GameScene extends Phaser.Scene {
     if (!host) return;
     host.style.position = host.style.position || "relative";
 
-    const overlayId = "geeklabs-td-gameover-overlay";
+    const overlayId = "defense-protocol-gameover-overlay";
     const existingOverlay = host.querySelector(`#${overlayId}`);
     if (existingOverlay) existingOverlay.remove();
 
@@ -958,15 +1013,70 @@ export class GameScene extends Phaser.Scene {
     leaderboardTitle.textContent = "Top 10";
     leaderboardTitle.style.fontWeight = "700";
 
+    const makeToggleButton = (label) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.border = "1px solid #2b3f5e";
+      btn.style.borderRadius = "6px";
+      btn.style.padding = "4px 8px";
+      btn.style.fontSize = "11px";
+      btn.style.background = "#0f1623";
+      btn.style.color = "#9fb2cc";
+      btn.style.cursor = "pointer";
+      return btn;
+    };
+
+    const setToggleActive = (btn, active) => {
+      btn.style.borderColor = active ? "#6a9ad8" : "#2b3f5e";
+      btn.style.background = active ? "#101a28" : "#0f1623";
+      btn.style.color = active ? "#dbe7ff" : "#9fb2cc";
+    };
+
+    const leaderboardToggle = document.createElement("div");
+    leaderboardToggle.style.display = "flex";
+    leaderboardToggle.style.gap = "6px";
+
+    const localBtn = makeToggleButton("Local");
+    const globalBtn = makeToggleButton("Global");
+    leaderboardToggle.appendChild(localBtn);
+    leaderboardToggle.appendChild(globalBtn);
+
     const leaderboardList = document.createElement("div");
     leaderboardList.style.display = "grid";
     leaderboardList.style.rowGap = "6px";
 
-    const renderLeaderboard = () => {
+    let leaderboardMode = "local";
+    let globalRequestId = 0;
+    const renderLocal = () => {
       renderLeaderboardList(leaderboardList, this.lastLeaderboardEntry, this.difficultyKey);
+    };
+    const renderGlobal = () => {
+      const requestId = (globalRequestId += 1);
+      renderLeaderboardMessage(leaderboardList, "Loading...");
+      fetchGlobalLeaderboard(this.difficultyKey, 10)
+        .then((entries) => {
+          if (requestId !== globalRequestId) return;
+          const sorted = entries.slice().sort(compareLeaderboardEntries);
+          renderLeaderboardEntries(leaderboardList, sorted, null);
+        })
+        .catch(() => {
+          if (requestId !== globalRequestId) return;
+          renderLeaderboardMessage(leaderboardList, "Global leaderboard unavailable.");
+        });
+    };
+    const renderLeaderboard = () => {
+      if (leaderboardMode === "global") {
+        renderGlobal();
+      } else {
+        renderLocal();
+      }
+      setToggleActive(localBtn, leaderboardMode === "local");
+      setToggleActive(globalBtn, leaderboardMode === "global");
     };
 
     leaderboardHeader.appendChild(leaderboardTitle);
+    leaderboardHeader.appendChild(leaderboardToggle);
     leaderboardPanel.appendChild(leaderboardHeader);
     leaderboardPanel.appendChild(leaderboardList);
 
@@ -990,6 +1100,15 @@ export class GameScene extends Phaser.Scene {
       if (shouldShow) renderLeaderboard();
     });
 
+    localBtn.addEventListener("click", () => {
+      leaderboardMode = "local";
+      renderLeaderboard();
+    });
+    globalBtn.addEventListener("click", () => {
+      leaderboardMode = "global";
+      renderLeaderboard();
+    });
+
     btnWrap.appendChild(restartBtn);
     btnWrap.appendChild(changeBtn);
     btnWrap.appendChild(leaderboardBtn);
@@ -1009,7 +1128,7 @@ export class GameScene extends Phaser.Scene {
     if (!host) return;
     host.style.position = host.style.position || "relative";
 
-    const overlayId = "geeklabs-td-pause-overlay";
+    const overlayId = "defense-protocol-pause-overlay";
     const existingOverlay = host.querySelector(`#${overlayId}`);
     if (existingOverlay) existingOverlay.remove();
 
@@ -1092,10 +1211,82 @@ export class GameScene extends Phaser.Scene {
     leaderboardPanel.style.color = "#dbe7ff";
     leaderboardPanel.style.fontSize = "13px";
 
+    const makeToggleButton = (label) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.border = "1px solid #2b3f5e";
+      btn.style.borderRadius = "6px";
+      btn.style.padding = "4px 8px";
+      btn.style.fontSize = "11px";
+      btn.style.background = "#0f1623";
+      btn.style.color = "#9fb2cc";
+      btn.style.cursor = "pointer";
+      return btn;
+    };
+
+    const setToggleActive = (btn, active) => {
+      btn.style.borderColor = active ? "#6a9ad8" : "#2b3f5e";
+      btn.style.background = active ? "#101a28" : "#0f1623";
+      btn.style.color = active ? "#dbe7ff" : "#9fb2cc";
+    };
+
+    const leaderboardHeader = document.createElement("div");
+    leaderboardHeader.style.display = "flex";
+    leaderboardHeader.style.alignItems = "center";
+    leaderboardHeader.style.justifyContent = "space-between";
+    leaderboardHeader.style.marginBottom = "8px";
+
+    const leaderboardTitle = document.createElement("div");
+    leaderboardTitle.textContent = "Top 10";
+    leaderboardTitle.style.fontWeight = "700";
+
+    const leaderboardToggle = document.createElement("div");
+    leaderboardToggle.style.display = "flex";
+    leaderboardToggle.style.gap = "6px";
+
+    const localBtn = makeToggleButton("Local");
+    const globalBtn = makeToggleButton("Global");
+    leaderboardToggle.appendChild(localBtn);
+    leaderboardToggle.appendChild(globalBtn);
+
     const leaderboardList = document.createElement("div");
     leaderboardList.style.display = "grid";
     leaderboardList.style.rowGap = "6px";
+
+    leaderboardHeader.appendChild(leaderboardTitle);
+    leaderboardHeader.appendChild(leaderboardToggle);
+    leaderboardPanel.appendChild(leaderboardHeader);
     leaderboardPanel.appendChild(leaderboardList);
+
+    let leaderboardMode = "local";
+    let globalRequestId = 0;
+    const renderLocal = () => {
+      renderLeaderboardList(leaderboardList, null, this.difficultyKey);
+    };
+    const renderGlobal = () => {
+      const requestId = (globalRequestId += 1);
+      renderLeaderboardMessage(leaderboardList, "Loading...");
+      fetchGlobalLeaderboard(this.difficultyKey, 10)
+        .then((entries) => {
+          if (requestId !== globalRequestId) return;
+          const sorted = entries.slice().sort(compareLeaderboardEntries);
+          renderLeaderboardEntries(leaderboardList, sorted, null);
+        })
+        .catch(() => {
+          if (requestId !== globalRequestId) return;
+          renderLeaderboardMessage(leaderboardList, "Global leaderboard unavailable.");
+        });
+    };
+    const renderLeaderboard = () => {
+      if (leaderboardMode === "global") {
+        renderGlobal();
+      } else {
+        renderLocal();
+      }
+      setToggleActive(localBtn, leaderboardMode === "local");
+      setToggleActive(globalBtn, leaderboardMode === "global");
+    };
 
     resumeBtn.addEventListener("click", () => {
       this.setPaused(false);
@@ -1111,7 +1302,16 @@ export class GameScene extends Phaser.Scene {
       const shouldShow = leaderboardPanel.style.display === "none";
       leaderboardPanel.style.display = shouldShow ? "block" : "none";
       if (shouldShow) controlsPanel.style.display = "none";
-      if (shouldShow) renderLeaderboardList(leaderboardList, null, this.difficultyKey);
+      if (shouldShow) renderLeaderboard();
+    });
+
+    localBtn.addEventListener("click", () => {
+      leaderboardMode = "local";
+      renderLeaderboard();
+    });
+    globalBtn.addEventListener("click", () => {
+      leaderboardMode = "global";
+      renderLeaderboard();
     });
 
     restartBtn.addEventListener("click", () => {
@@ -1148,7 +1348,7 @@ export class GameScene extends Phaser.Scene {
   hidePauseMenu() {
     const host = this.game?.canvas?.parentElement;
     if (!host) return;
-    const existingOverlay = host.querySelector("#geeklabs-td-pause-overlay");
+    const existingOverlay = host.querySelector("#defense-protocol-pause-overlay");
     if (existingOverlay) existingOverlay.remove();
   }
 
@@ -1233,6 +1433,7 @@ export class GameScene extends Phaser.Scene {
       dateISO: new Date().toISOString(),
     };
     updateLeaderboard(this.lastLeaderboardEntry, this.difficultyKey);
+    submitGlobalScore(this.lastLeaderboardEntry);
     this.showGameOverScreen();
   }
 
