@@ -78,6 +78,7 @@ function findTarget(tower, mode) {
   const r2 = tower.range * tower.range;
   let best = null;
   let bestMetric = -Infinity;
+  let bestArmor = -Infinity;
   this.enemies.children.iterate((e) => {
     if (!e) return;
     const d = dist2(tower.x, tower.y, e.x, e.y);
@@ -94,6 +95,16 @@ function findTarget(tower, mode) {
       const m = e.hp;
       if (m > bestMetric) {
         bestMetric = m;
+        best = e;
+      }
+      return;
+    }
+    if (mode === "armored") {
+      const armor = e.armor ?? 0;
+      const progress = enemyProgressScore.call(this, e);
+      if (armor > bestArmor || (armor === bestArmor && progress > bestMetric)) {
+        bestArmor = armor;
+        bestMetric = progress;
         best = e;
       }
       return;

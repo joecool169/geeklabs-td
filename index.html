@@ -80,6 +80,48 @@
         color: #9fb2cc;
         margin-bottom: 6px;
       }
+      #build-menu {
+        width: 100%;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(43, 63, 94, 0.6);
+        color: #dbe7ff;
+        font-size: 12px;
+        text-align: left;
+      }
+      #build-menu-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9fb2cc;
+        margin-bottom: 6px;
+      }
+      #build-menu-list {
+        display: grid;
+        row-gap: 6px;
+      }
+      .build-slot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #2b3f5e;
+        background: #0f1623;
+        color: #dbe7ff;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .build-label {
+        pointer-events: none;
+      }
+      .build-slot.is-locked {
+        opacity: 0.45;
+        filter: grayscale(1);
+        cursor: not-allowed;
+      }
       #selected-tower-panel {
         width: 100%;
         margin-top: 12px;
@@ -222,7 +264,7 @@
             <div class="controls-group-title">Placement</div>
             <div class="controls-list">
               <div class="control-row"><span class="control-key">T</span><span>Toggle placement mode</span></div>
-              <div class="control-row"><span class="control-key">1 / 2 / 3</span><span>Select tower</span></div>
+              <div class="control-row"><span class="control-key">1 / 2 / 3 / 4</span><span>Select tower</span></div>
               <div class="control-row"><span class="control-key">Click</span><span>Place tower</span></div>
             </div>
           </div>
@@ -242,6 +284,10 @@
               <div class="control-row"><span class="control-key">Esc</span><span>Cancel / clear</span></div>
             </div>
           </div>
+        </section>
+        <section id="build-menu" aria-label="Build menu">
+          <div id="build-menu-title">Build Menu</div>
+          <div id="build-menu-list"></div>
         </section>
         <section id="selected-tower-panel" aria-label="Selected tower">
           <div id="selected-tower-title">Selected Tower</div>

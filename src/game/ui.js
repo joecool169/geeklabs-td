@@ -151,6 +151,16 @@ function updateUI() {
     );
   }
 
+  if (this.buildMenuSlots && this._buildMenuWave !== uiSnapshot.wave) {
+    this._buildMenuWave = uiSnapshot.wave;
+    for (const slot of this.buildMenuSlots) {
+      const unlockWave = slot.def?.unlockWave ?? 1;
+      const locked = uiSnapshot.wave < unlockWave;
+      slot.el.classList.toggle("is-locked", locked);
+      slot.el.dataset.locked = locked ? "true" : "false";
+    }
+  }
+
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
     const selectedGroup = this.controlsSelectedEl;
     if (selectedGroup) selectedGroup.classList.add("is-inactive");
@@ -172,7 +182,14 @@ function updateUI() {
   const nextCost = getNextUpgradeCost(t);
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
-  const targetLabel = t.targetMode === "close" ? "Close" : t.targetMode === "strong" ? "Strong" : "First";
+  const targetLabel =
+    t.targetMode === "close"
+      ? "Close"
+      : t.targetMode === "strong"
+        ? "Strong"
+        : t.targetMode === "armored"
+          ? "Armored"
+          : "First";
   if (this.selectedTowerNameEl) this.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
   if (this.selectedTowerTargetEl) this.selectedTowerTargetEl.textContent = targetLabel;
   if (this.selectedTowerDmgEl) this.selectedTowerDmgEl.textContent = `${t.damage}`;

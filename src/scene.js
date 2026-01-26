@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import {
   DIFFICULTY_CONFIG,
   GRID,
-  LASER_UNLOCK_WAVE,
   MAX_CONCURRENT_SPAWNERS,
   TOP_UI,
   WAVE_SPAM_WINDOW_MS,
@@ -422,6 +421,28 @@ export class GameScene extends Phaser.Scene {
     this.selectedTowerUpgradeBtnEl = document.getElementById("tower-upgrade-btn");
     this.selectedTowerSellBtnEl = document.getElementById("tower-sell-btn");
     this.selectedTowerTargetBtnEl = document.getElementById("tower-target-btn");
+    this.buildTowerDefs = Object.values(TOWER_DEFS).sort((a, b) => Number(a.hotkey) - Number(b.hotkey));
+    this.buildMenuEl = document.getElementById("build-menu-list");
+    this.buildMenuSlots = [];
+    if (this.buildMenuEl) {
+      this.buildMenuEl.innerHTML = "";
+      for (const def of this.buildTowerDefs) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "build-slot";
+        btn.dataset.towerKey = def.key;
+        const label = document.createElement("span");
+        label.className = "build-label";
+        label.textContent = `Tower ${def.hotkey}: ${def.name}`;
+        btn.appendChild(label);
+        btn.addEventListener("click", () => {
+          if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+          this.trySetPlaceType(def.key);
+        });
+        this.buildMenuEl.appendChild(btn);
+        this.buildMenuSlots.push({ def, el: btn });
+      }
+    }
     if (this.selectedTowerUpgradeBtnEl) {
       this.selectedTowerUpgradeBtnEl.addEventListener("click", () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
@@ -517,26 +538,22 @@ export class GameScene extends Phaser.Scene {
 
     this.key1.on("down", () => {
       if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.setPlaceType("basic");
+      this.trySetPlaceType("basic");
     });
 
     this.key2.on("down", () => {
       if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.setPlaceType("rapid");
+      this.trySetPlaceType("rapid");
     });
 
     this.key3.on("down", () => {
       if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.setPlaceType("sniper");
+      this.trySetPlaceType("sniper");
     });
 
     this.key4.on("down", () => {
       if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.wave < LASER_UNLOCK_WAVE) {
-        this.showToast(`Laser unlocks at Wave ${LASER_UNLOCK_WAVE}.`, 2200);
-        return;
-      }
-      this.setPlaceType("laser");
+      this.trySetPlaceType("laser");
     });
 
     this.keyP.on("down", () => {
@@ -1335,6 +1352,34 @@ export class GameScene extends Phaser.Scene {
     updateWaveSpawningFn.call(this, time);
   }
 
+  getTowerUnlockWave(type) {
+    const def = TOWER_DEFS[type];
+    return def?.unlockWave ?? 1;
+  }
+
+  isTowerUnlocked(type) {
+    return this.wave >= this.getTowerUnlockWave(type);
+  }
+
+  getPlacementKeyHint() {
+    const defs = this.buildTowerDefs || Object.values(TOWER_DEFS);
+    const keys = defs
+      .filter((def) => this.wave >= (def.unlockWave ?? 1))
+      .map((def) => def.hotkey);
+    return keys.length ? keys.join("/") : "1";
+  }
+
+  trySetPlaceType(type) {
+    const def = TOWER_DEFS[type];
+    if (!def) return;
+    const unlockWave = def.unlockWave ?? 1;
+    if (this.wave < unlockWave) {
+      this.showToast(`Unlocks at Wave ${unlockWave}.`, 2200);
+      return;
+    }
+    this.setPlaceType(type);
+  }
+
   getPlaceDef() {
     return TOWER_DEFS[this.placeType] || TOWER_DEFS.basic;
   }
@@ -1362,7 +1407,7 @@ export class GameScene extends Phaser.Scene {
       this.clearSelection();
       if (!this.didShowPlaceToast) {
         this.didShowPlaceToast = true;
-        const hint = this.wave >= LASER_UNLOCK_WAVE ? "1/2/3/4" : "1/2/3";
+        const hint = this.getPlacementKeyHint();
         this.showToast(`Placement: press ${hint} to switch tower type.`, 2600);
       }
       this.ghost = this.add.image(0, 0, this.getTowerTextureKey(this.placeType));
@@ -1421,7 +1466,7 @@ export class GameScene extends Phaser.Scene {
     const tier0 = def.tiers[0];
     const ok = this.ghostValid ? "OK" : "BLOCKED";
     const need = this.money < tier0.cost ? " (not enough $)" : "";
-    const switchHint = this.wave >= LASER_UNLOCK_WAVE ? "1/2/3/4" : "1/2/3";
+    const switchHint = this.getPlacementKeyHint();
     this.placeHint.setText(
       `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (${switchHint}: switch)`
     );
@@ -1591,7 +1636,7 @@ export class GameScene extends Phaser.Scene {
       fireMs: tier0.fireMs,
       nextShotAt: 0,
       spent: tier0.cost,
-      targetMode: "close",
+      targetMode: def.defaultTargetMode ?? "first",
       sprite: img,
       badge,
     };

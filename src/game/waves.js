@@ -51,7 +51,10 @@ function enterIntermission(isInitial = false) {
     this.autoStartTimer = this.time.delayedCall(this.intermissionMs, () => {
       if (this.isPaused) return;
       if (this.waveState !== "intermission") return;
-      startWave.call(this, this.wave);
+      const waveNumber = this.nextWaveNumberToSpawn ?? this.wave;
+      startWave.call(this, waveNumber);
+      if (typeof this.nextWaveNumberToSpawn === "number") this.nextWaveNumberToSpawn += 1;
+      if (!this.didStartFirstWave) this.didStartFirstWave = true;
     });
   }
 }
