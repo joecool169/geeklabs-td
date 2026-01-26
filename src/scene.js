@@ -422,6 +422,7 @@ export class GameScene extends Phaser.Scene {
     this.selectedTowerSellBtnEl = document.getElementById("tower-sell-btn");
     this.selectedTowerTargetBtnEl = document.getElementById("tower-target-btn");
     this.buildTowerDefs = Object.values(TOWER_DEFS).sort((a, b) => Number(a.hotkey) - Number(b.hotkey));
+    this.buildMenuSectionEl = document.getElementById("build-menu");
     this.buildMenuEl = document.getElementById("build-menu-list");
     this.buildMenuSlots = [];
     if (this.buildMenuEl) {
@@ -431,16 +432,26 @@ export class GameScene extends Phaser.Scene {
         btn.type = "button";
         btn.className = "build-slot";
         btn.dataset.towerKey = def.key;
-        const label = document.createElement("span");
-        label.className = "build-label";
-        label.textContent = `Tower ${def.hotkey}: ${def.name}`;
-        btn.appendChild(label);
+        const name = document.createElement("span");
+        name.className = "build-name";
+        name.textContent = def.name;
+        const right = document.createElement("span");
+        right.className = "build-right";
+        const keycap = document.createElement("span");
+        keycap.className = "keycap";
+        keycap.textContent = def.hotkey;
+        const meta = document.createElement("span");
+        meta.className = "build-meta";
+        right.appendChild(keycap);
+        right.appendChild(meta);
+        btn.appendChild(name);
+        btn.appendChild(right);
         btn.addEventListener("click", () => {
           if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
           this.trySetPlaceType(def.key);
         });
         this.buildMenuEl.appendChild(btn);
-        this.buildMenuSlots.push({ def, el: btn });
+        this.buildMenuSlots.push({ def, el: btn, metaEl: meta, wasLocked: null });
       }
     }
     if (this.selectedTowerUpgradeBtnEl) {
@@ -1352,6 +1363,10 @@ export class GameScene extends Phaser.Scene {
     updateWaveSpawningFn.call(this, time);
   }
 
+  enterPlacementModeIfNeeded() {
+    if (!this.isPlacing) this.setPlacement(true);
+  }
+
   getTowerUnlockWave(type) {
     const def = TOWER_DEFS[type];
     return def?.unlockWave ?? 1;
@@ -1372,6 +1387,7 @@ export class GameScene extends Phaser.Scene {
   trySetPlaceType(type) {
     const def = TOWER_DEFS[type];
     if (!def) return;
+    this.enterPlacementModeIfNeeded();
     const unlockWave = def.unlockWave ?? 1;
     if (this.wave < unlockWave) {
       this.showToast(`Unlocks at Wave ${unlockWave}.`, 2200);
@@ -1414,7 +1430,11 @@ export class GameScene extends Phaser.Scene {
       this.ghost.setDepth(9000);
       this.ghost.setAlpha(0.5);
       const p = this.input.activePointer;
-      this.updateGhost(p.worldX, p.worldY);
+      if (p) {
+        this.ghostX = NaN;
+        this.ghostY = NaN;
+        this.updateGhost(p.worldX, p.worldY);
+      }
       this.hideRangeRing();
       return;
     }
