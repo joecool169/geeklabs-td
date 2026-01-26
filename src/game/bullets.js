@@ -35,21 +35,7 @@ function fireBullet(t, target) {
     flashEnemy(this, target);
     target.hp -= dmg;
 
-    if (target.hp <= 0) {
-      const reward = target.reward ?? 8;
-      const weight = target.scoreWeight ?? 1;
-      if (target.flashTween) {
-        target.flashTween.remove(false);
-        target.flashTween = null;
-      }
-      target.destroy();
-      this.money += reward;
-      this.killCount += 1;
-      const baseScoreGain = reward + Math.round(weight * 10);
-      const scoreMul = this.difficulty?.scoreMul ?? 1;
-      const scoreGain = Math.round(baseScoreGain * scoreMul);
-      this.score += scoreGain;
-    }
+    if (target.hp <= 0) this.handleEnemyKilled(target);
 
     this.time.delayedCall(50, () => {
       tracer.destroy();
@@ -84,21 +70,7 @@ function fireBullet(t, target) {
       const dmg = Math.max(1, t.damage - armor);
       flashEnemy(this, target);
       target.hp -= dmg;
-      if (target.hp <= 0) {
-        const reward = target.reward ?? 8;
-        const weight = target.scoreWeight ?? 1;
-        if (target.flashTween) {
-          target.flashTween.remove(false);
-          target.flashTween = null;
-        }
-        target.destroy();
-        this.money += reward;
-        this.killCount += 1;
-        const baseScoreGain = reward + Math.round(weight * 10);
-        const scoreMul = this.difficulty?.scoreMul ?? 1;
-        const scoreGain = Math.round(baseScoreGain * scoreMul);
-        this.score += scoreGain;
-      }
+      if (target.hp <= 0) this.handleEnemyKilled(target);
       b.destroy();
     }
   };

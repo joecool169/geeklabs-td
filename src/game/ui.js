@@ -151,6 +151,9 @@ function updateUI() {
     );
   }
 
+  if (this.buildMenuSectionEl) {
+    this.buildMenuSectionEl.style.display = this.isPlacing ? "block" : "none";
+  }
   if (this.buildMenuSlots && this._buildMenuWave !== uiSnapshot.wave) {
     this._buildMenuWave = uiSnapshot.wave;
     for (const slot of this.buildMenuSlots) {
@@ -158,6 +161,20 @@ function updateUI() {
       const locked = uiSnapshot.wave < unlockWave;
       slot.el.classList.toggle("is-locked", locked);
       slot.el.dataset.locked = locked ? "true" : "false";
+      if (slot.metaEl) {
+        slot.metaEl.textContent = locked ? `W${unlockWave}` : `$${slot.def.tiers[0].cost}`;
+      }
+      if (slot.wasLocked === null || slot.wasLocked === undefined) {
+        slot.wasLocked = locked;
+      } else if (slot.wasLocked && !locked) {
+        slot.el.classList.add("just-unlocked");
+        window.setTimeout(() => {
+          slot.el.classList.remove("just-unlocked");
+        }, 1200);
+        slot.wasLocked = locked;
+      } else {
+        slot.wasLocked = locked;
+      }
     }
   }
 

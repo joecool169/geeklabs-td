@@ -114,6 +114,48 @@
         font-weight: 700;
         cursor: pointer;
       }
+      .build-name {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .build-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        pointer-events: none;
+      }
+      .keycap {
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid #2b3f5e;
+        background: rgba(15, 22, 35, 0.85);
+        color: #f0d7c0;
+        font-size: 10px;
+        font-weight: 700;
+        min-width: 16px;
+        text-align: center;
+      }
+      .build-meta {
+        color: rgba(219, 231, 255, 0.6);
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .build-slot.just-unlocked {
+        animation: buildUnlockPulse 1.2s ease-out;
+        border-color: rgba(216, 169, 106, 0.7);
+        box-shadow: 0 0 0 1px rgba(216, 169, 106, 0.25);
+      }
+      @keyframes buildUnlockPulse {
+        0% {
+          box-shadow: 0 0 0 rgba(216, 169, 106, 0);
+        }
+        40% {
+          box-shadow: 0 0 14px rgba(216, 169, 106, 0.35);
+        }
+        100% {
+          box-shadow: 0 0 0 rgba(216, 169, 106, 0);
+        }
+      }
       .build-label {
         pointer-events: none;
       }
@@ -264,7 +306,7 @@
             <div class="controls-group-title">Placement</div>
             <div class="controls-list">
               <div class="control-row"><span class="control-key">T</span><span>Toggle placement mode</span></div>
-              <div class="control-row"><span class="control-key">1 / 2 / 3 / 4</span><span>Select tower</span></div>
+              <div class="control-row"><span class="control-key">1 / 2 / 3 / 4</span><span>Select tower (enters placement)</span></div>
               <div class="control-row"><span class="control-key">Click</span><span>Place tower</span></div>
             </div>
           </div>
