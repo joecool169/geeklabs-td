@@ -12,12 +12,16 @@ function computeWaveConfig(wave) {
   if (w >= 20) weights.push({ key: "armored", w: 0.15 + armoredW });
   const packEvery = Math.max(10, 16 - Math.floor(w / 2));
   const packSize = Math.min(6, 2 + Math.floor(w / 4));
+  const t = clamp01((w - 1) / 9);
+  const countMul = 1 - 0.5 * t;
+  const reducedTotal = Math.max(6, Math.floor(total * countMul));
+  const reducedPackSize = Math.max(2, Math.floor(packSize * countMul));
   return {
-    total,
+    total: reducedTotal,
     spawnDelayMs,
     weights,
     packEvery,
-    packSize,
+    packSize: reducedPackSize,
     intermissionMs: this.intermissionMs,
   };
 }

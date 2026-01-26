@@ -1,4 +1,4 @@
-import { ENEMY_DEFS } from "../constants.js";
+import { clamp01, ENEMY_DEFS } from "../constants.js";
 import { DIFFICULTY_CONFIG } from "./config.js";
 import { dist2 } from "./utils.js";
 
@@ -25,7 +25,9 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   const spMul = (1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02)) * difficulty.enemySpeedMul;
   e.typeKey = def.key;
   e.setTint(def.tint);
-  e.hp = Math.max(1, Math.floor(def.baseHp * hpMul));
+  const t = clamp01((w - 1) / 9);
+  const hpFactor = 1 + 1.0 * t;
+  e.hp = Math.max(1, Math.floor(def.baseHp * hpMul * hpFactor));
   e.maxHp = e.hp;
   e.speed = Math.floor(def.baseSpeed * spMul);
   e.armor = def.armor || 0;
