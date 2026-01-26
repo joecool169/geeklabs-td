@@ -1,6 +1,13 @@
 import Phaser from "phaser";
-import { DIFFICULTY_CONFIG, GRID, TOP_UI } from "./game/config.js";
-import { snapX, snapY } from "./game/utils.js";
+import {
+  DIFFICULTY_CONFIG,
+  GRID,
+  LASER_UNLOCK_WAVE,
+  MAX_CONCURRENT_SPAWNERS,
+  TOP_UI,
+  WAVE_SPAM_WINDOW_MS,
+} from "./game/config.js";
+import { dist2, segCircleHit, snapX, snapY } from "./game/utils.js";
 import { fireBullet as fireBulletFn } from "./game/bullets.js";
 import {
   advanceEnemy as advanceEnemyFn,
@@ -26,7 +33,32 @@ import { TOWER_DEFS } from "./constants.js";
 
 const PLAYER_NAME_STORAGE_KEY = "geeklabs_td_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "geeklabs_td_difficulty_v1";
+const LEADERBOARD_STORAGE_KEY = "geeklabs_td_leaderboard_v1";
+const HELP_OVERLAY_STORAGE_KEY = "geeklabs_td_help_overlay_v1";
+const BRAND_LOGO_URL = "/brand/defense-protocol.png";
+const BRAND_TITLE = "Defense Protocol";
+const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const DEFAULT_DIFFICULTY_KEY = "easy";
+const SFX_CONFIG = {
+  place: { url: "/sfx/place.wav", volume: 0.26 },
+  upgrade: { url: "/sfx/upgrade.wav", volume: 0.26 },
+  sell: { url: "/sfx/sell.wav", volume: 0.26 },
+  wave: { url: "/sfx/wave.wav", volume: 0.35 },
+  death: { url: "/sfx/death.wav", volume: 0.35 },
+  life: { url: "/sfx/life.wav", volume: 0.35 },
+  gameover: { url: "/sfx/gameover.wav", volume: 0.45 },
+};
+const LASER_MAX_PIERCE = 5;
+const CONTROLS = [
+  { key: "T", action: "Toggle placement mode" },
+  { key: "Click", action: "Place tower" },
+  { key: "1 / 2 / 3 / 4", action: "Select tower" },
+  { key: "Space", action: "Start wave" },
+  { key: "U", action: "Upgrade (selected tower)" },
+  { key: "X", action: "Sell (selected tower)" },
+  { key: "F", action: "Target mode (selected tower)" },
+  { key: "P", action: "Pause" },
+];
 
 const readStorage = (key) => {
   try {
@@ -53,16 +85,227 @@ const normalizePlayerName = (raw) => {
 const normalizeDifficultyKey = (key) =>
   DIFFICULTY_CONFIG[key] ? key : DEFAULT_DIFFICULTY_KEY;
 
+const getLeaderboardStorageKey = (difficultyKey) =>
+  `${LEADERBOARD_STORAGE_KEY}:${normalizeDifficultyKey(difficultyKey)}`;
+
+const safeParseLeaderboard = (difficultyKey) => {
+  const raw = readStorage(getLeaderboardStorageKey(difficultyKey));
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error("Leaderboard data not array.");
+    return parsed.filter((entry) => entry && typeof entry === "object");
+  } catch {
+    writeStorage(getLeaderboardStorageKey(difficultyKey), "[]");
+    return [];
+  }
+};
+
+const compareLeaderboardEntries = (a, b) => {
+  const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+  if (scoreDiff) return scoreDiff;
+  const waveDiff = (Number(b.wave) || 0) - (Number(a.wave) || 0);
+  if (waveDiff) return waveDiff;
+  const killsDiff = (Number(b.kills) || 0) - (Number(a.kills) || 0);
+  if (killsDiff) return killsDiff;
+  const dateA = typeof a.dateISO === "string" ? a.dateISO : "9999-12-31T23:59:59.999Z";
+  const dateB = typeof b.dateISO === "string" ? b.dateISO : "9999-12-31T23:59:59.999Z";
+  if (dateA < dateB) return -1;
+  if (dateA > dateB) return 1;
+  return 0;
+};
+
+const writeLeaderboard = (entries, difficultyKey) => {
+  try {
+    writeStorage(getLeaderboardStorageKey(difficultyKey), JSON.stringify(entries));
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const updateLeaderboard = (entry, difficultyKey) => {
+  const entries = safeParseLeaderboard(difficultyKey);
+  entries.push(entry);
+  entries.sort(compareLeaderboardEntries);
+  const trimmed = entries.slice(0, 10);
+  writeLeaderboard(trimmed, difficultyKey);
+  return trimmed;
+};
+
+const renderControlsList = (container) => {
+  container.innerHTML = "";
+  CONTROLS.forEach((control) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.gap = "10px";
+
+    const key = document.createElement("span");
+    key.textContent = control.key;
+    key.style.color = "#f0d7c0";
+    key.style.whiteSpace = "nowrap";
+
+    const action = document.createElement("span");
+    action.textContent = control.action;
+
+    row.appendChild(key);
+    row.appendChild(action);
+    container.appendChild(row);
+  });
+};
+
+const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
+  const isCurrentRun = (entry) => {
+    if (!currentEntry) return false;
+    return (
+      entry.dateISO === currentEntry.dateISO &&
+      Number(entry.score) === Number(currentEntry.score) &&
+      Number(entry.wave) === Number(currentEntry.wave) &&
+      Number(entry.kills) === Number(currentEntry.kills) &&
+      entry.name === currentEntry.name
+    );
+  };
+
+  const entries = safeParseLeaderboard(difficultyKey).sort(compareLeaderboardEntries);
+  container.innerHTML = "";
+
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.textContent = "No entries yet.";
+    empty.style.color = "#9fb2cc";
+    container.appendChild(empty);
+    return;
+  }
+
+  const headerRow = document.createElement("div");
+  headerRow.style.display = "grid";
+  headerRow.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
+  headerRow.style.columnGap = "6px";
+  headerRow.style.fontSize = "11px";
+  headerRow.style.color = "#9fb2cc";
+  headerRow.style.textTransform = "uppercase";
+  headerRow.style.letterSpacing = "0.04em";
+  ["#", "Name", "Score", "Wave", "Kills", "Difficulty"].forEach((label) => {
+    const cell = document.createElement("div");
+    cell.textContent = label;
+    headerRow.appendChild(cell);
+  });
+  container.appendChild(headerRow);
+
+  entries.forEach((entry, index) => {
+    const row = document.createElement("div");
+    row.style.display = "grid";
+    row.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
+    row.style.columnGap = "6px";
+    row.style.alignItems = "center";
+    row.style.padding = "4px 0";
+    row.style.borderBottom = "1px solid rgba(43, 63, 94, 0.6)";
+    if (isCurrentRun(entry)) {
+      row.style.background = "rgba(64, 118, 200, 0.2)";
+      row.style.borderRadius = "6px";
+      row.style.padding = "4px 6px";
+    }
+
+    const name = entry.name || "Player";
+    const score = Number(entry.score) || 0;
+    const wave = Number(entry.wave) || 0;
+    const kills = Number(entry.kills) || 0;
+    const difficulty = entry.difficultyLabel || entry.difficultyKey || "-";
+
+    [index + 1, name, score, wave, kills, difficulty].forEach((value) => {
+      const cell = document.createElement("div");
+      cell.textContent = value;
+      row.appendChild(cell);
+    });
+    container.appendChild(row);
+  });
+};
+
+const makeBrandHeader = () => {
+  const wrap = document.createElement("div");
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.alignItems = "center";
+  wrap.style.marginBottom = "12px";
+
+  const logo = document.createElement("img");
+  logo.src = BRAND_LOGO_URL;
+  logo.alt = "Defense Protocol logo";
+  logo.style.width = "160px";
+  logo.style.height = "auto";
+  logo.style.marginBottom = "8px";
+
+  const title = document.createElement("div");
+  title.textContent = BRAND_TITLE;
+  title.style.fontSize = "18px";
+  title.style.fontWeight = "700";
+  title.style.color = "#f0d7c0";
+  title.style.letterSpacing = "0.03em";
+
+  const tagline = document.createElement("div");
+  tagline.textContent = BRAND_TAGLINE;
+  tagline.style.fontSize = "11px";
+  tagline.style.color = "#9fb2cc";
+  tagline.style.marginTop = "4px";
+
+  wrap.appendChild(logo);
+  wrap.appendChild(title);
+  wrap.appendChild(tagline);
+  return wrap;
+};
+
 export class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
   }
 
+  preload() {
+    Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
+      if (!cfg?.url) return;
+      this.load.audio(key, cfg.url);
+    });
+  }
+
+  init(data) {
+    this.startOptions = data || {};
+  }
+
   create() {
+    const overlayHost = this.game?.canvas?.parentElement;
+    if (overlayHost) {
+      const oldOverlay = overlayHost.querySelector("#geeklabs-td-gameover-overlay");
+      if (oldOverlay) oldOverlay.remove();
+    }
+
     this.playerName = normalizePlayerName(readStorage(PLAYER_NAME_STORAGE_KEY));
     this.difficultyKey = normalizeDifficultyKey(readStorage(DIFFICULTY_STORAGE_KEY));
+    if (this.startOptions?.playerName) this.playerName = normalizePlayerName(this.startOptions.playerName);
+    if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);
     this.difficulty = DIFFICULTY_CONFIG[this.difficultyKey];
     this.difficultyLabel = this.difficulty.label;
+
+    this.sfx = {};
+    this.sfxLastAt = {};
+    this.playSfx = (key, opts = {}) => {
+      const {
+        allowDuringPause = false,
+        allowDuringStart = false,
+        allowDuringGameOver = false,
+      } = opts;
+      if (!allowDuringStart && this.isStartScreenActive) return;
+      if (!allowDuringPause && this.isPaused) return;
+      if (!allowDuringGameOver && this.isGameOver) return;
+      const sound = this.sfx[key];
+      if (!sound) return;
+      const minInterval = key === "death" ? 100 : 0;
+      const lastAt = this.sfxLastAt[key] || 0;
+      const now = this.time?.now ?? Date.now();
+      if (now - lastAt < minInterval) return;
+      if (sound.isPlaying) return;
+      sound.play();
+      this.sfxLastAt[key] = now;
+    };
 
     this.money = 0;
     this.lives = 20;
@@ -80,6 +323,11 @@ export class GameScene extends Phaser.Scene {
     this.autoStartWaves = true;
     this.autoStartTimer = null;
     this.didStartFirstWave = false;
+    this.activeWaves = [];
+    this.spaceArmedAt = 0;
+    this.spaceArmMode = null;
+    this.nextWaveNumberToSpawn = this.wave;
+    this.blockWaveStart = this.wave;
 
     this.swarmPacksRemaining = 0;
     this.swarmPackSpacingMs = 60;
@@ -104,6 +352,7 @@ export class GameScene extends Phaser.Scene {
     this.bullets = this.physics.add.group();
 
     this.selectedTower = null;
+
     this.rangeRing = this.add.graphics();
     this.rangeRing.setDepth(9999);
     this.rangeRing.setVisible(false);
@@ -113,30 +362,10 @@ export class GameScene extends Phaser.Scene {
       fontSize: "16px",
       color: "#dbe7ff",
     });
+    this.uiBaseColor = "#dbe7ff";
 
-    this.killText = this.add.text(640, 12, "Kills: 0", {
-      fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#dbe7ff",
-
-    });
-    this.scoreText = this.add.text(780, 12, "Score: 0", {
-      fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#dbe7ff",
-    });
-    this.diffText = this.add.text(920, 14, "", {
-      fontFamily: "monospace",
-      fontSize: "13px",
-      color: "#9fb3d8",
-    });
-
-    this.help = this.add.text(
-      14,
-      34,
-      "T: place mode   1/2/3: type   Click: select   Shift+Click/U: upgrade   X/Right click: sell   F: target mode   SPACE: start/skip wait",
-      { fontFamily: "monospace", fontSize: "13px", color: "#9fb3d8" }
-    );
+    this.helpIndicator = null;
+    this.helpIndicatorTween = null;
 
     this.placeHint = this.add.text(14, 56, "", {
       fontFamily: "monospace",
@@ -163,9 +392,54 @@ export class GameScene extends Phaser.Scene {
     this.toast.setVisible(false);
     this.toastTimer = null;
     this.didShowPlaceToast = false;
+    this.lifeFlashRect = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xff3b3b, 0.18);
+    this.lifeFlashRect.setOrigin(0, 0);
+    this.lifeFlashRect.setDepth(90000);
+    this.lifeFlashRect.setVisible(false);
+    this.lifeFlashTween = null;
+    this.lifeHudTween = null;
 
-    this.isStartScreenActive = true;
+    this.isStartScreenActive = !this.startOptions?.skipStartScreen;
+    this.isGameOver = false;
     this.isPaused = false;
+    Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
+      if (!this.cache.audio.exists(key)) return;
+      const volume = typeof cfg.volume === "number" ? cfg.volume : 0.4;
+      this.sfx[key] = this.sound.add(key, { volume });
+    });
+    this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
+    this.controlsSelectedEl = document.getElementById("controls-selected");
+    this.controlsPlacementEl = document.getElementById("controls-placement");
+    this.selectedTowerPanelEl = document.getElementById("selected-tower-panel");
+    this.selectedTowerNameEl = document.getElementById("tower-name");
+    this.selectedTowerTargetEl = document.getElementById("tower-target");
+    this.selectedTowerDmgEl = document.getElementById("tower-dmg");
+    this.selectedTowerFireEl = document.getElementById("tower-fire");
+    this.selectedTowerRangeEl = document.getElementById("tower-range");
+    this.selectedTowerDpsEl = document.getElementById("tower-dps");
+    this.selectedTowerUpgradeEl = document.getElementById("tower-upgrade");
+    this.selectedTowerSellEl = document.getElementById("tower-sell");
+    this.selectedTowerUpgradeBtnEl = document.getElementById("tower-upgrade-btn");
+    this.selectedTowerSellBtnEl = document.getElementById("tower-sell-btn");
+    this.selectedTowerTargetBtnEl = document.getElementById("tower-target-btn");
+    if (this.selectedTowerUpgradeBtnEl) {
+      this.selectedTowerUpgradeBtnEl.addEventListener("click", () => {
+        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
+        this.tryUpgradeTower(this.selectedTower);
+      });
+    }
+    if (this.selectedTowerSellBtnEl) {
+      this.selectedTowerSellBtnEl.addEventListener("click", () => {
+        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
+        this.trySellTower(this.selectedTower);
+      });
+    }
+    if (this.selectedTowerTargetBtnEl) {
+      this.selectedTowerTargetBtnEl.addEventListener("click", () => {
+        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
+        this.cycleTargetMode(this.selectedTower);
+      });
+    }
     this.pauseText = this.add
       .text(540, 14, "", {
         fontFamily: "monospace",
@@ -178,6 +452,8 @@ export class GameScene extends Phaser.Scene {
       .setDepth(100000)
       .setVisible(false);
 
+    this.setHelpOverlay(this.showHelp);
+
     this.input.mouse?.disableContextMenu();
 
     this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
@@ -188,7 +464,9 @@ export class GameScene extends Phaser.Scene {
     this.key1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
     this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
     this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
+    this.key4 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR);
     this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+    this.keyH = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
@@ -201,6 +479,11 @@ export class GameScene extends Phaser.Scene {
       if (this.isPaused && this.isPlacing) this.setPlacement(false);
       this.pauseText.setText(this.isPaused ? "PAUSED (P to resume)" : "");
       this.pauseText.setVisible(this.isPaused);
+      if (this.isPaused) {
+        this.showPauseMenu();
+      } else {
+        this.hidePauseMenu();
+      }
     };
 
     this.togglePause = () => this.setPaused(!this.isPaused);
@@ -213,48 +496,64 @@ export class GameScene extends Phaser.Scene {
     this.ghostY = 0;
 
     this.keyT.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.togglePlacement();
     });
 
     this.keyU.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
     });
 
     this.keyX.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
     });
 
     this.keyF.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
     });
 
     this.key1.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("basic");
     });
 
     this.key2.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("rapid");
     });
 
     this.key3.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
       this.setPlaceType("sniper");
     });
 
+    this.key4.on("down", () => {
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+      if (this.wave < LASER_UNLOCK_WAVE) {
+        this.showToast(`Laser unlocks at Wave ${LASER_UNLOCK_WAVE}.`, 2200);
+        return;
+      }
+      this.setPlaceType("laser");
+    });
+
     this.keyP.on("down", () => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       this.togglePause();
     });
 
+    this.keyH.on("down", () => {
+      if (this.isStartScreenActive || this.isGameOver) return;
+      this.emphasizeControlsPanel();
+      this.setHelpOverlay(!this.showHelp);
+    });
+
     this.keyEsc.on("down", () => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       if (this.isPaused) {
+        this.hidePauseMenu();
         this.setPaused(false);
         return;
       }
@@ -269,15 +568,51 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.keySpace.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive) return;
+      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+      const now = this.time.now;
       if (this.waveState === "intermission") {
-        this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, this.time.now);
-        this.tryStartWave();
+        if (now < this.nextWaveAvailableAt) {
+          if (this.spaceArmMode === "intermission" && now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS) {
+            this.spaceArmedAt = 0;
+            this.spaceArmMode = null;
+            this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, now);
+            this.startWave(this.nextWaveNumberToSpawn);
+            this.nextWaveNumberToSpawn += 1;
+            if (!this.didStartFirstWave) this.didStartFirstWave = true;
+          } else {
+            this.spaceArmedAt = now;
+            this.spaceArmMode = "intermission";
+            this.showToast("Press SPACE again to start early.", 1400);
+          }
+          return;
+        }
+        this.spaceArmedAt = 0;
+        this.spaceArmMode = null;
+        this.startWave(this.nextWaveNumberToSpawn);
+        this.nextWaveNumberToSpawn += 1;
+        if (!this.didStartFirstWave) this.didStartFirstWave = true;
+        return;
+      }
+      if (this.waveState === "running") {
+        if ((this.activeWaves?.length || 0) >= MAX_CONCURRENT_SPAWNERS) {
+          this.showToast(`Spawner cap reached (${MAX_CONCURRENT_SPAWNERS}).`, 1400);
+          return;
+        }
+        if (this.spaceArmMode === "running" && now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS) {
+          this.spaceArmedAt = 0;
+          this.spaceArmMode = null;
+          this.startWave(this.nextWaveNumberToSpawn);
+          this.nextWaveNumberToSpawn += 1;
+          return;
+        }
+        this.spaceArmedAt = now;
+        this.spaceArmMode = "running";
+        this.showToast("Press SPACE again to add a spawner.", 1400);
       }
     });
 
     this.input.on("pointerdown", (p) => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       const wx = p.worldX;
       const wy = p.worldY;
       if (this.isPaused) return;
@@ -310,16 +645,19 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (p) => {
-      if (this.isStartScreenActive) return;
+      if (this.isStartScreenActive || this.isGameOver) return;
       if (this.isPaused) return;
       if (!this.isPlacing) return;
       this.updateGhost(p.worldX, p.worldY);
     });
 
-    this.buildInspector();
     this.updateUI();
     this.enterIntermission(true);
-    this.showStartScreen();
+    if (this.isStartScreenActive) {
+      this.showStartScreen();
+    } else {
+      this.applyDifficulty(this.difficultyKey);
+    }
   }
 
   showToast(msg, ms = 2400) {
@@ -331,14 +669,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   applyDifficulty(key, opts = {}) {
-    const { updateUi = true } = opts;
     const normalized = normalizeDifficultyKey(key);
     const cfg = DIFFICULTY_CONFIG[normalized];
     this.difficultyKey = normalized;
     this.difficulty = cfg;
     this.difficultyLabel = cfg.label;
     this.money = cfg.startingMoney;
-    if (updateUi) this.updateUI();
   }
 
   showStartScreen() {
@@ -373,11 +709,7 @@ export class GameScene extends Phaser.Scene {
     panel.style.color = "#dbe7ff";
     panel.style.fontFamily = "monospace";
 
-    const title = document.createElement("div");
-    title.textContent = "GeekLabs TD";
-    title.style.fontSize = "18px";
-    title.style.fontWeight = "700";
-    title.style.marginBottom = "12px";
+    const brandHeader = makeBrandHeader();
 
     const nameLabel = document.createElement("label");
     nameLabel.textContent = "Player name";
@@ -488,7 +820,7 @@ export class GameScene extends Phaser.Scene {
       if (e.key === "Enter") onStart();
     });
 
-    panel.appendChild(title);
+    panel.appendChild(brandHeader);
     panel.appendChild(nameLabel);
     panel.appendChild(nameInput);
     panel.appendChild(diffLabel);
@@ -498,12 +830,437 @@ export class GameScene extends Phaser.Scene {
     host.appendChild(overlay);
   }
 
+  showGameOverScreen() {
+    const host = this.game?.canvas?.parentElement;
+    if (!host) return;
+    host.style.position = host.style.position || "relative";
+
+    const overlayId = "geeklabs-td-gameover-overlay";
+    const existingOverlay = host.querySelector(`#${overlayId}`);
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = overlayId;
+    overlay.style.position = "absolute";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "rgba(6, 8, 12, 0.9)";
+    overlay.style.zIndex = "6";
+
+    const panel = document.createElement("div");
+    panel.style.minWidth = "360px";
+    panel.style.padding = "22px 26px";
+    panel.style.background = "rgba(11, 15, 20, 0.96)";
+    panel.style.border = "1px solid #6a294a";
+    panel.style.borderRadius = "10px";
+    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
+    panel.style.color = "#f5d6e6";
+    panel.style.fontFamily = "monospace";
+
+    const brandHeader = makeBrandHeader();
+
+    const title = document.createElement("div");
+    title.textContent = "Game Over";
+    title.style.fontSize = "20px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "12px";
+
+    const stats = document.createElement("div");
+    stats.style.display = "grid";
+    stats.style.gridTemplateColumns = "1fr";
+    stats.style.rowGap = "6px";
+    stats.style.marginBottom = "14px";
+    stats.style.color = "#dbe7ff";
+
+    const makeStat = (label, value) => {
+      const row = document.createElement("div");
+      row.textContent = `${label}: ${value}`;
+      return row;
+    };
+
+    stats.appendChild(makeStat("Player", this.playerName));
+    stats.appendChild(makeStat("Difficulty", this.difficultyLabel));
+    stats.appendChild(makeStat("Wave", this.wave));
+    stats.appendChild(makeStat("Total Kills", this.killCount));
+    stats.appendChild(makeStat("Final Score", this.score));
+
+    const btnWrap = document.createElement("div");
+    btnWrap.style.display = "grid";
+    btnWrap.style.gridTemplateColumns = "1fr";
+    btnWrap.style.gap = "8px";
+    btnWrap.style.marginBottom = "10px";
+
+    const makeButton = (label, border, bg, color) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.width = "100%";
+      btn.style.padding = "10px 12px";
+      btn.style.borderRadius = "8px";
+      btn.style.border = border;
+      btn.style.background = bg;
+      btn.style.color = color;
+      btn.style.fontWeight = "700";
+      btn.style.cursor = "pointer";
+      return btn;
+    };
+
+    const restartBtn = makeButton("Restart", "1px solid #39ff8f", "#10241c", "#e4ffe8");
+    const changeBtn = makeButton("Change name / difficulty", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
+    const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
+
+    const leaderboardPanel = document.createElement("div");
+    leaderboardPanel.style.display = "none";
+    leaderboardPanel.style.padding = "10px 12px";
+    leaderboardPanel.style.border = "1px solid #2b3f5e";
+    leaderboardPanel.style.borderRadius = "8px";
+    leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
+    leaderboardPanel.style.color = "#dbe7ff";
+    leaderboardPanel.style.fontSize = "13px";
+
+    const leaderboardHeader = document.createElement("div");
+    leaderboardHeader.style.display = "flex";
+    leaderboardHeader.style.alignItems = "center";
+    leaderboardHeader.style.justifyContent = "space-between";
+    leaderboardHeader.style.marginBottom = "8px";
+
+    const leaderboardTitle = document.createElement("div");
+    leaderboardTitle.textContent = "Top 10";
+    leaderboardTitle.style.fontWeight = "700";
+
+    const leaderboardList = document.createElement("div");
+    leaderboardList.style.display = "grid";
+    leaderboardList.style.rowGap = "6px";
+
+    const renderLeaderboard = () => {
+      renderLeaderboardList(leaderboardList, this.lastLeaderboardEntry, this.difficultyKey);
+    };
+
+    leaderboardHeader.appendChild(leaderboardTitle);
+    leaderboardPanel.appendChild(leaderboardHeader);
+    leaderboardPanel.appendChild(leaderboardList);
+
+    restartBtn.addEventListener("click", () => {
+      overlay.remove();
+      this.scene.restart({
+        skipStartScreen: true,
+        playerName: this.playerName,
+        difficultyKey: this.difficultyKey,
+      });
+    });
+
+    changeBtn.addEventListener("click", () => {
+      overlay.remove();
+      this.scene.restart();
+    });
+
+    leaderboardBtn.addEventListener("click", () => {
+      const shouldShow = leaderboardPanel.style.display === "none";
+      leaderboardPanel.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) renderLeaderboard();
+    });
+
+    btnWrap.appendChild(restartBtn);
+    btnWrap.appendChild(changeBtn);
+    btnWrap.appendChild(leaderboardBtn);
+
+    panel.appendChild(brandHeader);
+    panel.appendChild(title);
+    panel.appendChild(stats);
+    panel.appendChild(btnWrap);
+    panel.appendChild(leaderboardPanel);
+    overlay.appendChild(panel);
+    host.appendChild(overlay);
+  }
+
+  showPauseMenu() {
+    if (this.isStartScreenActive || this.isGameOver) return;
+    const host = this.game?.canvas?.parentElement;
+    if (!host) return;
+    host.style.position = host.style.position || "relative";
+
+    const overlayId = "geeklabs-td-pause-overlay";
+    const existingOverlay = host.querySelector(`#${overlayId}`);
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = overlayId;
+    overlay.style.position = "absolute";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "rgba(6, 8, 12, 0.85)";
+    overlay.style.zIndex = "6";
+
+    const panel = document.createElement("div");
+    panel.style.minWidth = "340px";
+    panel.style.padding = "22px 26px";
+    panel.style.background = "rgba(11, 15, 20, 0.96)";
+    panel.style.border = "1px solid #3d4f6a";
+    panel.style.borderRadius = "10px";
+    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
+    panel.style.color = "#dbe7ff";
+    panel.style.fontFamily = "monospace";
+
+    const brandHeader = makeBrandHeader();
+
+    const title = document.createElement("div");
+    title.textContent = "Paused";
+    title.style.fontSize = "18px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "12px";
+
+    const btnWrap = document.createElement("div");
+    btnWrap.style.display = "grid";
+    btnWrap.style.gridTemplateColumns = "1fr";
+    btnWrap.style.gap = "8px";
+    btnWrap.style.marginBottom = "10px";
+
+    const makeButton = (label, border, bg, color) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.width = "100%";
+      btn.style.padding = "10px 12px";
+      btn.style.borderRadius = "8px";
+      btn.style.border = border;
+      btn.style.background = bg;
+      btn.style.color = color;
+      btn.style.fontWeight = "700";
+      btn.style.cursor = "pointer";
+      return btn;
+    };
+
+    const resumeBtn = makeButton("Resume", "1px solid #39ff8f", "#10241c", "#e4ffe8");
+    const controlsBtn = makeButton("Controls", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
+    const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
+    const restartBtn = makeButton("Restart", "1px solid #39ff8f", "#10241c", "#e4ffe8");
+    const changeBtn = makeButton("Change name / difficulty", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
+
+    const controlsPanel = document.createElement("div");
+    controlsPanel.style.display = "none";
+    controlsPanel.style.padding = "10px 12px";
+    controlsPanel.style.border = "1px solid #2b3f5e";
+    controlsPanel.style.borderRadius = "8px";
+    controlsPanel.style.background = "rgba(15, 22, 35, 0.95)";
+    controlsPanel.style.color = "#dbe7ff";
+    controlsPanel.style.fontSize = "13px";
+
+    const controlsList = document.createElement("div");
+    controlsList.style.display = "grid";
+    controlsList.style.rowGap = "6px";
+    renderControlsList(controlsList);
+    controlsPanel.appendChild(controlsList);
+
+    const leaderboardPanel = document.createElement("div");
+    leaderboardPanel.style.display = "none";
+    leaderboardPanel.style.padding = "10px 12px";
+    leaderboardPanel.style.border = "1px solid #2b3f5e";
+    leaderboardPanel.style.borderRadius = "8px";
+    leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
+    leaderboardPanel.style.color = "#dbe7ff";
+    leaderboardPanel.style.fontSize = "13px";
+
+    const leaderboardList = document.createElement("div");
+    leaderboardList.style.display = "grid";
+    leaderboardList.style.rowGap = "6px";
+    leaderboardPanel.appendChild(leaderboardList);
+
+    resumeBtn.addEventListener("click", () => {
+      this.setPaused(false);
+    });
+
+    controlsBtn.addEventListener("click", () => {
+      const shouldShow = controlsPanel.style.display === "none";
+      controlsPanel.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) leaderboardPanel.style.display = "none";
+    });
+
+    leaderboardBtn.addEventListener("click", () => {
+      const shouldShow = leaderboardPanel.style.display === "none";
+      leaderboardPanel.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) controlsPanel.style.display = "none";
+      if (shouldShow) renderLeaderboardList(leaderboardList, null, this.difficultyKey);
+    });
+
+    restartBtn.addEventListener("click", () => {
+      this.setPaused(false);
+      this.hidePauseMenu();
+      this.scene.restart({
+        skipStartScreen: true,
+        playerName: this.playerName,
+        difficultyKey: this.difficultyKey,
+      });
+    });
+
+    changeBtn.addEventListener("click", () => {
+      this.setPaused(false);
+      this.hidePauseMenu();
+      this.scene.restart();
+    });
+
+    btnWrap.appendChild(resumeBtn);
+    btnWrap.appendChild(controlsBtn);
+    btnWrap.appendChild(leaderboardBtn);
+    btnWrap.appendChild(restartBtn);
+    btnWrap.appendChild(changeBtn);
+
+    panel.appendChild(brandHeader);
+    panel.appendChild(title);
+    panel.appendChild(btnWrap);
+    panel.appendChild(controlsPanel);
+    panel.appendChild(leaderboardPanel);
+    overlay.appendChild(panel);
+    host.appendChild(overlay);
+  }
+
+  hidePauseMenu() {
+    const host = this.game?.canvas?.parentElement;
+    if (!host) return;
+    const existingOverlay = host.querySelector("#geeklabs-td-pause-overlay");
+    if (existingOverlay) existingOverlay.remove();
+  }
+
+  triggerLifeLossFeedback() {
+    if (this.isStartScreenActive || this.isPaused) return;
+    if (this.lifeHudTween) {
+      this.lifeHudTween.stop();
+      this.lifeHudTween = null;
+    }
+    if (this.lifeFlashTween) {
+      this.lifeFlashTween.stop();
+      this.lifeFlashTween = null;
+    }
+
+    if (this.ui) {
+      this.ui.setColor("#ffd1d1");
+      this.ui.setAlpha(0.7);
+      this.lifeHudTween = this.tweens.add({
+        targets: this.ui,
+        alpha: 1,
+        duration: 150,
+        onComplete: () => {
+          this.ui.setColor(this.uiBaseColor || "#dbe7ff");
+          this.lifeHudTween = null;
+        },
+      });
+    }
+
+    if (this.lifeFlashRect) {
+      this.lifeFlashRect.width = this.scale.width;
+      this.lifeFlashRect.height = this.scale.height;
+      this.lifeFlashRect.setAlpha(0.18);
+      this.lifeFlashRect.setVisible(true);
+      this.lifeFlashTween = this.tweens.add({
+        targets: this.lifeFlashRect,
+        alpha: 0,
+        duration: 120,
+        onComplete: () => {
+          this.lifeFlashRect.setVisible(false);
+          this.lifeFlashTween = null;
+        },
+      });
+    }
+  }
+
+  emphasizeControlsPanel() {
+    const controls = document.getElementById("controls");
+    if (!controls) return;
+    controls.classList.remove("controls-emphasis");
+    void controls.offsetWidth;
+    controls.classList.add("controls-emphasis");
+    if (this.controlsEmphasisTimer) window.clearTimeout(this.controlsEmphasisTimer);
+    this.controlsEmphasisTimer = window.setTimeout(() => {
+      controls.classList.remove("controls-emphasis");
+    }, 1600);
+  }
+
+  triggerGameOver() {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
+    this.playSfx("gameover", { allowDuringGameOver: true });
+    for (const t of this.towers) {
+      if (t.beam) {
+        t.beam.destroy();
+        t.beam = null;
+      }
+    }
+    if (this.autoStartTimer) {
+      this.autoStartTimer.remove(false);
+      this.autoStartTimer = null;
+    }
+    if (this.isPlacing) this.setPlacement(false);
+    this.clearSelection();
+    this.hideRangeRing();
+    this.lastLeaderboardEntry = {
+      name: this.playerName,
+      score: this.score,
+      wave: this.wave,
+      kills: this.killCount,
+      difficultyKey: this.difficultyKey,
+      difficultyLabel: this.difficultyLabel,
+      dateISO: new Date().toISOString(),
+    };
+    updateLeaderboard(this.lastLeaderboardEntry, this.difficultyKey);
+    this.showGameOverScreen();
+  }
+
   computeWaveConfig(wave) {
     return computeWaveConfigFn.call(this, wave);
   }
 
+  setHelpOverlay(show) {
+    this.showHelp = !!show;
+    writeStorage(HELP_OVERLAY_STORAGE_KEY, this.showHelp ? "true" : "false");
+
+    if (!this.showHelp) {
+      if (this.helpIndicatorTween) {
+        this.helpIndicatorTween.stop();
+        this.helpIndicatorTween.remove();
+        this.helpIndicatorTween = null;
+      }
+      if (this.helpIndicator) {
+        this.helpIndicator.destroy();
+        this.helpIndicator = null;
+      }
+      return;
+    }
+
+    if (!this.path?.length) return;
+
+    const first = this.path[0];
+    const indicator = this.add.circle(first.x, first.y, 4, 0xf0d7c0, 0.45);
+    indicator.setDepth(5);
+    indicator.setBlendMode(Phaser.BlendModes.ADD);
+
+    const curve = new Phaser.Curves.Path(first.x, first.y);
+    for (let i = 1; i < this.path.length; i += 1) {
+      const p = this.path[i];
+      curve.lineTo(p.x, p.y);
+    }
+
+    this.helpIndicator = indicator;
+    this.helpIndicatorTween = this.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 9000,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+      onUpdate: (tween) => {
+        const t = tween.getValue();
+        const point = curve.getPoint(t);
+        if (point) indicator.setPosition(point.x, point.y);
+      },
+    });
+  }
+
   enterIntermission(isInitial = false) {
     enterIntermissionFn.call(this, isInitial);
+    this.nextWaveNumberToSpawn = this.wave;
+    this.blockWaveStart = this.wave;
   }
 
   tryStartWave() {
@@ -511,129 +1268,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   startWave(wave) {
+    this.playSfx("wave");
     startWaveFn.call(this, wave);
   }
 
-  buildInspector() {
-    const pad = 14;
-    const w = 300;
-    const h = 190;
-    this.inspectorW = w;
-    this.inspectorH = h;
-    this.inspectorX = this.scale.width - w - pad;
-    this.inspectorY = this.scale.height - h - pad;
-
-    this.inspectorBg = this.add.graphics();
-    this.inspectorBg.setDepth(10000);
-
-    this.panel = this.add.text(this.inspectorX + 12, this.inspectorY + 10, "", {
-      fontFamily: "monospace",
-      fontSize: "13px",
-      color: "#dbe7ff",
-    });
-    this.panel.setDepth(10001);
-
-    const btnY = this.inspectorY + h - 44;
-    const btnH = 28;
-    const gap = 10;
-    const btnW = Math.floor((w - 24 - gap * 2) / 3);
-
-    this.upgradeBtn = this.makeButton(this.inspectorX + 12, btnY, btnW, btnH, "Upgrade (U)", () => {
-      if (this.isPaused) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
-    });
-
-    this.sellBtn = this.makeButton(this.inspectorX + 12 + btnW + gap, btnY, btnW, btnH, "Sell (X)", () => {
-      if (this.isPaused) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
-    });
-
-    this.targetBtn = this.makeButton(this.inspectorX + 12 + (btnW + gap) * 2, btnY, btnW, btnH, "Target (F)", () => {
-      if (this.isPaused) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
-    });
-
-    this.setInspectorVisible(false);
-    this.drawInspectorBg(false);
-  }
-
-  makeButton(x, y, w, h, label, onClick) {
-    const bg = this.add.graphics();
-    bg.setDepth(10002);
-
-    const text = this.add.text(x + w / 2, y + h / 2, label, {
-      fontFamily: "monospace",
-      fontSize: "13px",
-      color: "#dbe7ff",
-    });
-    text.setOrigin(0.5, 0.5);
-    text.setDepth(10003);
-
-    const hit = this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0);
-    hit.setDepth(10004);
-    hit.setInteractive({ useHandCursor: true });
-
-    const draw = (enabled, hover = false, down = false) => {
-      bg.clear();
-      const fill = enabled ? 0x101a2a : 0x0a0f18;
-      const alpha = enabled ? (hover ? 0.92 : 0.78) : 0.55;
-      const stroke = enabled ? (hover ? 0x39ff8f : 0x294a6a) : 0x1a2a3d;
-
-      bg.fillStyle(fill, alpha);
-      bg.fillRoundedRect(x, y, w, h, 6);
-
-      bg.lineStyle(down ? 2 : 1, stroke, 1);
-      bg.strokeRoundedRect(x, y, w, h, 6);
-
-      text.setAlpha(enabled ? 1 : 0.5);
-    };
-
-    hit.on("pointerover", () => draw(hit.enabled, true, false));
-    hit.on("pointerout", () => draw(hit.enabled, false, false));
-    hit.on("pointerdown", () => draw(hit.enabled, true, true));
-    hit.on("pointerup", () => {
-      draw(hit.enabled, true, false);
-      if (hit.enabled) onClick();
-    });
-
-    hit.enabled = true;
-    draw(true, false, false);
-    return { bg, text, hit, draw };
-  }
-
-  setInspectorVisible(v) {
-    this.inspectorVisible = v;
-    this.inspectorBg.setVisible(v);
-    this.panel.setVisible(v);
-    this.upgradeBtn.bg.setVisible(v);
-    this.upgradeBtn.text.setVisible(v);
-    this.upgradeBtn.hit.setVisible(v);
-    this.sellBtn.bg.setVisible(v);
-    this.sellBtn.text.setVisible(v);
-    this.sellBtn.hit.setVisible(v);
-    this.targetBtn.bg.setVisible(v);
-    this.targetBtn.text.setVisible(v);
-    this.targetBtn.hit.setVisible(v);
-  }
-
-  drawInspectorBg(hasSelection) {
-    this.inspectorBg.clear();
-    const x = this.inspectorX;
-    const y = this.inspectorY;
-    const w = this.inspectorW;
-    const h = this.inspectorH;
-
-    this.inspectorBg.fillStyle(0x0b0f14, 0.72);
-    this.inspectorBg.fillRoundedRect(x, y, w, h, 10);
-
-    this.inspectorBg.lineStyle(1, hasSelection ? 0x294a6a : 0x1a2a3d, 1);
-    this.inspectorBg.strokeRoundedRect(x, y, w, h, 10);
-  }
-
   update(time, dt) {
-    if (this.isPaused || this.isStartScreenActive) return;
+    if (this.isGameOver || this.isPaused || this.isStartScreenActive) return;
 
     for (const t of this.towers) {
+      if (t.type === "laser") {
+        this.updateLaserTower(t, time, dt);
+        continue;
+      }
       if (time < t.nextShotAt) continue;
       const target = findTargetFn.call(this, t, t.targetMode);
       if (!target) continue;
@@ -649,6 +1295,11 @@ export class GameScene extends Phaser.Scene {
     this.updateWaveSpawning(time);
 
     if (this.isPlacing) {
+      const nowValid = this.canPlaceTowerAt(this.ghostX, this.ghostY);
+      if (nowValid !== this.ghostValid) {
+        this.ghostValid = nowValid;
+        this.refreshGhostVisual();
+      }
       const col = this.ghostValid ? 0x39ff8f : 0xff4d6d;
       const def = this.getPlaceDef();
       this.showGhostRing(this.ghostX, this.ghostY, def.tiers[0].range, col);
@@ -662,11 +1313,17 @@ export class GameScene extends Phaser.Scene {
 
     if (this.waveState === "running") {
       const alive = this.enemies.countActive(true);
-      if (this.waveEnemiesSpawned >= this.waveEnemiesTotal && alive === 0) {
-        const clearBonus = 6 + Math.floor(this.wave * 1.5);
-        this.money += clearBonus;
-        this.score += clearBonus;
-        this.wave += 1;
+      const spawners = this.activeWaves || [];
+      const allDone = spawners.length > 0 && spawners.every((spawner) => spawner.enemiesSpawned >= spawner.enemiesTotal);
+      if (allDone && alive === 0) {
+        const wavesCleared = Math.max(1, this.nextWaveNumberToSpawn - this.blockWaveStart);
+        for (let i = 0; i < wavesCleared; i += 1) {
+          const waveNum = this.blockWaveStart + i;
+          const clearBonus = 6 + Math.floor(waveNum * 1.5);
+          this.money += clearBonus;
+          this.score += clearBonus;
+        }
+        this.wave = this.nextWaveNumberToSpawn;
         this.enterIntermission(false);
       }
     }
@@ -697,12 +1354,16 @@ export class GameScene extends Phaser.Scene {
   setPlacement(on) {
     if (on === this.isPlacing) return;
     this.isPlacing = on;
+    if (this.controlsPlacementEl) {
+      this.controlsPlacementEl.classList.toggle("is-active", this.isPlacing);
+    }
 
     if (on) {
       this.clearSelection();
       if (!this.didShowPlaceToast) {
         this.didShowPlaceToast = true;
-        this.showToast("Placement: press 1/2/3 to switch tower type.", 2600);
+        const hint = this.wave >= LASER_UNLOCK_WAVE ? "1/2/3/4" : "1/2/3";
+        this.showToast(`Placement: press ${hint} to switch tower type.`, 2600);
       }
       this.ghost = this.add.image(0, 0, this.getTowerTextureKey(this.placeType));
       this.ghost.setDepth(9000);
@@ -760,8 +1421,9 @@ export class GameScene extends Phaser.Scene {
     const tier0 = def.tiers[0];
     const ok = this.ghostValid ? "OK" : "BLOCKED";
     const need = this.money < tier0.cost ? " (not enough $)" : "";
+    const switchHint = this.wave >= LASER_UNLOCK_WAVE ? "1/2/3/4" : "1/2/3";
     this.placeHint.setText(
-      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (1/2/3: switch)`
+      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (${switchHint}: switch)`
     );
   }
 
@@ -818,9 +1480,13 @@ export class GameScene extends Phaser.Scene {
     const h = this.scale.height;
     const gw = Math.floor(w / GRID) * GRID;
     const gx = Math.floor((w - gw) / 2);
+    const gridRight = gx + gw - 1;
     this.g.lineStyle(1, 0x142033, 1);
-    for (let x = 0; x <= gw; x += GRID) this.g.lineBetween(gx + x, TOP_UI, gx + x, h);
-    for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y, gx + gw, y);
+    for (let x = 0; x < gw; x += GRID) this.g.lineBetween(gx + x + 0.5, TOP_UI, gx + x + 0.5, h);
+    this.g.lineStyle(2, 0x142033, 1);
+    this.g.lineBetween(gridRight + 0.5, TOP_UI, gridRight + 0.5, h);
+    this.g.lineStyle(1, 0x142033, 1);
+    for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y + 0.5, gridRight, y + 0.5);
     this.g.lineStyle(2, 0x294a6a, 1);
     this.g.lineBetween(0, TOP_UI, w, TOP_UI);
   }
@@ -892,7 +1558,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   tryUpgradeTower(t) {
+    const prevTier = t?.tier ?? 0;
     tryUpgradeTowerFn.call(this, t);
+    if (t && t.tier > prevTier) this.playSfx("upgrade");
   }
 
   tryPlaceTowerAt(x, y) {
@@ -927,14 +1595,30 @@ export class GameScene extends Phaser.Scene {
       sprite: img,
       badge,
     };
+    if (def.key === "laser") {
+      t.beamTickMs = tier0.fireMs;
+      t.beamAcc = 0;
+      t.lockTarget = null;
+      t.lockMs = 0;
+      t.beam = this.add.graphics();
+      t.beam.setDepth(70);
+      t.beam.setVisible(false);
+    }
     img.setTint(tier0.tint);
     img.setScale(tier0.scale ?? 1);
     this.towers.push(t);
     this.selectTower(t);
+    this.playSfx("place");
   }
 
   trySellTower(t) {
+    const hadTower = !!t && this.towers.includes(t);
+    if (t?.beam) {
+      t.beam.destroy();
+      t.beam = null;
+    }
     trySellTowerFn.call(this, t);
+    if (hadTower && !this.towers.includes(t)) this.playSfx("sell");
   }
 
   cycleTargetMode(t) {
@@ -943,6 +1627,121 @@ export class GameScene extends Phaser.Scene {
 
   spawnEnemyOfType(typeKey, opts = {}) {
     return spawnEnemyOfTypeFn.call(this, typeKey, opts);
+  }
+
+  updateLaserTower(tower, _time, dt) {
+    const range2 = tower.range * tower.range;
+    const hasTarget =
+      tower.lockTarget &&
+      tower.lockTarget.active &&
+      dist2(tower.x, tower.y, tower.lockTarget.x, tower.lockTarget.y) <= range2;
+
+    if (!hasTarget) {
+      const nextTarget = findTargetFn.call(this, tower, tower.targetMode);
+      if (!nextTarget) {
+        tower.lockTarget = null;
+        tower.lockMs = 0;
+        tower.beamAcc = 0;
+        if (tower.beam) {
+          tower.beam.clear();
+          tower.beam.setVisible(false);
+        }
+        return;
+      }
+      if (tower.lockTarget !== nextTarget) {
+        tower.lockMs = 0;
+        tower.beamAcc = 0;
+      }
+      tower.lockTarget = nextTarget;
+    }
+
+    const target = tower.lockTarget;
+    if (!target) return;
+    const dx = target.x - tower.x;
+    const dy = target.y - tower.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const endX = tower.x + ux * tower.range;
+    const endY = tower.y + uy * tower.range;
+    tower.lockMs += dt;
+    tower.beamAcc += dt;
+
+    if (tower.beam) {
+      tower.beam.clear();
+      tower.beam.lineStyle(2, 0xff9cf2, 0.55);
+      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
+      tower.beam.setVisible(true);
+    }
+
+    const tickMs = tower.beamTickMs || tower.fireMs || 110;
+    while (tower.beamAcc >= tickMs) {
+      tower.beamAcc -= tickMs;
+      if (!tower.lockTarget || !tower.lockTarget.active) break;
+      this.applyLaserTick(tower, tower.lockTarget, endX, endY);
+    }
+
+    if (tower.lockTarget && !tower.lockTarget.active) {
+      tower.lockTarget = null;
+      tower.lockMs = 0;
+      tower.beamAcc = 0;
+      if (tower.beam) {
+        tower.beam.clear();
+        tower.beam.setVisible(false);
+      }
+    }
+  }
+
+  applyLaserTick(tower, target, endX, endY) {
+    const hits = [];
+
+    this.enemies.children.iterate((e) => {
+      if (!e || !e.active) return;
+      if (!segCircleHit(tower.x, tower.y, endX, endY, e.x, e.y, 14)) return;
+      hits.push({ enemy: e, dist2: dist2(tower.x, tower.y, e.x, e.y) });
+    });
+
+    hits.sort((a, b) => a.dist2 - b.dist2);
+    const primaryIndex = hits.findIndex((hit) => hit.enemy === target);
+    if (primaryIndex === -1) {
+      tower.lockTarget = null;
+      tower.lockMs = 0;
+      tower.beamAcc = 0;
+      return;
+    }
+    if (primaryIndex > 0) {
+      const [primary] = hits.splice(primaryIndex, 1);
+      hits.unshift(primary);
+    }
+
+    const ramp = 1 + Math.min(tower.lockMs / 2000, 1.5);
+    const falloff = 0.7;
+
+    for (let i = 0; i < hits.length && i < LASER_MAX_PIERCE; i += 1) {
+      const enemy = hits[i].enemy;
+      if (!enemy || !enemy.active) continue;
+      const base = tower.damage * ramp * Math.pow(falloff, i);
+      const armor = enemy.armor || 0;
+      const dmg = Math.max(1, Math.floor(base) - armor);
+      enemy.hp -= dmg;
+      if (enemy.hp <= 0) this.handleEnemyKilled(enemy);
+    }
+  }
+
+  handleEnemyKilled(enemy) {
+    const reward = enemy.reward ?? 8;
+    const weight = enemy.scoreWeight ?? 1;
+    if (enemy.flashTween) {
+      enemy.flashTween.remove(false);
+      enemy.flashTween = null;
+    }
+    enemy.destroy();
+    this.money += reward;
+    this.killCount += 1;
+    const baseScoreGain = reward + Math.round(weight * 10);
+    const scoreMul = this.difficulty?.scoreMul ?? 1;
+    const scoreGain = Math.round(baseScoreGain * scoreMul);
+    this.score += scoreGain;
   }
 
   fireBullet(t, target) {

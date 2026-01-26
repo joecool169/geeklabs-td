@@ -29,6 +29,14 @@ const TOWER_DEFS = {
       { cost: 210, damage: 64, range: 205, fireMs: 420, tint: 0xffedc0, scale: 1.15 },
     ],
   },
+  laser: {
+    key: "laser",
+    name: "Laser",
+    hotkey: "4",
+    tiers: [
+      { cost: 220, damage: 6, range: 145, fireMs: 110, tint: 0xff6bff, scale: 1.05 },
+    ],
+  },
 };
 
 const TARGET_MODES = ["close", "strong", "first"];
@@ -47,8 +55,8 @@ const ENEMY_DEFS = {
     baseSpeed: 120,
     reward: 6,
     armor: 0,
-    scaleHpPerWave: 0.1,
-    scaleSpeedPerWave: 0.012,
+    scaleHpPerWave: 0.085,
+    scaleSpeedPerWave: 0.01,
     scoreWeight: 0.7,
   },
   brute: {

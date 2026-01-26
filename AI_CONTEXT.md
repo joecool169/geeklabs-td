@@ -14,6 +14,39 @@ This file captures project-level context, conventions, and “current truth” s
 - Push at the end of a session and before switching devices.
 - When syncing another device: `git pull --rebase` (unless you intend to discard local work, then `git fetch` + `git reset --hard origin/main`).
 
+## AI + Codex workflow (authoritative)
+
+Primary loop:
+
+1. We discuss the next change in ChatGPT.
+2. Once the change is chosen, ChatGPT provides a single, specific prompt to paste into Codex (Codex is already running from repo root).
+3. When Codex finishes, run `git diff` and paste the diff back into ChatGPT for review.
+4. If changes are acceptable, run `npm run dev` to verify game state, then commit.
+5. If changes need adjustment:
+   - Prefer another Codex prompt (from ChatGPT) for multi-line edits/refactors, or
+   - Use a one-liner `perl -i -pe ...` / `perl -0777 -i -pe ...` command (from ChatGPT) for surgical fixes.
+
+Build expectations:
+
+- Do not prompt to run `npm run dev` (assumed).
+- Do prompt to run `npm run build` when code is changed (especially module structure, imports/exports, Vite config, or anything that could break the build pipeline).
+
+Review rules:
+
+- Provide diffs, not full-file rewrites, unless explicitly requested.
+- Keep pasteable commands/config blocks free of inline commentary.
+
+UI/HUD rules:
+
+- HUD is rendered via the single top-left `this.ui` text line.
+- `updateUI()` is the only HUD writer. Gameplay systems (bullets/enemies/waves) may update numeric state only.
+- Life-loss feedback keeps the screen flash; any HUD pulse targets `this.ui` (not legacy HUD elements).
+
+Verification commands:
+
+- `grep -R "lifeText\|killText\|scoreText\|diffText" src/`
+- `npm run build`
+
 ## Dev
 
 - Run: `npm run dev`

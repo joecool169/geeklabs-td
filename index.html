@@ -3,10 +3,273 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GeekLabs-TD</title>
+    <title>Defense Protocol</title>
+    <link rel="icon" type="image/png" href="/brand/dp-fav.png" />
+    <link rel="apple-touch-icon" href="/brand/dp-fav.png" />
+    <style>
+      body {
+        margin: 0;
+        background: #0b0f14;
+        color: #dbe7ff;
+      }
+      #layout {
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        padding: 24px;
+        box-sizing: border-box;
+        flex-wrap: nowrap;
+      }
+      #app {
+        flex: 0 0 auto;
+        position: relative;
+        width: 1080px;
+        height: 730px;
+      }
+
+      #app canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #brand-panel {
+        flex: 0 0 240px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 18px 16px;
+        border: 1px solid #1a2a3d;
+        border-radius: 12px;
+        background: rgba(11, 15, 20, 0.95);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        text-align: center;
+      }
+      #brand-panel img {
+        width: 160px;
+        height: auto;
+        margin-bottom: 12px;
+      }
+      #brand-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #f0d7c0;
+        letter-spacing: 0.03em;
+      }
+      #brand-subtitle {
+        font-size: 12px;
+        color: #9fb2cc;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      #controls {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        margin-top: 16px;
+        text-align: left;
+        font-size: 12px;
+        color: #c5d4ee;
+      }
+      #controls-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9fb2cc;
+        margin-bottom: 6px;
+      }
+      #selected-tower-panel {
+        width: 100%;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(43, 63, 94, 0.6);
+        color: #dbe7ff;
+        font-size: 12px;
+        text-align: left;
+      }
+      #selected-tower-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9fb2cc;
+        margin-bottom: 6px;
+      }
+      #selected-tower-stats {
+        display: grid;
+        row-gap: 6px;
+      }
+      .tower-divider {
+        height: 1px;
+        background: rgba(43, 63, 94, 0.5);
+        margin: 6px 0;
+      }
+      .tower-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 10px;
+        align-items: center;
+      }
+      .tower-label {
+        color: rgba(219, 231, 255, 0.6);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .tower-value {
+        color: #dbe7ff;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      #selected-tower-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .tower-action {
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #2b3f5e;
+        background: #0f1623;
+        color: #dbe7ff;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .tower-action:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .controls-group {
+        padding-top: 8px;
+        margin-top: 10px;
+        border-top: 1px solid rgba(43, 63, 94, 0.6);
+      }
+      .controls-group:first-of-type {
+        padding-top: 0;
+        margin-top: 0;
+        border-top: none;
+      }
+      .controls-group-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: rgba(219, 231, 255, 0.6);
+        margin-bottom: 6px;
+      }
+      .controls-group.is-inactive {
+        opacity: 0.45;
+      }
+      .controls-group.is-active {
+        border-color: rgba(216, 169, 106, 0.8);
+        box-shadow: inset 0 0 0 1px rgba(216, 169, 106, 0.25);
+        background: rgba(36, 28, 16, 0.35);
+      }
+      .controls-group.is-active .controls-group-title {
+        color: rgba(240, 215, 192, 0.9);
+      }
+      .controls-list {
+        display: grid;
+        row-gap: 4px;
+      }
+      .control-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .control-key {
+        color: #f0d7c0;
+        white-space: nowrap;
+      }
+      .controls-emphasis {
+        animation: controlsPulse 1.5s ease-out;
+      }
+      @keyframes controlsPulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(240, 215, 192, 0);
+        }
+        35% {
+          transform: scale(1.03);
+          box-shadow: 0 0 18px rgba(240, 215, 192, 0.45);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(240, 215, 192, 0);
+        }
+      }
+      #brand-version {
+        margin-top: 16px;
+        font-size: 10px;
+        color: #6f839c;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+    </style>
   </head>
-  <body style="margin:0; background:#0b0f14;">
-    <div id="app"></div>
+  <body>
+    <div id="layout">
+      <div id="app"></div>
+      <aside id="brand-panel" aria-label="Game branding">
+        <img src="/brand/defense-protocol.png" alt="Defense Protocol logo" />
+        <div id="brand-title">Defense Protocol</div>
+        <div id="brand-subtitle">By Geekstreet</div>
+        <section id="controls" aria-label="Controls">
+          <div id="controls-title">Controls</div>
+          <div class="controls-group" id="controls-placement">
+            <div class="controls-group-title">Placement</div>
+            <div class="controls-list">
+              <div class="control-row"><span class="control-key">T</span><span>Toggle placement mode</span></div>
+              <div class="control-row"><span class="control-key">1 / 2 / 3</span><span>Select tower</span></div>
+              <div class="control-row"><span class="control-key">Click</span><span>Place tower</span></div>
+            </div>
+          </div>
+          <div class="controls-group" id="controls-selected">
+            <div class="controls-group-title">Selected Tower</div>
+            <div class="controls-list">
+              <div class="control-row"><span class="control-key">U</span><span>Upgrade (selected tower)</span></div>
+              <div class="control-row"><span class="control-key">X</span><span>Sell (selected tower)</span></div>
+              <div class="control-row"><span class="control-key">F</span><span>Target mode (selected tower)</span></div>
+            </div>
+          </div>
+          <div class="controls-group">
+            <div class="controls-group-title">Global</div>
+            <div class="controls-list">
+              <div class="control-row"><span class="control-key">Space</span><span>Start wave</span></div>
+              <div class="control-row"><span class="control-key">P</span><span>Pause</span></div>
+              <div class="control-row"><span class="control-key">Esc</span><span>Cancel / clear</span></div>
+            </div>
+          </div>
+        </section>
+        <section id="selected-tower-panel" aria-label="Selected tower">
+          <div id="selected-tower-title">Selected Tower</div>
+          <div id="selected-tower-stats">
+            <div class="tower-row"><span class="tower-label">Name</span><span class="tower-value" id="tower-name">—</span></div>
+            <div class="tower-row"><span class="tower-label">Target</span><span class="tower-value" id="tower-target">—</span></div>
+            <div class="tower-row"><span class="tower-label">DMG</span><span class="tower-value" id="tower-dmg">—</span></div>
+            <div class="tower-row"><span class="tower-label">Fire</span><span class="tower-value" id="tower-fire">—</span></div>
+            <div class="tower-row"><span class="tower-label">Range</span><span class="tower-value" id="tower-range">—</span></div>
+            <div class="tower-row"><span class="tower-label">DPS</span><span class="tower-value" id="tower-dps">—</span></div>
+            <div class="tower-divider"></div>
+            <div class="tower-row"><span class="tower-label">Upgrade</span><span class="tower-value" id="tower-upgrade">—</span></div>
+            <div class="tower-row"><span class="tower-label">Sell</span><span class="tower-value" id="tower-sell">—</span></div>
+          </div>
+          <div id="selected-tower-actions">
+            <button id="tower-upgrade-btn" class="tower-action" type="button">Upgrade (U)</button>
+            <button id="tower-sell-btn" class="tower-action" type="button">Sell (X)</button>
+            <button id="tower-target-btn" class="tower-action" type="button">Target (F)</button>
+          </div>
+        </section>
+        <div id="brand-version"></div>
+      </aside>
+    </div>
     <script type="module" src="/src/main.js"></script>
+    <script>
+      const APP_VERSION = "v0.3.0";
+      const versionEl = document.getElementById("brand-version");
+      if (versionEl) versionEl.textContent = APP_VERSION;
+    </script>
   </body>
 </html>
