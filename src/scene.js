@@ -7,27 +7,11 @@ import {
   WAVE_SPAM_WINDOW_MS,
 } from "./game/config.js";
 import { dist2, segCircleHit, snapX, snapY } from "./game/utils.js";
-import { fireBullet as fireBulletFn } from "./game/bullets.js";
-import {
-  advanceEnemy as advanceEnemyFn,
-  findTarget as findTargetFn,
-  spawnEnemyOfType as spawnEnemyOfTypeFn,
-} from "./game/enemies.js";
-import { showToast as showToastFn, updateUI as updateUIFn } from "./game/ui.js";
-import {
-  applyTowerTier as applyTowerTierFn,
-  cycleTargetMode as cycleTargetModeFn,
-  getNextUpgradeCost as getNextUpgradeCostFn,
-  trySellTower as trySellTowerFn,
-  tryUpgradeTower as tryUpgradeTowerFn,
-} from "./game/towers.js";
-import {
-  computeWaveConfig as computeWaveConfigFn,
-  enterIntermission as enterIntermissionFn,
-  startWave as startWaveFn,
-  tryStartWave as tryStartWaveFn,
-  updateWaveSpawning as updateWaveSpawningFn,
-} from "./game/waves.js";
+import * as Bullets from "./game/bullets.js";
+import * as Enemies from "./game/enemies.js";
+import * as UI from "./game/ui.js";
+import * as Towers from "./game/towers.js";
+import * as Waves from "./game/waves.js";
 import { TOWER_DEFS } from "./constants.js";
 
 const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
@@ -744,11 +728,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   showToast(msg, ms = 2400) {
-    showToastFn.call(this, msg, ms);
+    UI.showToast.call(this, msg, ms);
   }
 
   updateUI() {
-    updateUIFn.call(this);
+    UI.updateUI.call(this);
   }
 
   applyDifficulty(key, opts = {}) {
@@ -1438,7 +1422,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   computeWaveConfig(wave) {
-    return computeWaveConfigFn.call(this, wave);
+    return Waves.computeWaveConfig.call(this, wave);
   }
 
   setHelpOverlay(show) {
@@ -1487,18 +1471,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   enterIntermission(isInitial = false) {
-    enterIntermissionFn.call(this, isInitial);
+    Waves.enterIntermission.call(this, isInitial);
     this.nextWaveNumberToSpawn = this.wave;
     this.blockWaveStart = this.wave;
   }
 
   tryStartWave() {
-    tryStartWaveFn.call(this);
+    Waves.tryStartWave.call(this);
   }
 
   startWave(wave) {
     this.playSfx("wave");
-    startWaveFn.call(this, wave);
+    Waves.startWave.call(this, wave);
   }
 
   update(time, dt) {
@@ -1510,15 +1494,15 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       if (time < t.nextShotAt) continue;
-      const target = findTargetFn.call(this, t, t.targetMode);
+      const target = Enemies.findTarget.call(this, t, t.targetMode);
       if (!target) continue;
       t.nextShotAt = time + t.fireMs;
-      fireBulletFn.call(this, t, target);
+      Bullets.fireBullet.call(this, t, target);
     }
 
     this.enemies.children.iterate((e) => {
       if (!e) return;
-      advanceEnemyFn.call(this, e, dt);
+      Enemies.advanceEnemy.call(this, e, dt);
     });
 
     this.updateWaveSpawning(time);
@@ -1561,7 +1545,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateWaveSpawning(time) {
-    updateWaveSpawningFn.call(this, time);
+    Waves.updateWaveSpawning.call(this, time);
   }
 
   enterPlacementModeIfNeeded() {
@@ -1816,16 +1800,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   getNextUpgradeCost(t) {
-    return getNextUpgradeCostFn.call(this, t);
+    return Towers.getNextUpgradeCost.call(this, t);
   }
 
   applyTowerTier(t, tierIdx) {
-    applyTowerTierFn.call(this, t, tierIdx);
+    Towers.applyTowerTier.call(this, t, tierIdx);
   }
 
   tryUpgradeTower(t) {
     const prevTier = t?.tier ?? 0;
-    tryUpgradeTowerFn.call(this, t);
+    Towers.tryUpgradeTower.call(this, t);
     if (t && t.tier > prevTier) this.playSfx("upgrade");
   }
 
@@ -1883,16 +1867,16 @@ export class GameScene extends Phaser.Scene {
       t.beam.destroy();
       t.beam = null;
     }
-    trySellTowerFn.call(this, t);
+    Towers.trySellTower.call(this, t);
     if (hadTower && !this.towers.includes(t)) this.playSfx("sell");
   }
 
   cycleTargetMode(t) {
-    cycleTargetModeFn.call(this, t);
+    Towers.cycleTargetMode.call(this, t);
   }
 
   spawnEnemyOfType(typeKey, opts = {}) {
-    return spawnEnemyOfTypeFn.call(this, typeKey, opts);
+    return Enemies.spawnEnemyOfType.call(this, typeKey, opts);
   }
 
   updateLaserTower(tower, _time, dt) {
@@ -1903,7 +1887,7 @@ export class GameScene extends Phaser.Scene {
       dist2(tower.x, tower.y, tower.lockTarget.x, tower.lockTarget.y) <= range2;
 
     if (!hasTarget) {
-      const nextTarget = findTargetFn.call(this, tower, tower.targetMode);
+      const nextTarget = Enemies.findTarget.call(this, tower, tower.targetMode);
       if (!nextTarget) {
         tower.lockTarget = null;
         tower.lockMs = 0;
@@ -2011,6 +1995,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   fireBullet(t, target) {
-    fireBulletFn.call(this, t, target);
+    Bullets.fireBullet.call(this, t, target);
   }
 }
