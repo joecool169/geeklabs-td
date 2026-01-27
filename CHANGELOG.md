@@ -1,0 +1,63 @@
+- 2026-01-02 (3b24755) Initial playable vertical slice
+- 2026-01-03 (5a79def) Add GitLab CI build for Vite
+- 2026-01-02 (9a141ad) Add tower upgrades (tiers 1-3)
+- 2026-01-02 (f65063b) Document temporary live demo
+- 2026-01-03 (587a090) Fix tower upgrade input using keyboard Shift state
+- 2026-01-03 (825cfce) Initial commit
+- 2026-01-03 (9cb4f2e) Revise README with detailed project overview
+- 2026-01-03 (7163bce) Merge GitHub initial files
+- 2026-01-03 (6b26a5a) Update README and license
+- 2026-01-03 (e758d5a) Update README and license
+- 2026-01-03 (b8a1bcd) Add tower range rings; adjust tower ranges; add T-toggle placement ghost
+- 2026-01-03 (cf78e37) Add bottom-right tower inspector with upgrade/sell buttons and keyboard shortcuts
+- 2026-01-03 (b45f9e0) Add AI context for GeekLabs TD (controls, towers, targeting, next steps)
+- 2026-01-03 (99ffe75) Add tower types (1/2/3) and targeting modes (F) with inspector support
+- 2026-01-04 (8a0bb97) Update AI context (controls, deploy, implementation notes)
+- 2026-01-04 (8f1ab3a) Fix projectile hit detection and long-range misses
+- 2026-01-05 (0d8bb8f) Change page title
+- 2026-01-05 (3f4354b) Add Esc cancel/deselect and P pause
+- 2026-01-05 (850e558) Add sniper tower identifier
+- 2026-01-05 (937c339) Small ui changes and updated AI_CONTEXT.md
+- 2026-01-07 (73c9147) Add wave-based spawner, enemy types, and SPACE wave control
+- 2026-01-07 (f1eab9c) Adjust playfield layout for HUD offset and cleaner grid
+- 2026-01-10 (4fa0588) Added score based on money and kills, factoring enemy strength
+- 2026-01-11 (b9edaa5) Balance pass: slower enemies, tighter economy, UI polish
+- 2026-01-11 (4e6439a) updated Readme and AI_CONTEXT
+- 2026-01-11 (b2dd74c) updated sniper turret (direct hit)
+- 2026-01-11 (ed44b91) Readme typo
+- 2026-01-24 (110a0a1) refactor: Extract game logic into modules under src/game/
+- 2026-01-24 (b990e01) refactor: Update src/scene.js to import constants and utility functions
+- 2026-01-25 (97f312a) refactor(enemies): use module helpers and fix imports
+- 2026-01-25 (2a04208) refactor(waves): extract wave state and spawning logic
+- 2026-01-25 (29a6806) chore: ignore aider artifacts
+- 2026-01-25 (759af21) feat: start screen with username + difficulty
+- 2026-01-25 (6f890b7) feat: game over results screen
+- 2026-01-25 (611465a) feat: persistent top-10 leaderboard
+- 2026-01-25 (0a46088) feat: add Defense Protocol branding to page and overlays
+- 2026-01-25 (b506ce2) chore: add tagline, controls panel, and version
+- 2026-01-25 (cc61fee) chore: refine controls copy and order
+- 2026-01-25 (dc76f40) feat: refine help toggle with path pulse and controls emphasis
+- 2026-01-25 (127df72) feat: add core SFX for actions and events
+- 2026-01-25 (14c6fb7) feat: add enemy hit flash feedback
+- 2026-01-25 (fda4da7) feat: add life-loss feedback and improve HUD layout
+- 2026-01-25 (98af218) ui: consolidate HUD, remove legacy HUD elements, decouple bullets from UI
+- 2026-01-25 (482dbd8) ui: cache HUD updates to avoid unnecessary re-renders
+- 2026-01-25 (898cbf9) ui: refactor wave hint helper and polish fade transitions
+- 2026-01-25 (0d42834) ui: add visual hierarchy to right-panel controls
+- 2026-01-25 (55254b2) ui: cache Selected Tower controls element for contextual dimming
+- 2026-01-25 (7ddb7f0) ui: immediately hide inspector when selection is cleared
+- 2026-01-25 (b94f200) ui: fix canvas layout and ensure inspector updates independent of HUD cache
+- 2026-01-25 (9fc8842) feat: add wave50 Laser tower; tune early wave pacing
+- 2026-01-25 (91d9141) tune: raise concurrent spawner cap to 6
+- 2026-01-25 (dcc3f23) feat: concurrent wave spawners, wave-dump progression, and grid line fix
+- 2026-01-25 (5b75b85) audio adjustments
+- 2026-01-25 (421e323) fixed old turret placement glitch
+- 2026-01-25 (8076c9b) ui: move selected tower details to sidebar panel
+- 2026-01-26 (0610cc8) balance: tighten rewards on higher difficulties; score multiplier; per-difficulty leaderboards
+- 2026-01-26 (9beba3a) merge: feat/leaderboard (difficulty economy + score + per-difficulty leaderboards)
+- 2026-01-26 (1230158) balance: ramp in double HP + half wave count over first 10 waves
+- 2026-01-26 (36c0f94) ui: add build menu + tower unlock waves; targeting mode armored; fix wave auto-start increment
+- 2026-01-26 (e78758a) fix: prime placement ghost on entry
+- 2026-01-26 (fa673b3) Code cleanup
+- 2026-01-26 (47b68cb) feat: add global leaderboard API with local fallback
+- 2026-01-26 (032a4b2) chore: add Vite config for chunk warning limit

@@ -879,6 +879,10 @@ export class GameScene extends Phaser.Scene {
       this.applyDifficulty(selectedKey);
       writeStorage(DIFFICULTY_STORAGE_KEY, selectedKey);
       this.isStartScreenActive = false;
+      if (this.input?.keyboard) {
+        this.input.keyboard.enabled = true;
+        this.input.keyboard.enableGlobalCapture();
+      }
       overlay.remove();
     };
 
@@ -895,6 +899,11 @@ export class GameScene extends Phaser.Scene {
     panel.appendChild(startBtn);
     overlay.appendChild(panel);
     host.appendChild(overlay);
+    if (this.input?.keyboard) {
+      this.input.keyboard.enabled = false;
+      this.input.keyboard.disableGlobalCapture();
+    }
+    nameInput.focus();
   }
 
   showGameOverScreen() {
