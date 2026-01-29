@@ -493,6 +493,39 @@ export class GameScene extends Phaser.Scene {
         this.buildMenuSlots.push({ def, el: btn, metaEl: meta, wasLocked: null });
       }
     }
+    this.towerStripEl = document.getElementById("tower-strip");
+    this.towerStripSlots = [];
+    if (this.towerStripEl) {
+      this.towerStripEl.innerHTML = "";
+      for (const def of this.buildTowerDefs) {
+        const card = document.createElement("div");
+        card.className = "tower-card";
+        card.dataset.towerKey = def.key;
+        const title = document.createElement("div");
+        title.className = "tower-card-title";
+        title.textContent = def.name;
+        const desc = document.createElement("div");
+        desc.className = "tower-card-desc";
+        desc.textContent = def.desc || "";
+        const meta = document.createElement("div");
+        meta.className = "tower-card-meta";
+        const metaText = document.createElement("span");
+        const keycap = document.createElement("span");
+        keycap.className = "keycap";
+        keycap.textContent = def.hotkey;
+        meta.appendChild(metaText);
+        meta.appendChild(keycap);
+        card.appendChild(title);
+        card.appendChild(desc);
+        card.appendChild(meta);
+        card.addEventListener("click", () => {
+          if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+          this.trySetPlaceType(def.key);
+        });
+        this.towerStripEl.appendChild(card);
+        this.towerStripSlots.push({ def, el: card, metaEl: metaText, keyEl: keycap, wasLocked: null });
+      }
+    }
     if (this.selectedTowerUpgradeBtnEl) {
       this.selectedTowerUpgradeBtnEl.addEventListener("click", () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
@@ -767,8 +800,8 @@ export class GameScene extends Phaser.Scene {
     overlay.style.zIndex = "5";
 
     const panel = document.createElement("div");
-    panel.style.minWidth = "320px";
-    panel.style.padding = "22px 26px";
+    panel.style.minWidth = "460px";
+    panel.style.padding = "34px 38px";
     panel.style.background = "rgba(11, 15, 20, 0.95)";
     panel.style.border = "1px solid #294a6a";
     panel.style.borderRadius = "10px";
@@ -777,11 +810,21 @@ export class GameScene extends Phaser.Scene {
     panel.style.fontFamily = "monospace";
 
     const brandHeader = makeBrandHeader();
+    const brandLogo = brandHeader.querySelector("img");
+    if (brandLogo) brandLogo.style.width = "192px";
+    const brandText = brandHeader.querySelectorAll("div");
+    const brandTitle = brandText[0];
+    const brandTagline = brandText[1];
+    if (brandTitle) {
+      brandTitle.style.fontSize = "20px";
+      brandTitle.style.lineHeight = "1.22";
+    }
+    if (brandTagline) brandTagline.style.fontSize = "13px";
 
     const nameLabel = document.createElement("label");
     nameLabel.textContent = "Player name";
     nameLabel.style.display = "block";
-    nameLabel.style.fontSize = "12px";
+    nameLabel.style.fontSize = "14px";
     nameLabel.style.color = "#9fb3d8";
 
     const nameInput = document.createElement("input");
@@ -789,9 +832,10 @@ export class GameScene extends Phaser.Scene {
     nameInput.value = this.playerName;
     nameInput.placeholder = "Player";
     nameInput.style.width = "100%";
-    nameInput.style.marginTop = "6px";
-    nameInput.style.marginBottom = "14px";
-    nameInput.style.padding = "8px 10px";
+    nameInput.style.marginTop = "8px";
+    nameInput.style.marginBottom = "16px";
+    nameInput.style.padding = "12px 14px";
+    nameInput.style.fontSize = "14px";
     nameInput.style.borderRadius = "6px";
     nameInput.style.border = "1px solid #294a6a";
     nameInput.style.background = "#0f1623";
@@ -799,7 +843,7 @@ export class GameScene extends Phaser.Scene {
 
     const diffLabel = document.createElement("div");
     diffLabel.textContent = "Difficulty";
-    diffLabel.style.fontSize = "12px";
+    diffLabel.style.fontSize = "14px";
     diffLabel.style.color = "#9fb3d8";
     diffLabel.style.marginBottom = "6px";
 
@@ -831,7 +875,7 @@ export class GameScene extends Phaser.Scene {
       option.style.borderRadius = "6px";
       option.style.background = "#0f1623";
       option.style.cursor = "pointer";
-      option.style.fontSize = "13px";
+      option.style.fontSize = "14px";
 
       const radio = document.createElement("input");
       radio.type = "radio";
@@ -864,12 +908,13 @@ export class GameScene extends Phaser.Scene {
     startBtn.type = "button";
     startBtn.textContent = "Start";
     startBtn.style.width = "100%";
-    startBtn.style.padding = "10px 12px";
+    startBtn.style.padding = "12px 16px";
     startBtn.style.borderRadius = "8px";
     startBtn.style.border = "1px solid #39ff8f";
     startBtn.style.background = "#10241c";
     startBtn.style.color = "#e4ffe8";
     startBtn.style.fontWeight = "700";
+    startBtn.style.fontSize = "14px";
     startBtn.style.cursor = "pointer";
 
     const onStart = () => {
@@ -1601,7 +1646,17 @@ export class GameScene extends Phaser.Scene {
       if (this.ghost) this.ghost.setTexture(this.getTowerTextureKey(this.placeType));
       this.refreshGhostVisual();
     }
+    this.syncTowerStripSelection();
   }
+
+  syncTowerStripSelection() {
+    if (!this.towerStripSlots) return;
+    const activeKey = this.isPlacing ? this.placeType : null;
+    for (const slot of this.towerStripSlots) {
+      slot.el.classList.toggle("is-selected", !!activeKey && slot.def?.key === activeKey);
+    }
+  }
+
   togglePlacement() {
     this.setPlacement(!this.isPlacing);
   }
@@ -1630,6 +1685,7 @@ export class GameScene extends Phaser.Scene {
         this.updateGhost(p.worldX, p.worldY);
       }
       this.hideRangeRing();
+      this.syncTowerStripSelection();
       return;
     }
 
@@ -1639,6 +1695,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.placeHint.setText("");
     this.hideRangeRing();
+    this.syncTowerStripSelection();
   }
 
   selectTower(t) {

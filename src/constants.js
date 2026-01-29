@@ -2,6 +2,7 @@ const TOWER_DEFS = {
   basic: {
     key: "basic",
     name: "Basic",
+    desc: "Balanced damage and range.",
     hotkey: "1",
     unlockWave: 1,
     tiers: [
@@ -13,6 +14,7 @@ const TOWER_DEFS = {
   rapid: {
     key: "rapid",
     name: "Rapid",
+    desc: "High rate of fire, lower damage.",
     hotkey: "2",
     unlockWave: 10,
     tiers: [
@@ -24,6 +26,7 @@ const TOWER_DEFS = {
   sniper: {
     key: "sniper",
     name: "Sniper",
+    desc: "Long range, heavy hits (prefers Strong).",
     hotkey: "3",
     unlockWave: 20,
     defaultTargetMode: "strong",
@@ -36,6 +39,7 @@ const TOWER_DEFS = {
   laser: {
     key: "laser",
     name: "Laser",
+    desc: "Fast ticks, best vs Armored (prefers Armored).",
     hotkey: "4",
     unlockWave: 40,
     defaultTargetMode: "armored",

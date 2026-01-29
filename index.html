@@ -12,6 +12,15 @@
         background: #0b0f14;
         color: #dbe7ff;
       }
+      :root {
+        --stage-gap: 12px;
+        --bottom-bar-h: 64px;
+        --ui-scale: 1;
+        --sidebar-w: 240px;
+        --ui-font: 12px;
+        --ui-font-sm: 10px;
+        --ui-font-lg: 14px;
+      }
       #layout {
         min-height: 100vh;
         display: flex;
@@ -20,6 +29,13 @@
         padding: 24px;
         box-sizing: border-box;
         flex-wrap: nowrap;
+      }
+      #stage {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--stage-gap);
+        width: 1080px;
       }
       #app {
         flex: 0 0 auto;
@@ -33,8 +49,65 @@
         width: 100%;
         height: 100%;
       }
+      #bottom-bar {
+        height: var(--bottom-bar-h);
+        border: 1px solid #1a2a3d;
+        border-radius: 10px;
+        background: rgba(11, 15, 20, 0.95);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        padding: calc(8px * var(--ui-scale)) calc(10px * var(--ui-scale));
+        box-sizing: border-box;
+      }
+      #tower-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        height: 100%;
+      }
+      .tower-card {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 4px;
+        padding: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale));
+        border-radius: 8px;
+        border: 1px solid #2b3f5e;
+        background: #0f1623;
+        color: #dbe7ff;
+        font-size: calc(12px * var(--ui-scale));
+        cursor: pointer;
+      }
+      .tower-card-title {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .tower-card-desc {
+        color: rgba(219, 231, 255, 0.68);
+        font-size: calc(11px * var(--ui-scale));
+        line-height: 1.3;
+      }
+      .tower-card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        color: rgba(219, 231, 255, 0.65);
+        font-size: calc(11px * var(--ui-scale));
+        font-weight: 600;
+      }
+      .tower-card.locked {
+        opacity: 0.45;
+        filter: grayscale(1);
+        cursor: not-allowed;
+      }
+      .tower-card.is-selected {
+        border-color: rgba(57, 255, 143, 0.7);
+        box-shadow: inset 0 0 0 1px rgba(57, 255, 143, 0.25);
+        background: rgba(15, 22, 35, 0.9);
+      }
       #brand-panel {
-        flex: 0 0 240px;
+        flex: 0 0 var(--sidebar-w);
+        width: var(--sidebar-w);
+        max-width: var(--sidebar-w);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -44,6 +117,7 @@
         background: rgba(11, 15, 20, 0.95);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        font-size: calc(var(--ui-font) * var(--ui-scale));
         text-align: center;
       }
       #brand-panel img {
@@ -52,14 +126,14 @@
         margin-bottom: 12px;
       }
       #brand-title {
-        font-size: 20px;
+        font-size: calc(16px * var(--ui-scale));
         font-weight: 700;
         margin-bottom: 6px;
         color: #f0d7c0;
         letter-spacing: 0.03em;
       }
       #brand-subtitle {
-        font-size: 12px;
+        font-size: calc(var(--ui-font-sm) * var(--ui-scale));
         color: #9fb2cc;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -70,11 +144,11 @@
         width: 100%;
         margin-top: 16px;
         text-align: left;
-        font-size: 12px;
+        font-size: calc(12px * var(--ui-scale));
         color: #c5d4ee;
       }
       #controls-title {
-        font-size: 11px;
+        font-size: calc(11px * var(--ui-scale));
         text-transform: uppercase;
         letter-spacing: 0.12em;
         color: #9fb2cc;
@@ -86,11 +160,11 @@
         padding-top: 12px;
         border-top: 1px solid rgba(43, 63, 94, 0.6);
         color: #dbe7ff;
-        font-size: 12px;
+        font-size: calc(11px * var(--ui-scale));
         text-align: left;
       }
       #build-menu-title {
-        font-size: 11px;
+        font-size: calc(11px * var(--ui-scale));
         text-transform: uppercase;
         letter-spacing: 0.12em;
         color: #9fb2cc;
@@ -105,12 +179,12 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        padding: 6px 8px;
+        padding: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale));
         border-radius: 6px;
         border: 1px solid #2b3f5e;
         background: #0f1623;
         color: #dbe7ff;
-        font-size: 11px;
+        font-size: calc(11px * var(--ui-scale));
         font-weight: 700;
         cursor: pointer;
       }
@@ -125,19 +199,19 @@
         pointer-events: none;
       }
       .keycap {
-        padding: 2px 6px;
+        padding: calc(2px * var(--ui-scale)) calc(6px * var(--ui-scale));
         border-radius: 6px;
         border: 1px solid #2b3f5e;
         background: rgba(15, 22, 35, 0.85);
         color: #f0d7c0;
-        font-size: 10px;
+        font-size: calc(var(--ui-font-sm) * var(--ui-scale));
         font-weight: 700;
         min-width: 16px;
         text-align: center;
       }
       .build-meta {
         color: rgba(219, 231, 255, 0.6);
-        font-size: 10px;
+        font-size: calc(var(--ui-font-sm) * var(--ui-scale));
         font-weight: 600;
       }
       .build-slot.just-unlocked {
@@ -170,11 +244,11 @@
         padding-top: 12px;
         border-top: 1px solid rgba(43, 63, 94, 0.6);
         color: #dbe7ff;
-        font-size: 12px;
+        font-size: calc(12px * var(--ui-scale));
         text-align: left;
       }
       #selected-tower-title {
-        font-size: 11px;
+        font-size: calc(11px * var(--ui-scale));
         text-transform: uppercase;
         letter-spacing: 0.12em;
         color: #9fb2cc;
@@ -197,7 +271,7 @@
       }
       .tower-label {
         color: rgba(219, 231, 255, 0.6);
-        font-size: 11px;
+        font-size: calc(11px * var(--ui-scale));
         text-transform: uppercase;
         letter-spacing: 0.08em;
       }
@@ -213,12 +287,12 @@
         margin-top: 8px;
       }
       .tower-action {
-        padding: 6px 8px;
+        padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
         border-radius: 6px;
         border: 1px solid #2b3f5e;
         background: #0f1623;
         color: #dbe7ff;
-        font-size: 11px;
+        font-size: calc(12px * var(--ui-scale));
         font-weight: 700;
         cursor: pointer;
       }
@@ -237,7 +311,7 @@
         border-top: none;
       }
       .controls-group-title {
-        font-size: 10px;
+        font-size: calc(11px * var(--ui-scale));
         text-transform: uppercase;
         letter-spacing: 0.14em;
         color: rgba(219, 231, 255, 0.6);
@@ -284,18 +358,75 @@
           box-shadow: 0 0 0 rgba(240, 215, 192, 0);
         }
       }
-      #brand-version {
+      #brand-footer {
         margin-top: 16px;
-        font-size: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      #brand-version {
+        font-size: calc(var(--ui-font-sm) * var(--ui-scale));
         color: #6f839c;
         letter-spacing: 0.12em;
         text-transform: uppercase;
+      }
+      #brand-source {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: calc(var(--ui-font-sm) * var(--ui-scale));
+        color: rgba(159, 178, 204, 0.85);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+      #brand-source img {
+        height: calc(30px * var(--ui-scale));
+        width: auto;
+        object-fit: contain;
+        display: block;
+        opacity: 0.95;
+      }
+      #brand-source:hover {
+        color: #9fb2cc;
+      }
+      #brand-source:hover img {
+        opacity: 1;
+      }
+      @media (min-width: 1600px) and (min-height: 900px) {
+        :root {
+          --ui-scale: 1.55;
+          --sidebar-w: 360px;
+          --bottom-bar-h: 112px;
+          --ui-font: 13px;
+          --ui-font-sm: 11px;
+        }
+        #brand-panel {
+          line-height: 1.35;
+        }
+        .tower-card-desc {
+          line-height: 1.4;
+        }
+        #stage {
+          width: auto;
+        }
+        #app {
+          width: auto;
+          height: calc(100vh - 24px * 2 - var(--bottom-bar-h) - var(--stage-gap));
+          aspect-ratio: 1080 / 730;
+          max-width: calc(100vw - 24px * 2 - var(--sidebar-w) - 24px);
+          max-height: calc(100vh - 24px * 2 - var(--bottom-bar-h) - var(--stage-gap));
+        }
       }
     </style>
   </head>
   <body>
     <div id="layout">
-      <div id="app"></div>
+      <div id="stage">
+        <div id="app"></div>
+        <div id="bottom-bar"><div id="tower-strip"></div></div>
+      </div>
       <aside id="brand-panel" aria-label="Game branding">
         <img src="/brand/defense-protocol.png" alt="Defense Protocol logo" />
         <div id="brand-title">Defense Protocol</div>
@@ -350,7 +481,18 @@
             <button id="tower-target-btn" class="tower-action" type="button">Target (F)</button>
           </div>
         </section>
-        <div id="brand-version"></div>
+        <div id="brand-footer">
+          <a
+            id="brand-source"
+            href="https://github.com/joecool169/geeklabs-td"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+          >
+            <img src="https://brand.github.com/_next/static/media/logo-01.a1916c76.png" alt="GitHub" />
+          </a>
+          <div id="brand-version"></div>
+        </div>
       </aside>
     </div>
     <script type="module" src="/src/main.js"></script>

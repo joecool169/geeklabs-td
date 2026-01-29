@@ -154,28 +154,37 @@ function updateUI() {
   if (this.buildMenuSectionEl) {
     this.buildMenuSectionEl.style.display = this.isPlacing ? "block" : "none";
   }
-  if (this.buildMenuSlots && this._buildMenuWave !== uiSnapshot.wave) {
+  if ((this.buildMenuSlots || this.towerStripSlots) && this._buildMenuWave !== uiSnapshot.wave) {
     this._buildMenuWave = uiSnapshot.wave;
-    for (const slot of this.buildMenuSlots) {
-      const unlockWave = slot.def?.unlockWave ?? 1;
-      const locked = uiSnapshot.wave < unlockWave;
-      slot.el.classList.toggle("is-locked", locked);
-      slot.el.dataset.locked = locked ? "true" : "false";
-      if (slot.metaEl) {
-        slot.metaEl.textContent = locked ? `W${unlockWave}` : `$${slot.def.tiers[0].cost}`;
+    const updateSlots = (slots) => {
+      if (!slots) return;
+      for (const slot of slots) {
+        const unlockWave = slot.def?.unlockWave ?? 1;
+        const locked = uiSnapshot.wave < unlockWave;
+        slot.el.classList.toggle("is-locked", locked);
+        slot.el.classList.toggle("locked", locked);
+        slot.el.dataset.locked = locked ? "true" : "false";
+        if (slot.metaEl) {
+          slot.metaEl.textContent = locked ? `W${unlockWave}` : `$${slot.def.tiers[0].cost}`;
+        }
+        if (slot.keyEl) {
+          slot.keyEl.style.display = locked ? "none" : "inline-flex";
+        }
+        if (slot.wasLocked === null || slot.wasLocked === undefined) {
+          slot.wasLocked = locked;
+        } else if (slot.wasLocked && !locked) {
+          slot.el.classList.add("just-unlocked");
+          window.setTimeout(() => {
+            slot.el.classList.remove("just-unlocked");
+          }, 1200);
+          slot.wasLocked = locked;
+        } else {
+          slot.wasLocked = locked;
+        }
       }
-      if (slot.wasLocked === null || slot.wasLocked === undefined) {
-        slot.wasLocked = locked;
-      } else if (slot.wasLocked && !locked) {
-        slot.el.classList.add("just-unlocked");
-        window.setTimeout(() => {
-          slot.el.classList.remove("just-unlocked");
-        }, 1200);
-        slot.wasLocked = locked;
-      } else {
-        slot.wasLocked = locked;
-      }
-    }
+    };
+    updateSlots(this.buildMenuSlots);
+    updateSlots(this.towerStripSlots);
   }
 
   if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
