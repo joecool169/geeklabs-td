@@ -20,8 +20,8 @@ Read this file first, then consult the focused files under `docs/context/`.
 - The session's reviewed changes were committed and pushed in small coherent commits.
 - The repository had a clean working tree after the progression-alignment commit.
 - `npm test`, `npm run build`, and `git diff --check` passed for the latest progression work.
-- The exact final commit hash was not captured in this documentation update; verify with `git rev-parse HEAD` before creating the next authoritative source bundle.
-- Production deployment uses `npm run deploy`; verify live parity with the rsync checksum dry run in `docs/context/WORKFLOW.md`.
+- This bundle was created from the complete clean `HEAD` archive uploaded after the progression-alignment commit.
+- Production deployment uses `npm run deploy`; deployment remains separate from the complete-bundle workflow.
 
 ## Implemented during the 2026-07-26 refinement session
 
@@ -99,6 +99,14 @@ Read this file first, then consult the focused files under `docs/context/`.
 - `docs/context/ARCHITECTURE.md` — current structure, technical debt, and approved target direction
 - `docs/context/ROADMAP.md` — near-term sequencing and later backlog
 - `docs/context/DECISIONS.md` — dated decisions and rationale
+
+## Complete bundle workflow
+
+- The authoritative handoff filename is `geeklabs-td-context.zip`.
+- One complete ZIP updates the repository and can be uploaded directly into the next ChatGPT conversation.
+- Extract it over `~/projects/geeklabs-td`, review, stage with `git add -A`, commit, and push.
+- Do not regenerate a ZIP after ChatGPT supplies the completed bundle.
+- See `docs/context/WORKFLOW.md` for the exact workflow.
 
 ## Existing exploratory material
 

@@ -1,12 +1,12 @@
-# Development Workflow
+# Development and Context-Bundle Workflow
 
 ## Core principle
 
-Git is the source of truth for game code. The context bundle is a portable snapshot for ChatGPT and documentation updates; it is not a replacement for GitHub.
+Git remains the authoritative history for Defense Protocol. The complete project ZIP is the portable handoff used to update the local repository and to provide the next ChatGPT conversation with the exact current source and context.
 
-## Starting a session
+The ZIP is a complete replacement bundle, not a patch.
 
-From the project directory:
+## Starting a development session
 
 ```bash
 cd ~/projects/geeklabs-td
@@ -24,9 +24,9 @@ Do not pull across unreviewed local changes.
 
 ## ChatGPT + Codex loop
 
-1. Discuss and define one concrete change in ChatGPT.
-2. ChatGPT provides one focused Codex prompt.
-3. Codex performs the edit from the repository root.
+1. Define one concrete change in ChatGPT.
+2. Use one focused Codex prompt.
+3. Let Codex edit from the repository root.
 4. Inspect the result:
 
 ```bash
@@ -34,16 +34,20 @@ git diff --stat
 git diff
 ```
 
-5. Paste the diff into ChatGPT for review.
-6. Verify behavior in the already-running development server.
-7. Run the production build:
+5. Verify the affected behavior in the running game.
+6. Run only the validation appropriate to the change.
+7. Commit one coherent change.
+8. Push before switching devices or ending the session.
+
+Typical source validation:
 
 ```bash
+npm test
 npm run build
+git diff --check
 ```
 
-8. Commit one coherent change.
-9. Push before switching devices or ending the session.
+Documentation-only changes do not require npm validation unless they also modify executable project files.
 
 ## Refactor rules
 
@@ -51,26 +55,13 @@ npm run build
 - Preserve visible behavior during structural refactors.
 - Do not tune balance in the same commit as code movement.
 - Record intended invariants before moving code.
-- Build after every module/import change.
+- Build after module/import changes.
 - Prefer another focused Codex prompt for multi-line corrections.
 - Use a surgical one-liner only for a truly narrow correction.
 
-## Recommended refactor verification checklist
-
-For each stage, confirm:
-
-- game starts
-- name/difficulty screen works
-- towers can be selected and placed
-- invalid placement remains blocked
-- upgrades, selling, and target cycling work
-- waves begin and complete
-- pause/resume works
-- game-over and leaderboards work
-- SFX and feedback still fire
-- `npm run build` succeeds
-
 ## Deployment
+
+Deployment is separate from the context-bundle workflow.
 
 Preferred command:
 
@@ -78,7 +69,7 @@ Preferred command:
 npm run deploy
 ```
 
-The current deploy script builds and rsyncs `dist/` to:
+The current script builds and rsyncs `dist/` to:
 
 ```text
 joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
@@ -93,9 +84,7 @@ rsync -av --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/t
 
 Deploy only a reviewed, committed state.
 
-## Verify live deployment
-
-After building, compare the local build against production without changing production:
+Verify local build parity without modifying production:
 
 ```bash
 rsync -avnc --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
@@ -103,74 +92,100 @@ rsync -avnc --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html
 
 No file entries means the contents match. Directory-only entries are not content differences.
 
-## Context bundle workflow
+## Complete project bundle workflow
 
-Bundle name:
+### Objective
+
+At the end of meaningful work, ChatGPT returns one complete ZIP that can be used for both:
+
+1. updating `~/projects/geeklabs-td`
+2. direct upload into a new ChatGPT conversation
+
+Stable bundle name:
 
 ```text
-geeklabs-context.zip
+geeklabs-td-context.zip
 ```
 
-The bundle should contain:
+### Required contents
 
-- tracked source and project metadata
-- `AI_CONTEXT.md`
-- `docs/context/`
-- relevant lightweight public assets
+The bundle includes the complete current tracked project structure, including source, tests, scripts, documentation, project metadata, and lightweight public assets.
 
-Exclude:
+It excludes:
 
 - `.git/`
 - `node_modules/`
 - `dist/`
-- caches, logs, coverage, and editor artifacts
+- coverage and caches
+- editor artifacts
+- temporary screenshots and logs
+- environment files or secrets
 
-### Applying a newly generated bundle
+The archive uses repository-relative paths at its root so it can be extracted directly over `~/projects/geeklabs-td`.
 
-Only apply a context bundle that was generated from the current verified repository state.
+### ChatGPT responsibility
 
-From the MacBook after downloading:
+ChatGPT must:
 
-```bash
-scp ~/Downloads/geeklabs-context.zip arch-desktop:/tmp/ && ssh arch-desktop 'cd ~/projects/geeklabs-td && unzip -o /tmp/geeklabs-context.zip'
-```
+1. start from the latest complete uploaded project bundle
+2. inspect the relevant current files before making project-specific claims
+3. preserve valid source and documentation
+4. update outdated context when the conversation establishes a newer state
+5. incorporate all completed source, test, workflow, and documentation changes available in the uploaded baseline
+6. return one complete replacement ZIP, not a patch
+7. provide a direct download link
+8. never instruct the user to regenerate a ZIP that ChatGPT has already supplied
 
-Then inspect before committing:
+ChatGPT must not call a bundle authoritative if locally changed files were never uploaded or otherwise made fully available. In that case, request a fresh current repository archive first.
 
-```bash
-ssh arch-desktop 'cd ~/projects/geeklabs-td && git status --short && git diff -- AI_CONTEXT.md docs/context'
-```
+### Applying the completed bundle locally
 
-Because this bundle also contains source files for AI inspection, applying a stale bundle could overwrite newer work. Verify the bundle baseline before extraction.
-
-## Generating a fresh source snapshot for ChatGPT
-
-From the MacBook:
-
-```bash
-ssh arch-desktop 'cd ~/projects/geeklabs-td && git archive --format=zip --output=/tmp/geeklabs-td-source.zip HEAD' && scp arch-desktop:/tmp/geeklabs-td-source.zip ~/Downloads/
-```
-
-Upload that archive to ChatGPT whenever the current code needs to be re-analyzed.
-
-## End-of-session context update
-
-When ChatGPT produces a documentation-only context patch, apply only the listed context files rather than extracting a stale full source snapshot over the repository.
-
-After applying:
+After downloading the ZIP supplied by ChatGPT:
 
 ```bash
 cd ~/projects/geeklabs-td
+unzip -o ~/Downloads/geeklabs-td-context.zip
 git status --short
-git diff -- AI_CONTEXT.md README.md CHANGELOG.md docs/context
-npm test
-npm run build
+git add -A
+git diff --cached --stat
+git commit -m "docs: update Defense Protocol project context"
+git push
 ```
 
-Commit the documentation update separately, push it, then generate the next authoritative full bundle from the resulting `HEAD`.
+Use a different concise commit message when the bundle contains source changes rather than documentation only.
 
-Record the exact baseline in the bundle:
+Do not recreate or regenerate the downloaded ZIP. The downloaded ZIP is the completed authoritative handoff for that session.
 
-```bash
-git rev-parse HEAD
-```
+### New ChatGPT conversation
+
+Upload the same `geeklabs-td-context.zip` directly into the new conversation.
+
+The assistant should:
+
+- inspect the bundle before answering project-specific questions
+- treat current file contents as the primary source of truth
+- distinguish implemented, deployed, planned, deferred, retired, and unresolved work
+- avoid claiming the bundle was reviewed unless the relevant files were actually inspected
+- cite exact files and code locations when describing implementation
+
+## Command preferences
+
+- Assume commands run in the current Arch/tmux environment unless cross-host execution is explicitly required.
+- Begin repository workflows with `cd ~/projects/geeklabs-td`.
+- Give one logical troubleshooting or verification step at a time.
+- Warn before long-running, destructive, service-restarting, or production-deploying commands.
+- Preserve established workflows unless there is a concrete reason to change them.
+- Never fabricate command output, tests, file contents, or deployment verification.
+
+## Completion criteria
+
+The context update is complete only when:
+
+- ChatGPT used the latest full project baseline
+- relevant source and context changes were incorporated
+- a complete replacement ZIP was produced
+- a working download link was supplied
+- the ZIP extracts directly over `~/projects/geeklabs-td`
+- the extracted files can be staged with `git add -A`
+- the same ZIP can be uploaded into the next ChatGPT conversation
+- no second local ZIP-generation step is required

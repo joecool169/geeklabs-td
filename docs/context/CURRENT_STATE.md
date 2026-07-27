@@ -2,7 +2,7 @@
 
 Snapshot date: **2026-07-26**
 Branch: **main**
-Exact final commit: **verify with `git rev-parse HEAD` before generating the authoritative source bundle**
+Baseline: **complete clean `HEAD` archive uploaded after the progression-alignment commit**
 
 ## Repository and deployment
 

@@ -56,6 +56,10 @@ Design priorities:
 - `P`: pause or resume
 - `Esc`: cancel, deselect, or resume contextually
 
+## Project context bundle
+
+`geeklabs-td-context.zip` is the complete portable project handoff. The same ZIP can be extracted over `~/projects/geeklabs-td` and uploaded directly into a new ChatGPT conversation. See `docs/context/WORKFLOW.md`.
+
 ## Development commands
 
 ```bash

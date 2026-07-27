@@ -92,3 +92,11 @@
 **Decision:** Distinguish towers, enemies, attacks, impacts, health, and range coverage using Phaser-generated primitives and restrained tactical effects.
 
 **Reasoning:** This materially improves playfield readability while preserving the mechanics-first direction and avoiding an asset pipeline before gameplay is settled.
+
+## 2026-07-26 — One complete ZIP for repository and ChatGPT handoff
+
+**Decision:** Use one complete `geeklabs-td-context.zip` as both the repository-import bundle and the context uploaded into the next ChatGPT conversation.
+
+**Reasoning:** A single self-contained handoff mirrors the established homelab workflow, eliminates patch-versus-source confusion, and ensures the next conversation can inspect the exact source and documentation baseline.
+
+**Workflow:** ChatGPT returns the completed bundle; the user extracts it over `~/projects/geeklabs-td`, reviews and commits the resulting changes, and uploads that same ZIP in the next conversation. The user does not regenerate the ZIP locally.
