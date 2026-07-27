@@ -41,7 +41,7 @@ const TOWER_DEFS = {
     name: "Laser",
     desc: "Fast ticks, best vs Armored (prefers Armored).",
     hotkey: "4",
-    unlockWave: 40,
+    unlockWave: 30,
     defaultTargetMode: "armored",
     tiers: [
       { cost: 220, damage: 6, range: 145, fireMs: 110, tint: 0xff6bff, scale: 1.05 },

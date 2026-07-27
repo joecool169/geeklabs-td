@@ -44,7 +44,7 @@ Tower definitions remain data-driven in `src/constants.js`.
 - Basic — unlock wave 1
 - Rapid — unlock wave 10
 - Sniper — unlock wave 20; defaults to Strong targeting
-- Laser — unlock wave 40; defaults to Armored targeting; currently has one tier
+- Laser — unlock wave 30; defaults to Armored targeting; currently has one tier
 
 Target modes:
 

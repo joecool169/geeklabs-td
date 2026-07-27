@@ -4,13 +4,17 @@ import { pickWeighted } from "./enemies.js";
 function computeWaveConfig(wave) {
   const w = Math.max(1, wave);
   const rawTotal = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
-  const bruteW = clamp01((w - 10) / 10) * 0.9;
-  const armoredW = clamp01((w - 20) / 10) * 0.8;
   const weights = [{ key: "runner", w: 1.6 }];
-  if (w >= 10) weights.push({ key: "brute", w: 0.6 + bruteW });
-  if (w >= 20) weights.push({ key: "armored", w: 0.15 + armoredW });
-  const packEvery = Math.max(10, 16 - Math.floor(w / 2));
-  const packSize = Math.min(6, 2 + Math.floor(w / 4));
+  if (w >= 20) {
+    const bruteW = 0.35 + clamp01((w - 20) / 10) * 0.85;
+    weights.push({ key: "brute", w: bruteW });
+  }
+  if (w >= 30) {
+    const armoredW = 0.25 + clamp01((w - 30) / 12) * 0.75;
+    weights.push({ key: "armored", w: armoredW });
+  }
+  const basePackEvery = Math.max(10, 16 - Math.floor(w / 2));
+  const basePackSize = Math.min(6, 2 + Math.floor(w / 4));
   const t = clamp01((w - 1) / 9);
   const countMul = 1 - 0.5 * t;
   const reducedTotal = Math.max(6, Math.floor(rawTotal * countMul));
@@ -30,7 +34,14 @@ function computeWaveConfig(wave) {
         (1 - 0.15 * pressureRamp)
     )
   );
-  const reducedPackSize = Math.max(2, Math.floor(packSize * countMul));
+  // Introduce a modest Runner-pack ramp alongside Rapid without changing the
+  // onboarding pressure before wave 10.
+  const rapidPhaseRamp = w >= 10 ? clamp01((w - 9) / 6) : 0;
+  const packFrequencyBonus = Math.floor(rapidPhaseRamp * 2);
+  const packSizeBonus = Math.ceil(rapidPhaseRamp * 2);
+  const packEvery = basePackEvery - packFrequencyBonus;
+  const reducedPackSize =
+    Math.max(2, Math.floor(basePackSize * countMul)) + packSizeBonus;
   return {
     total,
     spawnDelayMs,
