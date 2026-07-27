@@ -60,6 +60,7 @@ const ENEMY_DEFS = {
   runner: {
     key: "runner",
     name: "Runner",
+    unlockWave: 1,
     tint: 0xff4d6d,
     baseHp: 18,
     baseSpeed: 120,
@@ -72,6 +73,7 @@ const ENEMY_DEFS = {
   brute: {
     key: "brute",
     name: "Brute",
+    unlockWave: 20,
     tint: 0xb54dff,
     baseHp: 70,
     baseSpeed: 52,
@@ -84,6 +86,7 @@ const ENEMY_DEFS = {
   armored: {
     key: "armored",
     name: "Armored",
+    unlockWave: 30,
     tint: 0x8fb3c9,
     baseHp: 40,
     baseSpeed: 72,

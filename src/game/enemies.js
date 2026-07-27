@@ -118,6 +118,27 @@ function pickWeighted(rng01, entries) {
   return entries[entries.length - 1]?.key;
 }
 
+function computeEnemyHp(def, waveNumber, difficulty) {
+  const w = Math.max(1, waveNumber);
+  const classAge = Math.max(0, w - (def.unlockWave ?? 1));
+  const classHpMul = 1 + classAge * (def.scaleHpPerWave ?? 0.12);
+  const t = clamp01((w - 1) / 9);
+  const hpFactor = 1 + 1.0 * t;
+  const midPressure = 1 + 0.025 * Math.min(9, Math.max(0, w - 3));
+  const endurancePressure = Math.pow(1.03, Math.max(0, w - 12));
+  return Math.max(
+    1,
+    Math.floor(
+      def.baseHp *
+        classHpMul *
+        difficulty.enemyHpMul *
+        hpFactor *
+        midPressure *
+        endurancePressure
+    )
+  );
+}
+
 function spawnEnemyOfType(typeKey, opts = {}) {
   const def = ENEMY_DEFS[typeKey] || ENEMY_DEFS.runner;
   const start = this.path[0];
@@ -127,18 +148,10 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.body.setAllowGravity(false);
   const w = Math.max(1, opts.waveNumber ?? this.wave);
   const difficulty = this.difficulty || DIFFICULTY_CONFIG.easy;
-  const hpMul = (1 + (w - 1) * (def.scaleHpPerWave ?? 0.12)) * difficulty.enemyHpMul;
   const spMul = (1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02)) * difficulty.enemySpeedMul;
   e.typeKey = def.key;
   e.setTint(def.tint);
-  const t = clamp01((w - 1) / 9);
-  const hpFactor = 1 + 1.0 * t;
-  const midPressure = 1 + 0.025 * Math.min(9, Math.max(0, w - 3));
-  const endurancePressure = Math.pow(1.03, Math.max(0, w - 12));
-  e.hp = Math.max(
-    1,
-    Math.floor(def.baseHp * hpMul * hpFactor * midPressure * endurancePressure)
-  );
+  e.hp = computeEnemyHp(def, w, difficulty);
   e.maxHp = e.hp;
   e.speed = Math.floor(def.baseSpeed * spMul);
   e.armor = def.armor || 0;
@@ -248,6 +261,7 @@ export {
   drawEnemyTexture,
   updateEnemyVisual,
   pickWeighted,
+  computeEnemyHp,
   spawnEnemyOfType,
   advanceEnemy,
   enemyProgressScore,

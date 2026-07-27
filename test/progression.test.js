@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { TOWER_DEFS } from "../src/constants.js";
+import { ENEMY_DEFS, TOWER_DEFS } from "../src/constants.js";
+import { DIFFICULTY_CONFIG } from "../src/game/config.js";
+import { computeEnemyHp } from "../src/game/enemies.js";
 import { computeWaveConfig } from "../src/game/waves.js";
 
 const waveConfig = (wave) => computeWaveConfig.call({ intermissionMs: 5000 }, wave);
@@ -53,4 +55,64 @@ test("Runner pack pressure ramps gently from waves 10 through 15", () => {
     { wave: 15, packEvery: 8, packSize: 4 },
     { wave: 16, packEvery: 8, packSize: 5 },
   ]);
+});
+
+test("Brute HP class scaling starts at zero on its unlock wave", () => {
+  const def = ENEMY_DEFS.brute;
+  const expected = Math.floor(
+    def.baseHp *
+      DIFFICULTY_CONFIG.hard.enemyHpMul *
+      2 *
+      1.225 *
+      Math.pow(1.03, 8)
+  );
+
+  assert.equal(computeEnemyHp(def, 20, DIFFICULTY_CONFIG.hard), expected);
+});
+
+test("Brute HP receives one wave of class scaling at wave 21", () => {
+  const def = ENEMY_DEFS.brute;
+  const expected = Math.floor(
+    def.baseHp *
+      (1 + def.scaleHpPerWave) *
+      DIFFICULTY_CONFIG.hard.enemyHpMul *
+      2 *
+      1.225 *
+      Math.pow(1.03, 9)
+  );
+
+  assert.equal(computeEnemyHp(def, 21, DIFFICULTY_CONFIG.hard), expected);
+});
+
+test("wave-1 Runner HP behavior remains unchanged", () => {
+  const def = ENEMY_DEFS.runner;
+  const oldFormulaHp = Math.floor(
+    def.baseHp *
+      (1 + (1 - 1) * def.scaleHpPerWave) *
+      DIFFICULTY_CONFIG.hard.enemyHpMul
+  );
+
+  assert.equal(computeEnemyHp(def, 1, DIFFICULTY_CONFIG.hard), oldFormulaHp);
+});
+
+test("Armored HP class scaling is relative to its later unlock wave", () => {
+  const def = ENEMY_DEFS.armored;
+  const globalHpMulAt = (wave) =>
+    DIFFICULTY_CONFIG.hard.enemyHpMul *
+    2 *
+    1.225 *
+    Math.pow(1.03, wave - 12);
+
+  assert.equal(
+    computeEnemyHp(def, 30, DIFFICULTY_CONFIG.hard),
+    Math.floor(def.baseHp * globalHpMulAt(30))
+  );
+  assert.equal(
+    computeEnemyHp(def, 32, DIFFICULTY_CONFIG.hard),
+    Math.floor(
+      def.baseHp *
+        (1 + 2 * def.scaleHpPerWave) *
+        globalHpMulAt(32)
+    )
+  );
 });
