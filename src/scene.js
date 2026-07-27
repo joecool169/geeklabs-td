@@ -22,6 +22,16 @@ const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const DEFAULT_DIFFICULTY_KEY = "easy";
+const RANGE_FILL_ALPHA = {
+  selected: 0.035,
+  valid: 0.04,
+  blocked: 0.045,
+};
+const RANGE_LINE_ALPHA = {
+  selected: 0.55,
+  valid: 0.55,
+  blocked: 0.6,
+};
 const SFX_CONFIG = {
   place: { url: "/sfx/place.wav", volume: 0.26 },
   upgrade: { url: "/sfx/upgrade.wav", volume: 0.26 },
@@ -391,8 +401,11 @@ export class GameScene extends Phaser.Scene {
 
     this.selectedTower = null;
 
+    this.rangeFill = this.add.graphics();
+    this.rangeFill.setDepth(-1);
+    this.rangeFill.setVisible(false);
     this.rangeRing = this.add.graphics();
-    this.rangeRing.setDepth(9999);
+    this.rangeRing.setDepth(10);
     this.rangeRing.setVisible(false);
 
     this.ui = this.add.text(14, 12, "", {
@@ -1718,15 +1731,31 @@ export class GameScene extends Phaser.Scene {
   }
 
   showGhostRing(x, y, range, color) {
+    const isBlocked = color === 0xff4d6d;
+    this.rangeFill.clear();
+    this.rangeFill.fillStyle(
+      color,
+      isBlocked ? RANGE_FILL_ALPHA.blocked : RANGE_FILL_ALPHA.valid
+    );
+    this.rangeFill.fillCircle(x, y, range);
+    this.rangeFill.setVisible(true);
     this.rangeRing.clear();
-    this.rangeRing.lineStyle(2, color, 0.9);
+    this.rangeRing.lineStyle(
+      1,
+      color,
+      isBlocked ? RANGE_LINE_ALPHA.blocked : RANGE_LINE_ALPHA.valid
+    );
     this.rangeRing.strokeCircle(x, y, range);
     this.rangeRing.setVisible(true);
   }
 
   showRangeRing(tower, color) {
+    this.rangeFill.clear();
+    this.rangeFill.fillStyle(color, RANGE_FILL_ALPHA.selected);
+    this.rangeFill.fillCircle(tower.x, tower.y, tower.range);
+    this.rangeFill.setVisible(true);
     this.rangeRing.clear();
-    this.rangeRing.lineStyle(2, color, 0.9);
+    this.rangeRing.lineStyle(1, color, RANGE_LINE_ALPHA.selected);
     this.rangeRing.strokeCircle(tower.x, tower.y, tower.range);
     this.drawSelectionAccent(tower.x, tower.y, color);
     this.rangeRing.setVisible(true);
@@ -1747,6 +1776,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   hideRangeRing() {
+    this.rangeFill.setVisible(false);
+    this.rangeFill.clear();
     this.rangeRing.setVisible(false);
     this.rangeRing.clear();
   }
