@@ -1,3 +1,4 @@
+import "./style.css";
 import Phaser from "phaser";
 import { GameScene } from "./scene.js";
 
