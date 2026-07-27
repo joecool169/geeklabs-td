@@ -11,6 +11,63 @@ function showToast(msg, ms = 2400) {
   });
 }
 
+function clearTransitionBanner() {
+  if (this._transitionBannerTimer) {
+    this._transitionBannerTimer.remove(false);
+    this._transitionBannerTimer = null;
+  }
+  if (this._transitionBannerTween) {
+    this._transitionBannerTween.stop();
+    this._transitionBannerTween.remove();
+    this._transitionBannerTween = null;
+  }
+  if (this.transitionBanner) {
+    this.transitionBanner.setVisible(false);
+    this.transitionBanner.setAlpha(0);
+  }
+}
+
+function showTransitionBanner(text, tone = "neutral", duration = 1100) {
+  const banner = this.transitionBanner;
+  if (!banner) return;
+
+  clearTransitionBanner.call(this);
+  const color = tone === "positive" ? "#a9ffc9" : "#dbe7ff";
+  const backgroundColor =
+    tone === "positive" ? "rgba(12, 42, 28, 0.88)" : "rgba(10, 23, 38, 0.88)";
+
+  banner
+    .setText(text)
+    .setColor(color)
+    .setBackgroundColor(backgroundColor)
+    .setVisible(true)
+    .setAlpha(0);
+
+  this._transitionBannerTween = this.tweens.add({
+    targets: banner,
+    alpha: 1,
+    duration: 120,
+    ease: "Sine.easeOut",
+    onComplete: () => {
+      this._transitionBannerTween = null;
+    },
+  });
+
+  this._transitionBannerTimer = this.time.delayedCall(Math.max(120, duration - 200), () => {
+    this._transitionBannerTimer = null;
+    this._transitionBannerTween = this.tweens.add({
+      targets: banner,
+      alpha: 0,
+      duration: 200,
+      ease: "Sine.easeIn",
+      onComplete: () => {
+        banner.setVisible(false);
+        this._transitionBannerTween = null;
+      },
+    });
+  });
+}
+
 function updateWaveHint(text, visible) {
   const hint = this.waveHint;
   if (!hint) return;
@@ -95,13 +152,13 @@ function updateUI() {
     const sec = Math.ceil(wait / 1000);
 
     if (!this.didStartFirstWave) {
-      updateWaveHint.call(this, `Wave ${this.wave} ready. Press SPACE to start.`, true);
+      updateWaveHint.call(this, `WAVE ${this.wave} READY  •  SPACE to start`, true);
     } else if (ready) {
       updateWaveHint.call(
         this,
         this.autoStartWaves
-          ? `Wave ${this.wave} starting...`
-          : `Wave ${this.wave} ready. Press SPACE to start.`
+          ? `WAVE ${this.wave}  •  Deploying`
+          : `WAVE ${this.wave} READY  •  SPACE to start`
         ,
         true
       );
@@ -109,8 +166,8 @@ function updateUI() {
       updateWaveHint.call(
         this,
         this.autoStartWaves
-          ? `Next wave in ${sec}s... (SPACE twice to start now)`
-          : `Wave ${this.wave} ready in ${sec}s... (SPACE twice to start now)`
+          ? `NEXT WAVE  •  ${sec}s  •  SPACE twice to deploy now`
+          : `WAVE ${this.wave} READY IN ${sec}s  •  SPACE twice to deploy now`
         ,
         true
       );
@@ -120,7 +177,7 @@ function updateUI() {
     const alive = this.enemies.countActive(true);
     updateWaveHint.call(
       this,
-      `Wave ${this.wave} running | Spawners: ${spawners} | Alive: ${alive}`,
+      `WAVE ${this.wave} ACTIVE  •  Groups: ${spawners}  •  On field: ${alive}`,
       true
     );
   }
@@ -252,4 +309,4 @@ function updateUI() {
   if (this.selectedTowerTargetBtnEl) this.selectedTowerTargetBtnEl.disabled = false;
 }
 
-export { showToast, updateUI };
+export { clearTransitionBanner, showToast, showTransitionBanner, updateUI };

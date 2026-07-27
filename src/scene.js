@@ -432,6 +432,22 @@ export class GameScene extends Phaser.Scene {
       padding: { x: 8, y: 6 },
     });
 
+    this.transitionBanner = this.add
+      .text(this.scale.width / 2, TOP_UI + 42, "", {
+        fontFamily: "monospace",
+        fontSize: "22px",
+        fontStyle: "bold",
+        color: "#dbe7ff",
+        backgroundColor: "rgba(10, 23, 38, 0.88)",
+        padding: { x: 18, y: 9 },
+        stroke: "#071019",
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(95000)
+      .setVisible(false)
+      .setAlpha(0);
+
     this.toast = this.add.text(14, 146, "", {
       fontFamily: "monospace",
       fontSize: "13px",
@@ -567,9 +583,10 @@ export class GameScene extends Phaser.Scene {
       this.physics.world.isPaused = this.isPaused;
       if (this.autoStartTimer) this.autoStartTimer.paused = this.isPaused;
       if (this.isPaused && this.isPlacing) this.setPlacement(false);
-      this.pauseText.setText(this.isPaused ? "PAUSED (P to resume)" : "");
+      this.pauseText.setText(this.isPaused ? "PAUSED — P / ESC to resume" : "");
       this.pauseText.setVisible(this.isPaused);
       if (this.isPaused) {
+        UI.clearTransitionBanner.call(this);
         this.showPauseMenu();
       } else {
         this.hidePauseMenu();
@@ -739,6 +756,12 @@ export class GameScene extends Phaser.Scene {
 
     this.updateUI();
     this.enterIntermission(true);
+    this.events.once("shutdown", () => {
+      UI.clearTransitionBanner.call(this);
+      this.hidePauseMenu();
+      const host = this.game?.canvas?.parentElement;
+      host?.querySelector("#defense-protocol-gameover-overlay")?.remove();
+    });
     if (this.isStartScreenActive) {
       this.showStartScreen();
     } else {
@@ -752,6 +775,10 @@ export class GameScene extends Phaser.Scene {
 
   updateUI() {
     UI.updateUI.call(this);
+  }
+
+  showWaveTransition(text, tone = "neutral", duration = 1100) {
+    UI.showTransitionBanner.call(this, text, tone, duration);
   }
 
   applyDifficulty(key, opts = {}) {
@@ -969,10 +996,19 @@ export class GameScene extends Phaser.Scene {
     const brandHeader = makeBrandHeader();
 
     const title = document.createElement("div");
-    title.textContent = "Game Over";
-    title.style.fontSize = "20px";
+    title.textContent = "GAME OVER";
+    title.style.fontSize = "22px";
     title.style.fontWeight = "700";
-    title.style.marginBottom = "12px";
+    title.style.letterSpacing = "0.08em";
+    title.style.color = "#ff8eaa";
+    title.style.marginBottom = "4px";
+
+    const stateDetail = document.createElement("div");
+    stateDetail.textContent = "DEFENSE LINE BREACHED";
+    stateDetail.style.fontSize = "11px";
+    stateDetail.style.letterSpacing = "0.12em";
+    stateDetail.style.color = "#b98298";
+    stateDetail.style.marginBottom = "14px";
 
     const stats = document.createElement("div");
     stats.style.display = "grid";
@@ -1139,6 +1175,7 @@ export class GameScene extends Phaser.Scene {
 
     panel.appendChild(brandHeader);
     panel.appendChild(title);
+    panel.appendChild(stateDetail);
     panel.appendChild(stats);
     panel.appendChild(btnWrap);
     panel.appendChild(leaderboardPanel);
@@ -1179,10 +1216,19 @@ export class GameScene extends Phaser.Scene {
     const brandHeader = makeBrandHeader();
 
     const title = document.createElement("div");
-    title.textContent = "Paused";
-    title.style.fontSize = "18px";
+    title.textContent = "PAUSED";
+    title.style.fontSize = "22px";
     title.style.fontWeight = "700";
-    title.style.marginBottom = "12px";
+    title.style.letterSpacing = "0.1em";
+    title.style.color = "#dbe7ff";
+    title.style.marginBottom = "4px";
+
+    const stateDetail = document.createElement("div");
+    stateDetail.textContent = "P / ESC TO RESUME";
+    stateDetail.style.fontSize = "11px";
+    stateDetail.style.letterSpacing = "0.1em";
+    stateDetail.style.color = "#9fb2cc";
+    stateDetail.style.marginBottom = "14px";
 
     const btnWrap = document.createElement("div");
     btnWrap.style.display = "grid";
@@ -1362,6 +1408,7 @@ export class GameScene extends Phaser.Scene {
 
     panel.appendChild(brandHeader);
     panel.appendChild(title);
+    panel.appendChild(stateDetail);
     panel.appendChild(btnWrap);
     panel.appendChild(controlsPanel);
     panel.appendChild(leaderboardPanel);
@@ -1433,6 +1480,7 @@ export class GameScene extends Phaser.Scene {
   triggerGameOver() {
     if (this.isGameOver) return;
     this.isGameOver = true;
+    UI.clearTransitionBanner.call(this);
     this.playSfx("gameover", { allowDuringGameOver: true });
     for (const t of this.towers) {
       if (t.beam) {
@@ -1571,6 +1619,13 @@ export class GameScene extends Phaser.Scene {
       const allDone = spawners.length > 0 && spawners.every((spawner) => spawner.enemiesSpawned >= spawner.enemiesTotal);
       if (allDone && alive === 0) {
         const wavesCleared = Math.max(1, this.nextWaveNumberToSpawn - this.blockWaveStart);
+        const firstWaveCleared = this.blockWaveStart;
+        const lastWaveCleared = this.nextWaveNumberToSpawn - 1;
+        const completionLabel =
+          wavesCleared === 1
+            ? `WAVE ${firstWaveCleared} COMPLETE`
+            : `WAVES ${firstWaveCleared}–${lastWaveCleared} COMPLETE`;
+        this.showWaveTransition(completionLabel, "positive", 1200);
         for (let i = 0; i < wavesCleared; i += 1) {
           const waveNum = this.blockWaveStart + i;
           const clearBonus = 6 + Math.floor(waveNum * 1.5);

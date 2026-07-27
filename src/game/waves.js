@@ -80,6 +80,7 @@ function startWave(wave) {
     swarmNextPackSpawnAt: 0,
   });
   this.waveState = "running";
+  if (this.showWaveTransition) this.showWaveTransition(`WAVE ${wave} ENGAGED`);
 }
 
 function updateWaveSpawning(time) {
