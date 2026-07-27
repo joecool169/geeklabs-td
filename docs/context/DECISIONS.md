@@ -51,3 +51,44 @@
 **Avoid initially:** subscriptions, energy systems, aggressive consumables, and balance-distorting monetization.
 
 **Product test:** Monetization work should follow evidence that players complete sessions, restart, and return.
+
+## 2026-07-26 — Preserve gentle early waves while building long-term pressure
+
+**Decision:** Waves 1-3 should remain comfortable and usually leak-free for competent play. Difficulty should emerge gradually through density, composition, health scaling, economy tension, placement, upgrades, and tower counters rather than abrupt leak damage or early punishment.
+
+**Reasoning:** Defense Protocol is intended to support long endurance runs. Early life loss should reflect poor decisions, not an onboarding difficulty spike.
+
+## 2026-07-26 — Keep milestone progression at 1 / 10 / 20 / 30
+
+**Decision:** Use the following current progression milestones:
+
+- Basic: wave 1
+- Rapid: wave 10
+- Sniper: wave 20
+- Laser: wave 30
+
+**Reasoning:** The user wants unlocks to feel earned across a long-running game and did not want all specialist towers moved into the first twelve waves. Laser was moved from wave 40 to wave 30 to reduce an overly long late gap.
+
+## 2026-07-26 — Align enemy threats with specialist availability
+
+**Decision:** Keep waves 1-19 Runner-only, ramp Runner packs around Rapid's wave-10 unlock, introduce Brutes with Sniper at wave 20, and introduce Armored with Laser at wave 30.
+
+**Reasoning:** Unlocks should teach counters. The player should not face a class-specific threat many waves before the intended answer is available.
+
+## 2026-07-26 — Treat bottom cards as the primary tower selector
+
+**Decision:** The bottom tower strip is the sole visible four-tower selector. The right sidebar is contextual: placement information while placing and management information while a tower is selected.
+
+**Reasoning:** The former sidebar Build Menu duplicated the bottom controls, consumed height, and weakened hierarchy.
+
+## 2026-07-26 — Stable sidebar height over document growth
+
+**Decision:** Keep the sidebar at a stable height matching the responsive stage and use internal overflow only as a fallback.
+
+**Reasoning:** Normal placement and tower-selection state changes must not increase document height or reintroduce page scrolling on a MacBook at 100% zoom.
+
+## 2026-07-26 — Improve readability with primitives before adding art assets
+
+**Decision:** Distinguish towers, enemies, attacks, impacts, health, and range coverage using Phaser-generated primitives and restrained tactical effects.
+
+**Reasoning:** This materially improves playfield readability while preserving the mechanics-first direction and avoiding an asset pipeline before gameplay is settled.

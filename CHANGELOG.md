@@ -60,4 +60,19 @@
 - 2026-01-26 (e78758a) fix: prime placement ghost on entry
 - 2026-01-26 (fa673b3) Code cleanup
 - 2026-01-26 (47b68cb) feat: add global leaderboard API with local fallback
-- 2026-01-26 (032a4b2) chore: add Vite config for chunk warning limit
+- 2026-01-26 (032a4b2) chore: add Vite config for chunk warning limit- 2026-07-26 Center wide desktop game composition
+- 2026-07-26 Fit stage and tower strip on shorter laptop viewports
+- 2026-07-26 Move page layout styles into src/style.css
+- 2026-07-26 Centralize layout dimensions and responsive scales in CSS variables
+- 2026-07-26 Refine tower-card hierarchy, locked readability, and interaction states
+- 2026-07-26 Keep sidebar height stable across placement and tower-management states
+- 2026-07-26 Replace duplicate sidebar build selector with placement context
+- 2026-07-26 Compact selected-tower stats and action controls
+- 2026-07-26 Add distinct tower and enemy silhouettes with readable damage state
+- 2026-07-26 Refine selected and placement range overlays with subtle coverage fill
+- 2026-07-26 Differentiate Basic, Rapid, Sniper, and Laser attack visuals
+- 2026-07-26 Improve ready, wave, pause, and game-over state feedback
+- 2026-07-26 Rebalance post-onboarding wave pressure, HP, bounty, and clear-bonus scaling
+- 2026-07-26 Fix concurrent spawners to use each spawner's wave scaling
+- 2026-07-26 Align specialist progression: Rapid 10, Sniper/Brute 20, Laser/Armored 30
+- 2026-07-26 Add progression regression tests and npm test script

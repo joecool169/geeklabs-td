@@ -4,45 +4,75 @@
 
 ### Entry and hosting
 
-- `index.html` owns the browser page shell, responsive CSS, branding panel, controls panel, and bottom tower strip container.
-- `src/main.js` creates one Phaser game using a `1080 × 730` logical canvas and `Phaser.Scale.FIT`.
+- `index.html` owns the browser page shell, branding/sidebar markup, placement context, selected-tower markup, and bottom tower strip container.
+- `src/style.css` owns page layout, responsive rules, tower-card states, sidebar panels, and DOM overlay styling.
+- `src/main.js` imports `src/style.css` and creates one Phaser game using a `1080 × 730` logical canvas with `Phaser.Scale.FIT`.
 - `src/scene.js` defines the primary `GameScene` and remains the orchestration center.
 
 ### Extracted modules
 
-- `src/constants.js` — tower and enemy definitions, target modes, shared helpers
+- `src/constants.js` — tower and enemy definitions, unlocks, target modes, shared helpers
 - `src/game/config.js` — grid, UI reservation, wave concurrency, and difficulty configuration
 - `src/game/utils.js` — geometry and placement utilities
-- `src/game/bullets.js` — deterministic projectile behavior
-- `src/game/enemies.js` — spawn, movement, and targeting helpers
+- `src/game/bullets.js` — deterministic projectile behavior and projectile visual signatures
+- `src/game/enemies.js` — spawn, scaling, movement, targeting, enemy visuals, and health indicators
 - `src/game/towers.js` — tier, upgrade, sell, and targeting-cycle helpers
-- `src/game/waves.js` — wave calculation, intermission, spawn, and completion state
-- `src/game/ui.js` — extracted UI helper behavior
+- `src/game/waves.js` — wave calculation, progression composition, intermission, spawn, and completion state
+- `src/game/ui.js` — DOM UI helper behavior and contextual state rendering
+
+### Tests
+
+- `npm test` runs Node's built-in test runner.
+- `test/progression.test.js` protects unlock milestones, enemy introduction waves, composition ramps, and Runner pack progression.
 
 ### Current strengths
 
 - Core definitions are data-driven.
+- Responsive page CSS is separated from HTML and uses centralized custom properties.
+- Phaser FIT scaling and the compact stage rule preserve pointer mapping.
 - Gameplay helpers have begun moving out of the scene.
 - Projectiles are manually resolved rather than depending on unstable physics overlap behavior.
 - Difficulty multipliers are centralized.
-- Desktop page chrome is separated from the Phaser canvas.
-- The game already has persistence, leaderboards, overlays, audio, and feedback.
+- The sidebar is contextual rather than duplicating tower selection.
+- Towers, enemies, range coverage, projectiles, impacts, and wave states are readable without external art assets.
+- Progression has regression tests.
 
 ### Current weaknesses
 
 - `src/scene.js` is still a large multi-responsibility file.
-- DOM overlay creation and styling are heavily embedded in JavaScript.
+- DOM overlay creation and styling remain partly embedded in JavaScript.
 - Input handling is tied directly to keys and pointer events instead of semantic game commands.
-- The desktop controls panel describes commands rather than acting as a reusable touch-control surface.
-- Layout rules are distributed between `index.html`, `src/style.css`, Phaser scaling, and scene-generated DOM overlays.
+- The desktop control legend is not yet a reusable touch-control surface.
 - Web API calls and leaderboard presentation are coupled to the scene.
 - There is no explicit platform abstraction for browser versus native lifecycle/storage/services.
+- Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
+
+## Current layout behavior
+
+### Wide desktop
+
+- stage, bottom strip, and sidebar form one centered composition
+- sidebar remains fixed-width
+- large-screen scaling remains separate from compact laptop behavior
+
+### Wide, short laptop
+
+- stage and bottom strip scale together
+- sidebar remains readable at normal size
+- fixed sidebar height prevents document growth during placement and tower management
+- validated on a MacBook at 100% browser zoom
+
+### Future mobile layouts
+
+- tablet / landscape phone: compact HUD, playfield, bottom tower bar, contextual tower actions
+- portrait phone: compact HUD, scaled playfield, horizontal tower carousel, contextual action bar
+- mobile must not depend on hover, right-click, or keyboard shortcuts
 
 ## Approved target direction
 
 The refactor should prepare one shared codebase for web and mobile. It should not become a full rewrite.
 
-A reasonable target organization is:
+A reasonable target organization remains:
 
 ```text
 src/
@@ -97,33 +127,6 @@ Game code should consume semantic commands rather than raw device events:
 - `PAUSE`
 
 Keyboard, mouse, touch, and future controller input should map into those commands.
-
-## Responsive UI goal
-
-Support three deliberate layouts:
-
-### Wide desktop
-
-- HUD above playfield
-- playfield plus fixed-width sidebar
-- bottom tower strip
-- overall composition centered in the viewport
-
-### Tablet / landscape phone
-
-- compact HUD
-- playfield
-- bottom tower bar
-- contextual selected-tower actions
-
-### Portrait phone
-
-- compact HUD
-- scaled playfield
-- horizontal tower carousel
-- contextual action bar
-
-Mobile must not depend on hover, right-click, or keyboard shortcuts.
 
 ## Native direction
 

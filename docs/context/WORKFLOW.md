@@ -152,3 +152,25 @@ ssh arch-desktop 'cd ~/projects/geeklabs-td && git archive --format=zip --output
 ```
 
 Upload that archive to ChatGPT whenever the current code needs to be re-analyzed.
+
+## End-of-session context update
+
+When ChatGPT produces a documentation-only context patch, apply only the listed context files rather than extracting a stale full source snapshot over the repository.
+
+After applying:
+
+```bash
+cd ~/projects/geeklabs-td
+git status --short
+git diff -- AI_CONTEXT.md README.md CHANGELOG.md docs/context
+npm test
+npm run build
+```
+
+Commit the documentation update separately, push it, then generate the next authoritative full bundle from the resulting `HEAD`.
+
+Record the exact baseline in the bundle:
+
+```bash
+git rev-parse HEAD
+```

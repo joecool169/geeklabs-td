@@ -1,69 +1,86 @@
 # GeekLabs-TD
 
-GeekLabs-TD is a **fun-to-play tower defense game** developed as part of the GeekLabs sandbox.
+GeekLabs-TD is a mechanics-first tower defense game developed in the GeekLabs sandbox. The playable game is titled **Defense Protocol**.
 
-The current focus is **gameplay and mechanics**, not graphics or visual polish.
+A live version is hosted at <https://td.geekstreet.tv>.
 
-## Project Vision
+## Current direction
 
-GeekLabs-TD exists as a mechanics-first tower defense project where ideas can be tested, refined, and iterated quickly. The goal is to build a tower defense experience that feels good to play before investing time into art, animation, or presentation.
+The project now has a coherent responsive desktop/laptop presentation and is moving through balance/progression validation before a staged mobile-readiness refactor.
 
-A playable demo is currently hosted at <https://td.geekstreet.tv>
+Design priorities:
 
-## Design Priorities
+- long-form endless play
+- gentle early onboarding
+- gradually increasing strategic pressure
+- readable tower/enemy roles
+- meaningful choices among placement, buying, upgrading, and saving
+- one Phaser/Vite core for web and a future native wrapper
 
-- Responsive and satisfying core gameplay
-- Clear, readable mechanics
-- Depth through systems rather than visuals
-- Fast iteration and experimentation
+## Current features
 
-Graphics are intentionally minimal at this stage so development effort can focus on balance, pacing, player decision-making, and replayability.
+- responsive Phaser playfield with desktop and short-laptop layouts
+- grid-based tower placement
+- path-based enemy movement
+- wave-based spawning with concurrent wave support
+- Easy, Medium, and Hard modes
+- Basic, Rapid, Sniper, and Laser towers
+- tower upgrades, selling, and targeting modes
+- Runner, Brute, and Armored enemy progression
+- distinct tower, enemy, projectile, impact, health, and range visuals
+- contextual placement and selected-tower sidebar panels
+- local and optional global leaderboards
+- start, pause, wave-state, and game-over presentation
+- regression tests for progression milestones
+- static deployment through Nginx
 
-## Current Features
+## Progression milestones
 
-- Grid-based tower placement
-- Path-based enemy movement
-- Wave-based spawning with multiple enemy types
-- Manual wave start/skip during intermission (SPACE)
-- Automatic tower targeting and firing with selectable targeting modes
-- Deterministic projectile system (no physics instability)
-- Multiple tower types (Basic/Rapid/Sniper)
-- Tower upgrades (Tier 1–3)
-- Score system based on kills and economy
-- Pause (P)
+- Basic: wave 1
+- Rapid: wave 10
+- Sniper: wave 20
+- Laser: wave 30
+- Brutes begin: wave 20
+- Armored enemies begin: wave 30
 
 ## Controls
 
-- 1 / 2 / 3: Select tower type
-- T: Toggle placement mode
-- Left click: Place (when placing) / Select tower
-- Right click: Cancel placement / Sell selected tower
-- U: Upgrade selected tower
-- X: Sell selected tower
-- F: Cycle targeting mode
-- SPACE: Start next wave immediately (during intermission)
-- P: Pause / resume
-- Esc: Cancel placement / deselect (and resume if paused)
+- `1 / 2 / 3 / 4`: select a tower and enter placement mode
+- `T`: toggle placement mode
+- Left click: place or select
+- Right click: cancel placement or sell selected tower contextually
+- `U` or Shift-click: upgrade selected tower
+- `X`: sell selected tower
+- `F`: cycle targeting mode
+- `Space`: start an available wave
+- `P`: pause or resume
+- `Esc`: cancel, deselect, or resume contextually
 
-## Tech Stack
+## Development commands
+
+```bash
+npm run dev
+npm test
+npm run build
+npm run deploy
+```
+
+## Tech stack
 
 - Phaser 3
 - Vite
-- JavaScript
-- Static deployment via Nginx
+- modern JavaScript modules
+- Node built-in test runner
+- static Nginx deployment
 
-## Development Philosophy
+## Development philosophy
 
-GeekLabs-TD is a homelab project:
-
-- Mechanics first
-- Visual polish later
-- Small, controlled changes
-- Frequent testing
-- Easy to deploy and share builds for feedback
-
-Once the gameplay foundation is solid, visual style, effects, audio, and UI polish will be layered in deliberately.
+- make one coherent change at a time
+- verify visually and with tests/builds
+- keep balance changes separate from structural refactors
+- use playtest evidence before changing progression or tower value
+- keep the web game free and evaluate a polished mobile edition later
 
 ## License
 
-See LICENSE.
+See `LICENSE`.
