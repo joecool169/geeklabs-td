@@ -1727,7 +1727,22 @@ export class GameScene extends Phaser.Scene {
     this.rangeRing.clear();
     this.rangeRing.lineStyle(2, color, 0.9);
     this.rangeRing.strokeCircle(tower.x, tower.y, tower.range);
+    this.drawSelectionAccent(tower.x, tower.y, color);
     this.rangeRing.setVisible(true);
+  }
+
+  drawSelectionAccent(x, y, color) {
+    const outer = 18;
+    const inner = 12;
+    this.rangeRing.lineStyle(2, color, 0.95);
+    this.rangeRing.lineBetween(x - outer, y - outer, x - inner, y - outer);
+    this.rangeRing.lineBetween(x - outer, y - outer, x - outer, y - inner);
+    this.rangeRing.lineBetween(x + inner, y - outer, x + outer, y - outer);
+    this.rangeRing.lineBetween(x + outer, y - outer, x + outer, y - inner);
+    this.rangeRing.lineBetween(x - outer, y + outer, x - inner, y + outer);
+    this.rangeRing.lineBetween(x - outer, y + inner, x - outer, y + outer);
+    this.rangeRing.lineBetween(x + inner, y + outer, x + outer, y + outer);
+    this.rangeRing.lineBetween(x + outer, y + inner, x + outer, y + outer);
   }
 
   hideRangeRing() {
@@ -1735,32 +1750,85 @@ export class GameScene extends Phaser.Scene {
     this.rangeRing.clear();
   }
 
+  drawTowerTexture(g, type) {
+    const dark = 0x0b0f14;
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.lineStyle(2, dark, 1);
+
+    if (type === "rapid") {
+      g.fillRect(9, 3, 6, 13);
+      g.strokeRect(9, 3, 6, 13);
+      g.fillRect(19, 3, 6, 13);
+      g.strokeRect(19, 3, 6, 13);
+      g.fillCircle(17, 20, 11);
+      g.strokeCircle(17, 20, 11);
+      g.fillStyle(dark, 1);
+      g.fillRect(11, 5, 2, 8);
+      g.fillRect(21, 5, 2, 8);
+      g.fillCircle(17, 20, 3);
+      return;
+    }
+
+    if (type === "sniper") {
+      g.fillRect(15, 1, 4, 19);
+      g.strokeRect(15, 1, 4, 19);
+      g.fillRect(10, 5, 14, 4);
+      g.strokeRect(10, 5, 14, 4);
+      g.fillCircle(17, 22, 9);
+      g.strokeCircle(17, 22, 9);
+      g.fillStyle(dark, 1);
+      g.fillCircle(17, 22, 3);
+      return;
+    }
+
+    if (type === "laser") {
+      g.fillTriangle(17, 2, 5, 17, 17, 32);
+      g.fillTriangle(17, 2, 29, 17, 17, 32);
+      g.lineBetween(17, 2, 5, 17);
+      g.lineBetween(5, 17, 17, 32);
+      g.lineBetween(17, 32, 29, 17);
+      g.lineBetween(29, 17, 17, 2);
+      g.fillStyle(dark, 1);
+      g.fillTriangle(17, 8, 11, 17, 17, 26);
+      g.fillTriangle(17, 8, 23, 17, 17, 26);
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(17, 17, 3);
+      return;
+    }
+
+    g.fillRect(12, 3, 10, 8);
+    g.strokeRect(12, 3, 10, 8);
+    g.fillRect(5, 9, 24, 22);
+    g.strokeRect(5, 9, 24, 22);
+    g.fillStyle(dark, 1);
+    g.fillRect(10, 14, 14, 12);
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(17, 20, 4);
+  }
+
   makeTextures() {
-    if (this.textures.exists("tower") && this.textures.exists("tower_rapid")) return;
     const g = this.add.graphics();
-    g.clear();
-    g.fillStyle(0xffffff, 1);
-    g.fillRect(0, 0, 30, 30);
-    g.lineStyle(2, 0x0b0f14, 1);
-    g.strokeRect(0, 0, 30, 30);
-    g.generateTexture("tower", 30, 30);
+    for (const type of Object.keys(TOWER_DEFS)) {
+      const key = this.getTowerTextureKey(type);
+      if (this.textures.exists(key)) continue;
+      this.drawTowerTexture(g, type);
+      g.generateTexture(key, 34, 34);
+    }
 
-    g.clear();
-    g.fillStyle(0xffffff, 1);
-    g.fillCircle(15, 15, 15);
-    g.lineStyle(2, 0x0b0f14, 1);
-    g.strokeCircle(15, 15, 15);
-    g.generateTexture("tower_rapid", 30, 30);
+    if (!this.textures.exists("enemy")) {
+      g.clear();
+      g.fillStyle(0xff4d6d, 1);
+      g.fillRect(0, 0, 24, 24);
+      g.generateTexture("enemy", 24, 24);
+    }
 
-    g.clear();
-    g.fillStyle(0xff4d6d, 1);
-    g.fillRect(0, 0, 24, 24);
-    g.generateTexture("enemy", 24, 24);
-
-    g.clear();
-    g.fillStyle(0xffffff, 1);
-    g.fillCircle(4, 4, 4);
-    g.generateTexture("bullet", 8, 8);
+    if (!this.textures.exists("bullet")) {
+      g.clear();
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(4, 4, 4);
+      g.generateTexture("bullet", 8, 8);
+    }
     g.destroy();
   }
 
@@ -1823,7 +1891,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   getTowerTextureKey(type) {
-    return type === "rapid" ? "tower_rapid" : "tower";
+    return `tower_${type}`;
   }
 
   canPlaceTowerAt(x, y) {
@@ -1858,18 +1926,6 @@ export class GameScene extends Phaser.Scene {
     const tier0 = def.tiers[0];
     this.money -= tier0.cost;
     const img = this.add.image(x, y, this.getTowerTextureKey(def.key));
-    let badge = null;
-    if (def.key === "sniper") {
-      badge = this.add.text(x, y, "S", {
-        fontFamily: "monospace",
-        fontSize: "16px",
-        color: "#0b0f14",
-        backgroundColor: "#ffc857",
-        padding: { x: 4, y: 2 },
-      });
-      badge.setOrigin(0.5, 0.5);
-      badge.setDepth(img.depth + 1);
-    }
     const t = {
       x,
       y,
@@ -1882,7 +1938,7 @@ export class GameScene extends Phaser.Scene {
       spent: tier0.cost,
       targetMode: def.defaultTargetMode ?? "first",
       sprite: img,
-      badge,
+      badge: null,
     };
     if (def.key === "laser") {
       t.beamTickMs = tier0.fireMs;
