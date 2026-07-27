@@ -12,7 +12,7 @@ import * as Enemies from "./game/enemies.js";
 import * as UI from "./game/ui.js";
 import * as Towers from "./game/towers.js";
 import * as Waves from "./game/waves.js";
-import { TOWER_DEFS } from "./constants.js";
+import { ENEMY_DEFS, TOWER_DEFS } from "./constants.js";
 
 const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "defense_protocol_difficulty_v1";
@@ -1530,6 +1530,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies.children.iterate((e) => {
       if (!e) return;
       Enemies.advanceEnemy.call(this, e, dt);
+      Enemies.updateEnemyVisual(e);
     });
 
     this.updateWaveSpawning(time);
@@ -1816,11 +1817,11 @@ export class GameScene extends Phaser.Scene {
       g.generateTexture(key, 34, 34);
     }
 
-    if (!this.textures.exists("enemy")) {
-      g.clear();
-      g.fillStyle(0xff4d6d, 1);
-      g.fillRect(0, 0, 24, 24);
-      g.generateTexture("enemy", 24, 24);
+    for (const type of Object.keys(ENEMY_DEFS)) {
+      const key = Enemies.getEnemyTextureKey(type);
+      if (this.textures.exists(key)) continue;
+      Enemies.drawEnemyTexture(g, type);
+      g.generateTexture(key, 24, 24);
     }
 
     if (!this.textures.exists("bullet")) {
