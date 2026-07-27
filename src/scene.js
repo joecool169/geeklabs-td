@@ -1855,11 +1855,48 @@ export class GameScene extends Phaser.Scene {
       g.generateTexture(key, 24, 24);
     }
 
-    if (!this.textures.exists("bullet")) {
+    if (!this.textures.exists("projectile_basic")) {
       g.clear();
       g.fillStyle(0xffffff, 1);
-      g.fillCircle(4, 4, 4);
-      g.generateTexture("bullet", 8, 8);
+      g.fillRoundedRect(0, 1, 10, 4, 2);
+      g.generateTexture("projectile_basic", 10, 6);
+    }
+    if (!this.textures.exists("projectile_rapid")) {
+      g.clear();
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 1, 6, 2);
+      g.generateTexture("projectile_rapid", 6, 4);
+    }
+    if (!this.textures.exists("impact_basic")) {
+      g.clear();
+      g.lineStyle(2, 0xffffff, 0.9);
+      g.strokeCircle(6, 6, 4);
+      g.generateTexture("impact_basic", 12, 12);
+    }
+    if (!this.textures.exists("impact_rapid")) {
+      g.clear();
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(2, 0, 2, 6);
+      g.generateTexture("impact_rapid", 6, 6);
+    }
+    if (!this.textures.exists("impact_sniper")) {
+      g.clear();
+      g.lineStyle(1, 0xffffff, 1);
+      g.lineBetween(1, 7, 13, 7);
+      g.lineBetween(7, 1, 7, 13);
+      g.strokeCircle(7, 7, 3);
+      g.generateTexture("impact_sniper", 14, 14);
+    }
+    if (!this.textures.exists("impact_laser")) {
+      g.clear();
+      g.lineStyle(1, 0xffffff, 1);
+      g.lineBetween(5, 1, 9, 5);
+      g.lineBetween(9, 5, 5, 9);
+      g.lineBetween(5, 9, 1, 5);
+      g.lineBetween(1, 5, 5, 1);
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(5, 5, 1);
+      g.generateTexture("impact_laser", 10, 10);
     }
     g.destroy();
   }
@@ -2046,7 +2083,9 @@ export class GameScene extends Phaser.Scene {
 
     if (tower.beam) {
       tower.beam.clear();
-      tower.beam.lineStyle(2, 0xff9cf2, 0.55);
+      tower.beam.lineStyle(3, 0xff6bff, 0.18);
+      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
+      tower.beam.lineStyle(1, 0xffd1ff, 0.85);
       tower.beam.lineBetween(tower.x, tower.y, endX, endY);
       tower.beam.setVisible(true);
     }
@@ -2100,6 +2139,13 @@ export class GameScene extends Phaser.Scene {
       const base = tower.damage * ramp * Math.pow(falloff, i);
       const armor = enemy.armor || 0;
       const dmg = Math.max(1, Math.floor(base) - armor);
+      Bullets.showHitEffect(
+        this,
+        "laser",
+        enemy.x,
+        enemy.y,
+        tower.sprite?.tintTopLeft ?? 0xff6bff
+      );
       enemy.hp -= dmg;
       if (enemy.hp <= 0) this.handleEnemyKilled(enemy);
     }
