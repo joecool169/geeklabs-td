@@ -2,6 +2,111 @@ import { clamp01, ENEMY_DEFS } from "../constants.js";
 import { DIFFICULTY_CONFIG } from "./config.js";
 import { dist2 } from "./utils.js";
 
+const ENEMY_DEPTH = 20;
+const ENEMY_HEALTH_DEPTH = 21;
+const ENEMY_HEALTH_WIDTH = 20;
+const ENEMY_HEALTH_Y = -17;
+
+function getEnemyTextureKey(typeKey) {
+  return `enemy_${ENEMY_DEFS[typeKey] ? typeKey : "runner"}`;
+}
+
+function drawEnemyTexture(graphics, typeKey) {
+  const dark = 0x0b0f14;
+  graphics.clear();
+  graphics.fillStyle(0xffffff, 1);
+
+  if (typeKey === "brute") {
+    graphics.fillPoints(
+      [
+        { x: 5, y: 1 },
+        { x: 19, y: 1 },
+        { x: 23, y: 5 },
+        { x: 23, y: 19 },
+        { x: 19, y: 23 },
+        { x: 5, y: 23 },
+        { x: 1, y: 19 },
+        { x: 1, y: 5 },
+      ],
+      true
+    );
+    graphics.fillStyle(dark, 1);
+    graphics.fillRect(6, 6, 12, 12);
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillRect(9, 9, 6, 6);
+    return;
+  }
+
+  if (typeKey === "armored") {
+    graphics.fillRect(0, 7, 4, 10);
+    graphics.fillRect(20, 7, 4, 10);
+    graphics.fillPoints(
+      [
+        { x: 12, y: 1 },
+        { x: 21, y: 5 },
+        { x: 21, y: 15 },
+        { x: 17, y: 21 },
+        { x: 12, y: 23 },
+        { x: 7, y: 21 },
+        { x: 3, y: 15 },
+        { x: 3, y: 5 },
+      ],
+      true
+    );
+    graphics.fillStyle(dark, 1);
+    graphics.fillRect(4, 9, 16, 2);
+    graphics.fillRect(5, 15, 14, 2);
+    return;
+  }
+
+  graphics.fillPoints(
+    [
+      { x: 5, y: 5 },
+      { x: 12, y: 8 },
+      { x: 12, y: 3 },
+      { x: 23, y: 12 },
+      { x: 12, y: 21 },
+      { x: 12, y: 16 },
+      { x: 5, y: 19 },
+      { x: 8, y: 12 },
+    ],
+    true
+  );
+}
+
+function updateEnemyVisual(e) {
+  if (!e?.active || !e.healthIndicator?.active) return;
+  const indicator = e.healthIndicator;
+  indicator.setPosition(e.x, e.y);
+
+  if (e.healthIndicatorHp === e.hp && e.healthIndicatorMaxHp === e.maxHp) return;
+  e.healthIndicatorHp = e.hp;
+  e.healthIndicatorMaxHp = e.maxHp;
+
+  const ratio = clamp01(e.hp / Math.max(1, e.maxHp));
+  indicator.clear();
+  if (ratio >= 1) {
+    indicator.setVisible(false);
+    return;
+  }
+
+  indicator.setVisible(true);
+  indicator.fillStyle(0x0b0f14, 0.9);
+  indicator.fillRect(
+    -ENEMY_HEALTH_WIDTH / 2 - 1,
+    ENEMY_HEALTH_Y - 1,
+    ENEMY_HEALTH_WIDTH + 2,
+    4
+  );
+  indicator.fillStyle(ENEMY_DEFS[e.typeKey]?.tint ?? 0xff4d6d, 1);
+  indicator.fillRect(
+    -ENEMY_HEALTH_WIDTH / 2,
+    ENEMY_HEALTH_Y,
+    Math.max(1, Math.ceil(ENEMY_HEALTH_WIDTH * ratio)),
+    2
+  );
+}
+
 function pickWeighted(rng01, entries) {
   const total = entries.reduce((s, e) => s + e.w, 0);
   if (total <= 0) return entries[0]?.key;
@@ -16,7 +121,8 @@ function pickWeighted(rng01, entries) {
 function spawnEnemyOfType(typeKey, opts = {}) {
   const def = ENEMY_DEFS[typeKey] || ENEMY_DEFS.runner;
   const start = this.path[0];
-  const e = this.physics.add.image(start.x, start.y, "enemy");
+  const e = this.physics.add.image(start.x, start.y, getEnemyTextureKey(def.key));
+  e.setDepth(ENEMY_DEPTH);
   e.setCollideWorldBounds(false);
   e.body.setAllowGravity(false);
   const w = Math.max(1, this.wave);
@@ -36,6 +142,14 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.scoreWeight = def.scoreWeight ?? 1;
   e.pathIndex = 0;
   e.isSwarm = !!opts.isSwarm;
+  e.healthIndicator = this.add.graphics();
+  e.healthIndicator.setDepth(ENEMY_HEALTH_DEPTH);
+  e.healthIndicator.setVisible(false);
+  e.once("destroy", () => {
+    if (e.healthIndicator?.active) e.healthIndicator.destroy();
+    e.healthIndicator = null;
+  });
+  updateEnemyVisual(e);
   this.enemies.add(e);
   return e;
 }
@@ -120,4 +234,13 @@ function findTarget(tower, mode) {
   return best;
 }
 
-export { pickWeighted, spawnEnemyOfType, advanceEnemy, enemyProgressScore, findTarget };
+export {
+  getEnemyTextureKey,
+  drawEnemyTexture,
+  updateEnemyVisual,
+  pickWeighted,
+  spawnEnemyOfType,
+  advanceEnemy,
+  enemyProgressScore,
+  findTarget,
+};
