@@ -4,10 +4,17 @@ body {
   color: #dbe7ff;
 }
 :root {
+  --stage-width: 1080px;
+  --playfield-height: 730px;
+  --stage-aspect-ratio: 1080 / 730;
   --stage-gap: 12px;
-  --bottom-bar-h: 64px;
+  --bottom-bar-height: 64px;
+  --layout-gap: 24px;
+  --page-padding: 24px;
+  --sidebar-width: 240px;
+  --compact-stage-scale: 0.9;
+  --large-screen-scale: 1.55;
   --ui-scale: 1;
-  --sidebar-w: 240px;
   --ui-font: 12px;
   --ui-font-sm: 10px;
   --ui-font-lg: 14px;
@@ -16,8 +23,8 @@ body {
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
-  gap: 24px;
-  padding: 24px;
+  gap: var(--layout-gap);
+  padding: var(--page-padding);
   box-sizing: border-box;
   flex-wrap: nowrap;
 }
@@ -26,13 +33,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--stage-gap);
-  width: 1080px;
+  width: var(--stage-width);
 }
 #app {
   flex: 0 0 auto;
   position: relative;
-  width: 1080px;
-  height: 730px;
+  width: var(--stage-width);
+  height: var(--playfield-height);
 }
 
 #app canvas {
@@ -41,7 +48,7 @@ body {
   height: 100%;
 }
 #bottom-bar {
-  height: var(--bottom-bar-h);
+  height: var(--bottom-bar-height);
   border: 1px solid #1a2a3d;
   border-radius: 10px;
   background: rgba(11, 15, 20, 0.95);
@@ -96,9 +103,9 @@ body {
   background: rgba(15, 22, 35, 0.9);
 }
 #brand-panel {
-  flex: 0 0 var(--sidebar-w);
-  width: var(--sidebar-w);
-  max-width: var(--sidebar-w);
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -387,14 +394,16 @@ body {
 }
 @media (min-width: 1320px) and (max-height: 899px) {
   #stage {
-    --stage-gap: 10.8px;
-    --bottom-bar-h: 57.6px;
-    --ui-scale: 0.9;
-    width: 972px;
+    --ui-scale: var(--compact-stage-scale);
+    gap: calc(var(--stage-gap) * var(--compact-stage-scale));
+    width: calc(var(--stage-width) * var(--compact-stage-scale));
   }
   #app {
-    width: 972px;
-    height: 657px;
+    width: calc(var(--stage-width) * var(--compact-stage-scale));
+    height: calc(var(--playfield-height) * var(--compact-stage-scale));
+  }
+  #bottom-bar {
+    height: calc(var(--bottom-bar-height) * var(--compact-stage-scale));
   }
 }
 @media (min-width: 1440px) {
@@ -404,9 +413,9 @@ body {
 }
 @media (min-width: 1600px) and (min-height: 900px) {
   :root {
-    --ui-scale: 1.55;
-    --sidebar-w: 360px;
-    --bottom-bar-h: 112px;
+    --ui-scale: var(--large-screen-scale);
+    --sidebar-width: 360px;
+    --bottom-bar-height: 112px;
     --ui-font: 13px;
     --ui-font-sm: 11px;
   }
@@ -421,9 +430,9 @@ body {
   }
   #app {
     width: auto;
-    height: calc(100vh - 24px * 2 - var(--bottom-bar-h) - var(--stage-gap));
-    aspect-ratio: 1080 / 730;
-    max-width: calc(100vw - 24px * 2 - var(--sidebar-w) - 24px);
-    max-height: calc(100vh - 24px * 2 - var(--bottom-bar-h) - var(--stage-gap));
+    height: calc(100vh - var(--page-padding) * 2 - var(--bottom-bar-height) - var(--stage-gap));
+    aspect-ratio: var(--stage-aspect-ratio);
+    max-width: calc(100vw - var(--page-padding) * 2 - var(--sidebar-width) - var(--layout-gap));
+    max-height: calc(100vh - var(--page-padding) * 2 - var(--bottom-bar-height) - var(--stage-gap));
   }
 }
