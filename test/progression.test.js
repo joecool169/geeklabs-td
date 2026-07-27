@@ -17,16 +17,19 @@ test("specialist towers unlock at their progression milestones", () => {
   assert.equal(TOWER_DEFS.laser.unlockWave, 30);
 });
 
-test("waves before 20 remain Runner-only", () => {
-  for (let wave = 1; wave < 20; wave += 1) {
+test("waves before the Brute unlock remain Runner-only", () => {
+  for (let wave = 1; wave < ENEMY_DEFS.brute.unlockWave; wave += 1) {
     assert.deepEqual(weightMap(wave), { runner: 1.6 });
   }
 });
 
-test("Brutes arrive with Sniper and ramp gradually", () => {
-  assert.deepEqual(weightMap(20), { runner: 1.6, brute: 0.35 });
-  assert.ok(Math.abs(weightMap(25).brute - 0.775) < Number.EPSILON);
-  assert.equal(weightMap(30).brute, 1.2);
+test("Brutes first appear on wave 22 and ramp gradually", () => {
+  assert.equal(ENEMY_DEFS.brute.unlockWave, 22);
+  assert.deepEqual(weightMap(20), { runner: 1.6 });
+  assert.deepEqual(weightMap(21), { runner: 1.6 });
+  assert.deepEqual(weightMap(22), { runner: 1.6, brute: 0.35 });
+  assert.ok(Math.abs(weightMap(27).brute - 0.775) < Number.EPSILON);
+  assert.equal(weightMap(32).brute, 1.2);
   assert.equal(weightMap(50).brute, 1.2);
   assert.equal(weightMap(29).armored, undefined);
 });
@@ -64,13 +67,13 @@ test("Brute HP class scaling starts at zero on its unlock wave", () => {
       DIFFICULTY_CONFIG.hard.enemyHpMul *
       2 *
       1.225 *
-      Math.pow(1.03, 8)
+      Math.pow(1.03, 10)
   );
 
-  assert.equal(computeEnemyHp(def, 20, DIFFICULTY_CONFIG.hard), expected);
+  assert.equal(computeEnemyHp(def, 22, DIFFICULTY_CONFIG.hard), expected);
 });
 
-test("Brute HP receives one wave of class scaling at wave 21", () => {
+test("Brute HP receives one wave of class scaling at wave 23", () => {
   const def = ENEMY_DEFS.brute;
   const expected = Math.floor(
     def.baseHp *
@@ -78,10 +81,10 @@ test("Brute HP receives one wave of class scaling at wave 21", () => {
       DIFFICULTY_CONFIG.hard.enemyHpMul *
       2 *
       1.225 *
-      Math.pow(1.03, 9)
+      Math.pow(1.03, 11)
   );
 
-  assert.equal(computeEnemyHp(def, 21, DIFFICULTY_CONFIG.hard), expected);
+  assert.equal(computeEnemyHp(def, 23, DIFFICULTY_CONFIG.hard), expected);
 });
 
 test("wave-1 Runner HP behavior remains unchanged", () => {

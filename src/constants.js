@@ -73,7 +73,7 @@ const ENEMY_DEFS = {
   brute: {
     key: "brute",
     name: "Brute",
-    unlockWave: 20,
+    unlockWave: 22,
     tint: 0xb54dff,
     baseHp: 70,
     baseSpeed: 52,

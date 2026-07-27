@@ -1,12 +1,13 @@
-import { clamp01 } from "../constants.js";
+import { clamp01, ENEMY_DEFS } from "../constants.js";
 import { pickWeighted } from "./enemies.js";
 
 function computeWaveConfig(wave) {
   const w = Math.max(1, wave);
   const rawTotal = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
   const weights = [{ key: "runner", w: 1.6 }];
-  if (w >= 20) {
-    const bruteW = 0.35 + clamp01((w - 20) / 10) * 0.85;
+  const bruteUnlockWave = ENEMY_DEFS.brute.unlockWave;
+  if (w >= bruteUnlockWave) {
+    const bruteW = 0.35 + clamp01((w - bruteUnlockWave) / 10) * 0.85;
     weights.push({ key: "brute", w: bruteW });
   }
   if (w >= 30) {
