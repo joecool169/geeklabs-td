@@ -187,7 +187,7 @@ body {
   color: #9fb2cc;
   margin-bottom: 6px;
 }
-#build-menu {
+#placement-context {
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
@@ -196,40 +196,28 @@ body {
   font-size: calc(11px * var(--ui-scale));
   text-align: left;
 }
-#build-menu-title {
+#placement-context-title {
   font-size: calc(11px * var(--ui-scale));
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #9fb2cc;
+  color: rgba(57, 255, 143, 0.82);
   margin-bottom: 6px;
 }
-#build-menu-list {
+#placement-context-stats {
   display: grid;
   row-gap: 6px;
 }
-.build-slot {
+#placement-validity.is-valid {
+  color: rgba(57, 255, 143, 0.9);
+}
+#placement-validity.is-blocked {
+  color: #ff6b82;
+}
+#placement-instructions {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale));
-  border-radius: 6px;
-  border: 1px solid #2b3f5e;
-  background: #0f1623;
-  color: #dbe7ff;
-  font-size: calc(11px * var(--ui-scale));
-  font-weight: 700;
-  cursor: pointer;
-}
-.build-name {
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-.build-right {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  pointer-events: none;
+  gap: 10px;
+  color: rgba(219, 231, 255, 0.72);
 }
 .keycap {
   padding: calc(2px * var(--ui-scale)) calc(6px * var(--ui-scale));
@@ -241,35 +229,6 @@ body {
   font-weight: 700;
   min-width: 16px;
   text-align: center;
-}
-.build-meta {
-  color: rgba(219, 231, 255, 0.6);
-  font-size: calc(var(--ui-font-sm) * var(--ui-scale));
-  font-weight: 600;
-}
-.build-slot.just-unlocked {
-  animation: buildUnlockPulse 1.2s ease-out;
-  border-color: rgba(216, 169, 106, 0.7);
-  box-shadow: 0 0 0 1px rgba(216, 169, 106, 0.25);
-}
-@keyframes buildUnlockPulse {
-  0% {
-    box-shadow: 0 0 0 rgba(216, 169, 106, 0);
-  }
-  40% {
-    box-shadow: 0 0 14px rgba(216, 169, 106, 0.35);
-  }
-  100% {
-    box-shadow: 0 0 0 rgba(216, 169, 106, 0);
-  }
-}
-.build-label {
-  pointer-events: none;
-}
-.build-slot.is-locked {
-  opacity: 0.45;
-  filter: grayscale(1);
-  cursor: not-allowed;
 }
 #selected-tower-panel {
   width: 100%;

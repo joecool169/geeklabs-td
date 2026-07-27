@@ -151,11 +151,34 @@ function updateUI() {
     );
   }
 
-  if (this.buildMenuSectionEl) {
-    this.buildMenuSectionEl.style.display = this.isPlacing ? "block" : "none";
+  if (this.placementContextEl) {
+    this.placementContextEl.style.display = this.isPlacing ? "block" : "none";
   }
-  if ((this.buildMenuSlots || this.towerStripSlots) && this._buildMenuWave !== uiSnapshot.wave) {
-    this._buildMenuWave = uiSnapshot.wave;
+  if (this.isPlacing) {
+    const def = TOWER_DEFS[this.placeType] || TOWER_DEFS.basic;
+    const tier0 = def.tiers[0];
+    if (this.placementTowerNameEl && this.placementTowerNameEl.textContent !== def.name) {
+      this.placementTowerNameEl.textContent = def.name;
+    }
+    const costText = `$${tier0.cost}`;
+    if (this.placementTowerCostEl && this.placementTowerCostEl.textContent !== costText) {
+      this.placementTowerCostEl.textContent = costText;
+    }
+    const rangeText = `${tier0.range}`;
+    if (this.placementTowerRangeEl && this.placementTowerRangeEl.textContent !== rangeText) {
+      this.placementTowerRangeEl.textContent = rangeText;
+    }
+    if (this.placementValidityEl) {
+      const validityText = this.ghostValid ? "Valid" : "Blocked";
+      if (this.placementValidityEl.textContent !== validityText) {
+        this.placementValidityEl.textContent = validityText;
+      }
+      this.placementValidityEl.classList.toggle("is-valid", this.ghostValid);
+      this.placementValidityEl.classList.toggle("is-blocked", !this.ghostValid);
+    }
+  }
+  if (this.towerStripSlots && this._towerStripWave !== uiSnapshot.wave) {
+    this._towerStripWave = uiSnapshot.wave;
     const updateSlots = (slots) => {
       if (!slots) return;
       for (const slot of slots) {
@@ -183,7 +206,6 @@ function updateUI() {
         }
       }
     };
-    updateSlots(this.buildMenuSlots);
     updateSlots(this.towerStripSlots);
   }
 

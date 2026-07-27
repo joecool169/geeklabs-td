@@ -44,9 +44,19 @@
             </div>
           </div>
         </section>
-        <section id="build-menu" aria-label="Build menu">
-          <div id="build-menu-title">Build Menu</div>
-          <div id="build-menu-list"></div>
+        <section id="placement-context" aria-label="Placement status">
+          <div id="placement-context-title">Placement Active</div>
+          <div id="placement-context-stats">
+            <div class="tower-row"><span class="tower-label">Tower</span><span class="tower-value" id="placement-tower-name">—</span></div>
+            <div class="tower-row"><span class="tower-label">Cost</span><span class="tower-value" id="placement-tower-cost">—</span></div>
+            <div class="tower-row"><span class="tower-label">Range</span><span class="tower-value" id="placement-tower-range">—</span></div>
+            <div class="tower-row"><span class="tower-label">Placement</span><span class="tower-value" id="placement-validity" aria-live="polite">—</span></div>
+          </div>
+          <div class="tower-divider"></div>
+          <div id="placement-instructions">
+            <div>Click playfield to place</div>
+            <div><span class="control-key">Esc</span> to cancel</div>
+          </div>
         </section>
         <section id="selected-tower-panel" aria-label="Selected tower">
           <div id="selected-tower-title">Selected Tower</div>

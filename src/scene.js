@@ -461,38 +461,11 @@ export class GameScene extends Phaser.Scene {
     this.selectedTowerSellBtnEl = document.getElementById("tower-sell-btn");
     this.selectedTowerTargetBtnEl = document.getElementById("tower-target-btn");
     this.buildTowerDefs = Object.values(TOWER_DEFS).sort((a, b) => Number(a.hotkey) - Number(b.hotkey));
-    this.buildMenuSectionEl = document.getElementById("build-menu");
-    this.buildMenuEl = document.getElementById("build-menu-list");
-    this.buildMenuSlots = [];
-    if (this.buildMenuEl) {
-      this.buildMenuEl.innerHTML = "";
-      for (const def of this.buildTowerDefs) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "build-slot";
-        btn.dataset.towerKey = def.key;
-        const name = document.createElement("span");
-        name.className = "build-name";
-        name.textContent = def.name;
-        const right = document.createElement("span");
-        right.className = "build-right";
-        const keycap = document.createElement("span");
-        keycap.className = "keycap";
-        keycap.textContent = def.hotkey;
-        const meta = document.createElement("span");
-        meta.className = "build-meta";
-        right.appendChild(keycap);
-        right.appendChild(meta);
-        btn.appendChild(name);
-        btn.appendChild(right);
-        btn.addEventListener("click", () => {
-          if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-          this.trySetPlaceType(def.key);
-        });
-        this.buildMenuEl.appendChild(btn);
-        this.buildMenuSlots.push({ def, el: btn, metaEl: meta, wasLocked: null });
-      }
-    }
+    this.placementContextEl = document.getElementById("placement-context");
+    this.placementTowerNameEl = document.getElementById("placement-tower-name");
+    this.placementTowerCostEl = document.getElementById("placement-tower-cost");
+    this.placementTowerRangeEl = document.getElementById("placement-tower-range");
+    this.placementValidityEl = document.getElementById("placement-validity");
     this.towerStripEl = document.getElementById("tower-strip");
     this.towerStripSlots = [];
     if (this.towerStripEl) {
