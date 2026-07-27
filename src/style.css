@@ -244,11 +244,21 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #9fb2cc;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
+}
+#tower-name {
+  color: #f1f6ff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 #selected-tower-stats {
   display: grid;
-  row-gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin-top: 6px;
+}
+#selected-tower-stats .tower-row {
+  column-gap: 6px;
 }
 .tower-divider {
   height: 1px;
@@ -274,12 +284,19 @@ body {
 }
 #selected-tower-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-top: 8px;
 }
+#tower-target-btn {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+}
 .tower-action {
-  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  display: grid;
+  row-gap: 2px;
+  padding: calc(7px * var(--ui-scale)) calc(10px * var(--ui-scale));
   border-radius: 6px;
   border: 1px solid #2b3f5e;
   background: #0f1623;
@@ -287,6 +304,11 @@ body {
   font-size: calc(12px * var(--ui-scale));
   font-weight: 700;
   cursor: pointer;
+}
+.tower-action-value {
+  color: rgba(219, 231, 255, 0.72);
+  font-size: calc(11px * var(--ui-scale));
+  font-variant-numeric: tabular-nums;
 }
 .tower-action:disabled {
   opacity: 0.5;

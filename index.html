@@ -60,21 +60,26 @@
         </section>
         <section id="selected-tower-panel" aria-label="Selected tower">
           <div id="selected-tower-title">Selected Tower</div>
+          <div id="tower-name">—</div>
           <div id="selected-tower-stats">
-            <div class="tower-row"><span class="tower-label">Name</span><span class="tower-value" id="tower-name">—</span></div>
-            <div class="tower-row"><span class="tower-label">Target</span><span class="tower-value" id="tower-target">—</span></div>
             <div class="tower-row"><span class="tower-label">DMG</span><span class="tower-value" id="tower-dmg">—</span></div>
             <div class="tower-row"><span class="tower-label">Fire</span><span class="tower-value" id="tower-fire">—</span></div>
             <div class="tower-row"><span class="tower-label">Range</span><span class="tower-value" id="tower-range">—</span></div>
             <div class="tower-row"><span class="tower-label">DPS</span><span class="tower-value" id="tower-dps">—</span></div>
-            <div class="tower-divider"></div>
-            <div class="tower-row"><span class="tower-label">Upgrade</span><span class="tower-value" id="tower-upgrade">—</span></div>
-            <div class="tower-row"><span class="tower-label">Sell</span><span class="tower-value" id="tower-sell">—</span></div>
           </div>
           <div id="selected-tower-actions">
-            <button id="tower-upgrade-btn" class="tower-action" type="button">Upgrade (U)</button>
-            <button id="tower-sell-btn" class="tower-action" type="button">Sell (X)</button>
-            <button id="tower-target-btn" class="tower-action" type="button">Target (F)</button>
+            <button id="tower-target-btn" class="tower-action" type="button">
+              <span>Target (F)</span>
+              <span class="tower-action-value" id="tower-target">—</span>
+            </button>
+            <button id="tower-upgrade-btn" class="tower-action" type="button">
+              <span>Upgrade (U)</span>
+              <span class="tower-action-value" id="tower-upgrade">—</span>
+            </button>
+            <button id="tower-sell-btn" class="tower-action" type="button">
+              <span>Sell (X)</span>
+              <span class="tower-action-value" id="tower-sell">—</span>
+            </button>
           </div>
         </section>
         <div id="brand-footer">
