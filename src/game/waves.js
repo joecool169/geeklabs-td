@@ -3,8 +3,7 @@ import { pickWeighted } from "./enemies.js";
 
 function computeWaveConfig(wave) {
   const w = Math.max(1, wave);
-  const total = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
-  const spawnDelayMs = Math.max(280, 700 - w * 16);
+  const rawTotal = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
   const bruteW = clamp01((w - 10) / 10) * 0.9;
   const armoredW = clamp01((w - 20) / 10) * 0.8;
   const weights = [{ key: "runner", w: 1.6 }];
@@ -14,10 +13,26 @@ function computeWaveConfig(wave) {
   const packSize = Math.min(6, 2 + Math.floor(w / 4));
   const t = clamp01((w - 1) / 9);
   const countMul = 1 - 0.5 * t;
-  const reducedTotal = Math.max(6, Math.floor(total * countMul));
+  const reducedTotal = Math.max(6, Math.floor(rawTotal * countMul));
+  const densityBonus =
+    w <= 3
+      ? 0
+      : Math.floor(
+          Math.min(6, (w - 3) * 1.5) +
+            Math.max(0, w - 7) * 0.8
+        );
+  const total = reducedTotal + densityBonus;
+  const pressureRamp = clamp01((w - 3) / 9);
+  const spawnDelayMs = Math.max(
+    260,
+    Math.floor(
+      Math.max(280, 700 - w * 16) *
+        (1 - 0.15 * pressureRamp)
+    )
+  );
   const reducedPackSize = Math.max(2, Math.floor(packSize * countMul));
   return {
-    total: reducedTotal,
+    total,
     spawnDelayMs,
     weights,
     packEvery,
@@ -90,7 +105,10 @@ function updateWaveSpawning(time) {
 
   for (const spawner of this.activeWaves) {
     if (spawner.swarmPacksRemaining > 0 && time >= spawner.swarmNextPackSpawnAt) {
-      this.spawnEnemyOfType("runner", { isSwarm: true });
+      this.spawnEnemyOfType("runner", {
+        isSwarm: true,
+        waveNumber: spawner.waveNumber,
+      });
       spawner.enemiesSpawned += 1;
       spawner.swarmPacksRemaining -= 1;
       spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
@@ -106,14 +124,17 @@ function updateWaveSpawning(time) {
 
     if (shouldPack) {
       const toSpawn = Math.min(cfg.packSize, spawner.enemiesTotal - spawner.enemiesSpawned);
-      this.spawnEnemyOfType("runner", { isSwarm: true });
+      this.spawnEnemyOfType("runner", {
+        isSwarm: true,
+        waveNumber: spawner.waveNumber,
+      });
       spawner.enemiesSpawned += 1;
       spawner.swarmPacksRemaining = Math.max(0, toSpawn - 1);
       spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
     } else {
       const r = Math.random();
       const type = pickWeighted.call(this, r, cfg.weights) || "runner";
-      this.spawnEnemyOfType(type);
+      this.spawnEnemyOfType(type, { waveNumber: spawner.waveNumber });
       spawner.enemiesSpawned += 1;
     }
 

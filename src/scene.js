@@ -1628,7 +1628,12 @@ export class GameScene extends Phaser.Scene {
         this.showWaveTransition(completionLabel, "positive", 1200);
         for (let i = 0; i < wavesCleared; i += 1) {
           const waveNum = this.blockWaveStart + i;
-          const clearBonus = 6 + Math.floor(waveNum * 1.5);
+          const clearBonus =
+            6 +
+            Math.floor(
+              1.5 * Math.min(waveNum, 12) +
+                0.5 * Math.max(0, waveNum - 12)
+            );
           this.money += clearBonus;
           this.score += clearBonus;
         }

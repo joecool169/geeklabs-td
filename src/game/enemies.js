@@ -125,7 +125,7 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.setDepth(ENEMY_DEPTH);
   e.setCollideWorldBounds(false);
   e.body.setAllowGravity(false);
-  const w = Math.max(1, this.wave);
+  const w = Math.max(1, opts.waveNumber ?? this.wave);
   const difficulty = this.difficulty || DIFFICULTY_CONFIG.easy;
   const hpMul = (1 + (w - 1) * (def.scaleHpPerWave ?? 0.12)) * difficulty.enemyHpMul;
   const spMul = (1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02)) * difficulty.enemySpeedMul;
@@ -133,12 +133,21 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.setTint(def.tint);
   const t = clamp01((w - 1) / 9);
   const hpFactor = 1 + 1.0 * t;
-  e.hp = Math.max(1, Math.floor(def.baseHp * hpMul * hpFactor));
+  const midPressure = 1 + 0.025 * Math.min(9, Math.max(0, w - 3));
+  const endurancePressure = Math.pow(1.03, Math.max(0, w - 12));
+  e.hp = Math.max(
+    1,
+    Math.floor(def.baseHp * hpMul * hpFactor * midPressure * endurancePressure)
+  );
   e.maxHp = e.hp;
   e.speed = Math.floor(def.baseSpeed * spMul);
   e.armor = def.armor || 0;
   const baseReward = def.reward || 8;
-  e.reward = Math.max(1, Math.floor(baseReward * difficulty.enemyRewardMul));
+  const bountyPressure = 1 / (1 + 0.035 * Math.max(0, w - 3));
+  e.reward = Math.max(
+    1,
+    Math.floor(baseReward * difficulty.enemyRewardMul * bountyPressure)
+  );
   e.scoreWeight = def.scoreWeight ?? 1;
   e.pathIndex = 0;
   e.isSwarm = !!opts.isSwarm;
