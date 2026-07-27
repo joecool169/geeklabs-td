@@ -18,9 +18,9 @@ const TOWER_DEFS = {
     hotkey: "2",
     unlockWave: 10,
     tiers: [
-      { cost: 65, damage: 6, range: 85, fireMs: 140, tint: 0x39ff8f, scale: 0.95 },
-      { cost: 90, damage: 8, range: 95, fireMs: 115, tint: 0x7fffc2, scale: 1.0 },
-      { cost: 140, damage: 10, range: 105, fireMs: 95, tint: 0xc7ffe5, scale: 1.1 },
+      { cost: 65, damage: 6, range: 85, fireMs: 120, tint: 0x39ff8f, scale: 0.95 },
+      { cost: 90, damage: 8, range: 95, fireMs: 95, tint: 0x7fffc2, scale: 1.0 },
+      { cost: 140, damage: 10, range: 105, fireMs: 75, tint: 0xc7ffe5, scale: 1.1 },
     ],
   },
   sniper: {
