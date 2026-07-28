@@ -1,5 +1,36 @@
-import { clamp01, ENEMY_DEFS } from "../constants.js";
+import { clamp01, ENEMY_DEFS, WAVE_CADENCE } from "../constants.js";
 import { pickWeighted } from "./enemies.js";
+
+function computeSpawnTopology(total, packEvery, packSize) {
+  let spawned = 0;
+  let randomSpawns = 0;
+  let forcedRunners = 0;
+  let packSpacingCount = 0;
+  let endsWithPack = false;
+  while (spawned < total) {
+    const shouldPack =
+      packEvery > 0 &&
+      spawned > 0 &&
+      spawned % packEvery === 0;
+    if (shouldPack) {
+      const packCount = Math.min(packSize, total - spawned);
+      forcedRunners += packCount;
+      packSpacingCount += Math.max(0, packCount - 1);
+      spawned += packCount;
+      endsWithPack = true;
+    } else {
+      randomSpawns += 1;
+      spawned += 1;
+      endsWithPack = false;
+    }
+  }
+  return {
+    randomSpawns,
+    forcedRunners,
+    packSpacingCount,
+    endsWithPack,
+  };
+}
 
 function computeWaveConfig(wave) {
   const w = Math.max(1, wave);
@@ -28,8 +59,14 @@ function computeWaveConfig(wave) {
         );
   const total = reducedTotal + densityBonus;
   const pressureRamp = clamp01((w - 3) / 9);
-  const spawnDelayMs = Math.max(
-    260,
+  const cadenceFloorMs = Math.max(
+    WAVE_CADENCE.minimumMs,
+    WAVE_CADENCE.preparationFloorMs -
+      WAVE_CADENCE.lateRampPerWaveMs *
+        Math.max(0, w - WAVE_CADENCE.lateRampStartWave)
+  );
+  const averageSpawnDelayMs = Math.max(
+    cadenceFloorMs,
     Math.floor(
       Math.max(280, 700 - w * 16) *
         (1 - 0.15 * pressureRamp)
@@ -43,9 +80,34 @@ function computeWaveConfig(wave) {
   const packEvery = basePackEvery - packFrequencyBonus;
   const reducedPackSize =
     Math.max(2, Math.floor(basePackSize * countMul)) + packSizeBonus;
+  const spawnTopology = computeSpawnTopology(
+    total,
+    packEvery,
+    reducedPackSize
+  );
+  const { randomSpawns, packSpacingCount, endsWithPack } = spawnTopology;
+  const ordinarySlots = Math.ceil(total * countMul);
+  const targetSpawnDurationMs =
+    Math.max(0, ordinarySlots - 1) * averageSpawnDelayMs +
+    Math.max(0, total - ordinarySlots) * WAVE_CADENCE.packSpacingMs;
+  const delayCount = Math.max(
+    1,
+    randomSpawns - (endsWithPack ? 0 : 1)
+  );
+  const spawnDelayMs = Math.max(
+    WAVE_CADENCE.packSpacingMs,
+    Math.round(
+      (targetSpawnDurationMs -
+        packSpacingCount * WAVE_CADENCE.packSpacingMs) /
+        delayCount
+    )
+  );
   return {
     total,
     spawnDelayMs,
+    averageSpawnDelayMs,
+    targetSpawnDurationMs,
+    spawnTopology,
     weights,
     packEvery,
     packSize: reducedPackSize,
@@ -132,7 +194,9 @@ function updateWaveSpawning(time) {
 
     const cfg = spawner.cfg;
     const shouldPack =
-      cfg.packEvery > 0 && spawner.enemiesSpawned > 0 && spawner.enemiesSpawned % cfg.packEvery === 0;
+      cfg.packEvery > 0 &&
+      spawner.enemiesSpawned > 0 &&
+      spawner.enemiesSpawned % cfg.packEvery === 0;
 
     if (shouldPack) {
       const toSpawn = Math.min(cfg.packSize, spawner.enemiesTotal - spawner.enemiesSpawned);

@@ -1,4 +1,4 @@
-import { clamp01, ENEMY_DEFS } from "../constants.js";
+import { clamp01, ENEMY_DEFS, ENEMY_HP_SCALING } from "../constants.js";
 import { DIFFICULTY_CONFIG } from "./config.js";
 import { dist2 } from "./utils.js";
 
@@ -122,10 +122,19 @@ function computeEnemyHp(def, waveNumber, difficulty) {
   const w = Math.max(1, waveNumber);
   const classAge = Math.max(0, w - (def.unlockWave ?? 1));
   const classHpMul = 1 + classAge * (def.scaleHpPerWave ?? 0.12);
-  const t = clamp01((w - 1) / 9);
-  const hpFactor = 1 + 1.0 * t;
-  const midPressure = 1 + 0.025 * Math.min(9, Math.max(0, w - 3));
-  const endurancePressure = Math.pow(1.03, Math.max(0, w - 12));
+  const t = clamp01((w - 1) / ENEMY_HP_SCALING.earlyRampWaves);
+  const hpFactor = 1 + ENEMY_HP_SCALING.earlyRampBonus * t;
+  const midPressure =
+    1 +
+    ENEMY_HP_SCALING.midPressurePerWave *
+      Math.min(
+        ENEMY_HP_SCALING.midPressureWaves,
+        Math.max(0, w - ENEMY_HP_SCALING.midPressureStartWave)
+      );
+  const endurancePressure = Math.pow(
+    ENEMY_HP_SCALING.enduranceMultiplierPerWave,
+    Math.max(0, w - ENEMY_HP_SCALING.enduranceStartWave)
+  );
   return Math.max(
     1,
     Math.floor(
@@ -137,6 +146,10 @@ function computeEnemyHp(def, waveNumber, difficulty) {
         endurancePressure
     )
   );
+}
+
+function createEnemyRewardCarry() {
+  return Object.create(null);
 }
 
 function computeEnemyReward(def, waveNumber, difficulty, roundingCarry = 0) {
@@ -173,7 +186,7 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.maxHp = e.hp;
   e.speed = Math.floor(def.baseSpeed * spMul);
   e.armor = def.armor || 0;
-  this.enemyRewardRoundingCarry ??= Object.create(null);
+  this.enemyRewardRoundingCarry ??= createEnemyRewardCarry();
   const rewardResult = computeEnemyReward(
     def,
     w,
@@ -284,6 +297,7 @@ export {
   pickWeighted,
   computeEnemyHp,
   computeEnemyReward,
+  createEnemyRewardCarry,
   spawnEnemyOfType,
   advanceEnemy,
   enemyProgressScore,

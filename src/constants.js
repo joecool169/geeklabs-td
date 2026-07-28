@@ -14,37 +14,47 @@ const TOWER_DEFS = {
   rapid: {
     key: "rapid",
     name: "Rapid",
-    desc: "High rate of fire, lower damage.",
+    desc: "Shreds Runner packs; weak against armor.",
     hotkey: "2",
     unlockWave: 10,
+    matchupDamage: { runner: 1.25 },
+    armorMultiplier: 2,
     tiers: [
       { cost: 65, damage: 6, range: 85, fireMs: 120, tint: 0x39ff8f, scale: 0.95 },
-      { cost: 90, damage: 8, range: 95, fireMs: 95, tint: 0x7fffc2, scale: 1.0 },
-      { cost: 140, damage: 10, range: 105, fireMs: 75, tint: 0xc7ffe5, scale: 1.1 },
+      { cost: 90, damage: 11, range: 95, fireMs: 95, tint: 0x7fffc2, scale: 1.0 },
+      { cost: 140, damage: 17, range: 105, fireMs: 75, tint: 0xc7ffe5, scale: 1.1 },
     ],
   },
   sniper: {
     key: "sniper",
     name: "Sniper",
-    desc: "Long range, heavy hits (prefers Strong).",
+    desc: "Long-range Brute killer (prefers Strong).",
     hotkey: "3",
     unlockWave: 20,
     defaultTargetMode: "strong",
+    matchupDamage: { brute: 1.6 },
     tiers: [
       { cost: 90, damage: 28, range: 165, fireMs: 520, tint: 0xffc857, scale: 1.05 },
-      { cost: 140, damage: 42, range: 185, fireMs: 470, tint: 0xffda85, scale: 1.1 },
-      { cost: 210, damage: 64, range: 205, fireMs: 420, tint: 0xffedc0, scale: 1.15 },
+      { cost: 140, damage: 65, range: 185, fireMs: 470, tint: 0xffda85, scale: 1.1 },
+      { cost: 210, damage: 110, range: 205, fireMs: 420, tint: 0xffedc0, scale: 1.15 },
     ],
   },
   laser: {
     key: "laser",
     name: "Laser",
-    desc: "Fast ticks, best vs Armored (prefers Armored).",
+    desc: "Armor-piercing beam with line pierce.",
     hotkey: "4",
-    unlockWave: 30,
+    unlockWave: 28,
     defaultTargetMode: "armored",
+    armorPenetration: 3,
+    maxPierce: 5,
+    pierceFalloff: 0.7,
+    lockRampMs: 2000,
+    maxLockBonus: 1.5,
     tiers: [
       { cost: 220, damage: 6, range: 145, fireMs: 110, tint: 0xff6bff, scale: 1.05 },
+      { cost: 160, damage: 9, range: 160, fireMs: 95, tint: 0xff9cff, scale: 1.1 },
+      { cost: 230, damage: 12, range: 180, fireMs: 80, tint: 0xffd1ff, scale: 1.15 },
     ],
   },
 };
@@ -79,7 +89,7 @@ const ENEMY_DEFS = {
     baseSpeed: 52,
     reward: 12,
     armor: 0,
-    scaleHpPerWave: 0.14,
+    scaleHpPerWave: 0.08,
     scaleSpeedPerWave: 0.007,
     scoreWeight: 1.5,
   },
@@ -92,14 +102,40 @@ const ENEMY_DEFS = {
     baseSpeed: 72,
     reward: 10,
     armor: 4,
-    scaleHpPerWave: 0.12,
+    scaleHpPerWave: 0.10,
     scaleSpeedPerWave: 0.01,
     scoreWeight: 1.8,
   },
+};
+
+const ENEMY_HP_SCALING = {
+  earlyRampWaves: 9,
+  earlyRampBonus: 1,
+  midPressureStartWave: 3,
+  midPressureWaves: 9,
+  midPressurePerWave: 0.025,
+  enduranceStartWave: 12,
+  enduranceMultiplierPerWave: 1.03,
+};
+
+const WAVE_CADENCE = {
+  preparationFloorMs: 330,
+  lateRampStartWave: 30,
+  lateRampPerWaveMs: 7,
+  minimumMs: 260,
+  packSpacingMs: 60,
 };
 
 function clamp01(v) {
   return Math.max(0, Math.min(1, v));
 }
 
-export { TOWER_DEFS, ENEMY_DEFS, TARGET_MODES, nextInCycle, clamp01 };
+export {
+  TOWER_DEFS,
+  ENEMY_DEFS,
+  ENEMY_HP_SCALING,
+  WAVE_CADENCE,
+  TARGET_MODES,
+  nextInCycle,
+  clamp01,
+};
