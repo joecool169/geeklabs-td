@@ -14,7 +14,6 @@ function applyTowerTier(t, tierIdx) {
   t.damage = tier.damage;
   t.range = tier.range;
   t.fireMs = tier.fireMs;
-  if (t.type === "laser") t.beamTickMs = tier.fireMs;
   t.nextShotAt = 0;
   t.sprite.setTint(tier.tint);
   t.sprite.setScale(tier.scale ?? 1);

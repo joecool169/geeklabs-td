@@ -39,8 +39,8 @@ Design priorities:
 - Basic: wave 1
 - Rapid: wave 10
 - Sniper: wave 20
-- Laser: wave 28
-- Brutes begin: wave 22
+- Laser: wave 30
+- Brutes begin: wave 20
 - Armored enemies begin: wave 30
 
 ## Controls

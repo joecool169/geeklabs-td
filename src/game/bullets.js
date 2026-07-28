@@ -1,5 +1,4 @@
 import { dist2, segCircleHit } from "./utils.js";
-import { computeDamageAgainstEnemy } from "./balance.js";
 
 const PROJECTILE_DEPTH = 50;
 const IMPACT_DEPTH = 60;
@@ -68,7 +67,8 @@ function fireBullet(t, target) {
     tracer.lineStyle(1, 0xffedc0, 1);
     tracer.lineBetween(x1, y1, x2, y2);
 
-    const dmg = computeDamageAgainstEnemy(t, t.damage, target);
+    const armor = target.armor || 0;
+    const dmg = Math.max(1, t.damage - armor);
     showHitEffect(this, "sniper", x2, y2, tracerColor);
     flashEnemy(this, target);
     target.hp -= dmg;
@@ -111,7 +111,8 @@ function fireBullet(t, target) {
     b.x += (vx * dt) / 1000;
     b.y += (vy * dt) / 1000;
     if (segCircleHit(x0, y0, b.x, b.y, target.x, target.y, hitR)) {
-      const dmg = computeDamageAgainstEnemy(t, t.damage, target);
+      const armor = target.armor || 0;
+      const dmg = Math.max(1, t.damage - armor);
       showHitEffect(this, projectileType, target.x, target.y, projectileColor);
       flashEnemy(this, target);
       target.hp -= dmg;
