@@ -8,11 +8,12 @@ import {
 } from "./game/config.js";
 import { dist2, segCircleHit, snapX, snapY } from "./game/utils.js";
 import * as Bullets from "./game/bullets.js";
+import * as Balance from "./game/balance.js";
 import * as Enemies from "./game/enemies.js";
 import * as UI from "./game/ui.js";
 import * as Towers from "./game/towers.js";
 import * as Waves from "./game/waves.js";
-import { ENEMY_DEFS, TOWER_DEFS } from "./constants.js";
+import { ENEMY_DEFS, TOWER_DEFS, WAVE_CADENCE } from "./constants.js";
 
 const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "defense_protocol_difficulty_v1";
@@ -41,7 +42,6 @@ const SFX_CONFIG = {
   life: { url: "/sfx/life.wav", volume: 0.35 },
   gameover: { url: "/sfx/gameover.wav", volume: 0.45 },
 };
-const LASER_MAX_PIERCE = 5;
 const CONTROLS = [
   { key: "T", action: "Toggle placement mode" },
   { key: "Click", action: "Place tower" },
@@ -359,6 +359,7 @@ export class GameScene extends Phaser.Scene {
     this.lives = 20;
     this.killCount = 0;
     this.score = 0;
+    this.enemyRewardRoundingCarry = Enemies.createEnemyRewardCarry();
 
     this.wave = 1;
     this.waveState = "intermission";
@@ -378,7 +379,7 @@ export class GameScene extends Phaser.Scene {
     this.blockWaveStart = this.wave;
 
     this.swarmPacksRemaining = 0;
-    this.swarmPackSpacingMs = 60;
+    this.swarmPackSpacingMs = WAVE_CADENCE.packSpacingMs;
     this.swarmNextPackSpawnAt = 0;
 
     this.path = [
@@ -1628,12 +1629,7 @@ export class GameScene extends Phaser.Scene {
         this.showWaveTransition(completionLabel, "positive", 1200);
         for (let i = 0; i < wavesCleared; i += 1) {
           const waveNum = this.blockWaveStart + i;
-          const clearBonus =
-            6 +
-            Math.floor(
-              1.5 * Math.min(waveNum, 12) +
-                0.5 * Math.max(0, waveNum - 12)
-            );
+          const clearBonus = Balance.computeClearBonus(waveNum);
           this.money += clearBonus;
           this.score += clearBonus;
         }
@@ -2169,6 +2165,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   applyLaserTick(tower, target, endX, endY) {
+    const towerDef = TOWER_DEFS[tower.type];
     const hits = [];
 
     this.enemies.children.iterate((e) => {
@@ -2190,15 +2187,20 @@ export class GameScene extends Phaser.Scene {
       hits.unshift(primary);
     }
 
-    const ramp = 1 + Math.min(tower.lockMs / 2000, 1.5);
-    const falloff = 0.7;
+    const ramp =
+      1 +
+      Math.min(
+        tower.lockMs / (towerDef.lockRampMs ?? 2000),
+        towerDef.maxLockBonus ?? 1.5
+      );
+    const falloff = towerDef.pierceFalloff ?? 0.7;
+    const maxPierce = towerDef.maxPierce ?? 1;
 
-    for (let i = 0; i < hits.length && i < LASER_MAX_PIERCE; i += 1) {
+    for (let i = 0; i < hits.length && i < maxPierce; i += 1) {
       const enemy = hits[i].enemy;
       if (!enemy || !enemy.active) continue;
       const base = tower.damage * ramp * Math.pow(falloff, i);
-      const armor = enemy.armor || 0;
-      const dmg = Math.max(1, Math.floor(base) - armor);
+      const dmg = Balance.computeDamageAgainstEnemy(tower, base, enemy);
       Bullets.showHitEffect(
         this,
         "laser",
