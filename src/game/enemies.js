@@ -139,6 +139,24 @@ function computeEnemyHp(def, waveNumber, difficulty) {
   );
 }
 
+function computeEnemyReward(def, waveNumber, difficulty, roundingCarry = 0) {
+  const w = Math.max(1, waveNumber);
+  const baseReward = def.reward || 8;
+  const bountyPressure = 1 / (1 + 0.035 * Math.max(0, w - 3));
+  const exactReward = baseReward * difficulty.enemyRewardMul * bountyPressure;
+  if (exactReward <= 1) {
+    return { reward: 1, roundingCarry: 0, exactReward };
+  }
+
+  const rewardWithCarry = exactReward + roundingCarry;
+  const reward = Math.floor(rewardWithCarry);
+  return {
+    reward,
+    roundingCarry: rewardWithCarry - reward,
+    exactReward,
+  };
+}
+
 function spawnEnemyOfType(typeKey, opts = {}) {
   const def = ENEMY_DEFS[typeKey] || ENEMY_DEFS.runner;
   const start = this.path[0];
@@ -155,12 +173,15 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.maxHp = e.hp;
   e.speed = Math.floor(def.baseSpeed * spMul);
   e.armor = def.armor || 0;
-  const baseReward = def.reward || 8;
-  const bountyPressure = 1 / (1 + 0.035 * Math.max(0, w - 3));
-  e.reward = Math.max(
-    1,
-    Math.floor(baseReward * difficulty.enemyRewardMul * bountyPressure)
+  this.enemyRewardRoundingCarry ??= Object.create(null);
+  const rewardResult = computeEnemyReward(
+    def,
+    w,
+    difficulty,
+    this.enemyRewardRoundingCarry[def.key] ?? 0
   );
+  e.reward = rewardResult.reward;
+  this.enemyRewardRoundingCarry[def.key] = rewardResult.roundingCarry;
   e.scoreWeight = def.scoreWeight ?? 1;
   e.pathIndex = 0;
   e.isSwarm = !!opts.isSwarm;
@@ -262,6 +283,7 @@ export {
   updateEnemyVisual,
   pickWeighted,
   computeEnemyHp,
+  computeEnemyReward,
   spawnEnemyOfType,
   advanceEnemy,
   enemyProgressScore,

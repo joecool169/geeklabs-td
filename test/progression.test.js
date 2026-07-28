@@ -3,12 +3,53 @@ import assert from "node:assert/strict";
 
 import { ENEMY_DEFS, TOWER_DEFS } from "../src/constants.js";
 import { DIFFICULTY_CONFIG } from "../src/game/config.js";
-import { computeEnemyHp } from "../src/game/enemies.js";
+import { computeEnemyHp, computeEnemyReward } from "../src/game/enemies.js";
 import { computeWaveConfig } from "../src/game/waves.js";
 
 const waveConfig = (wave) => computeWaveConfig.call({ intermissionMs: 5000 }, wave);
 const weightMap = (wave) =>
   Object.fromEntries(waveConfig(wave).weights.map(({ key, w }) => [key, w]));
+
+const expectedEnemyCounts = (wave) => {
+  const config = waveConfig(wave);
+  let spawned = 0;
+  let forcedRunners = 0;
+  let randomSpawns = 0;
+
+  while (spawned < config.total) {
+    const shouldPack =
+      config.packEvery > 0 &&
+      spawned > 0 &&
+      spawned % config.packEvery === 0;
+    if (shouldPack) {
+      const packCount = Math.min(config.packSize, config.total - spawned);
+      forcedRunners += packCount;
+      spawned += packCount;
+    } else {
+      randomSpawns += 1;
+      spawned += 1;
+    }
+  }
+
+  const weightTotal = config.weights.reduce((sum, entry) => sum + entry.w, 0);
+  const counts = { runner: forcedRunners, brute: 0, armored: 0 };
+  for (const entry of config.weights) {
+    counts[entry.key] += randomSpawns * (entry.w / weightTotal);
+  }
+  return counts;
+};
+
+const expectedEnemyBounty = (wave, difficulty) => {
+  const counts = expectedEnemyCounts(wave);
+  return Object.entries(counts).reduce((total, [key, count]) => {
+    const { exactReward } = computeEnemyReward(
+      ENEMY_DEFS[key],
+      wave,
+      difficulty
+    );
+    return total + count * exactReward;
+  }, 0);
+};
 
 test("specialist towers unlock at their progression milestones", () => {
   assert.equal(TOWER_DEFS.basic.unlockWave, 1);
@@ -118,4 +159,57 @@ test("Armored HP class scaling is relative to its later unlock wave", () => {
         globalHpMulAt(32)
     )
   );
+});
+
+test("Hard Runner rewards carry fractional value through wave 21", () => {
+  let carry = 0;
+  let wave20Total = 0;
+  let wave21Total = 0;
+
+  for (let i = 0; i < waveConfig(20).total; i += 1) {
+    const result = computeEnemyReward(
+      ENEMY_DEFS.runner,
+      20,
+      DIFFICULTY_CONFIG.hard,
+      carry
+    );
+    wave20Total += result.reward;
+    carry = result.roundingCarry;
+  }
+  for (let i = 0; i < waveConfig(21).total; i += 1) {
+    const result = computeEnemyReward(
+      ENEMY_DEFS.runner,
+      21,
+      DIFFICULTY_CONFIG.hard,
+      carry
+    );
+    wave21Total += result.reward;
+    carry = result.roundingCarry;
+  }
+
+  assert.ok(wave20Total >= 162);
+  assert.ok(wave21Total >= 164);
+  assert.ok(wave21Total / waveConfig(21).total > 2.9);
+});
+
+test("expected Hard bounty changes gradually from waves 19 through 25", () => {
+  const bounties = [];
+  for (let wave = 19; wave <= 25; wave += 1) {
+    bounties.push(expectedEnemyBounty(wave, DIFFICULTY_CONFIG.hard));
+  }
+
+  assert.ok(Math.abs(bounties[2] / bounties[1] - 1) <= 0.1);
+  for (let i = 1; i < bounties.length; i += 1) {
+    assert.ok(bounties[i] / bounties[i - 1] >= 0.9);
+  }
+});
+
+test("easier difficulties retain higher expected rewards", () => {
+  for (let wave = 19; wave <= 25; wave += 1) {
+    const easy = expectedEnemyBounty(wave, DIFFICULTY_CONFIG.easy);
+    const medium = expectedEnemyBounty(wave, DIFFICULTY_CONFIG.medium);
+    const hard = expectedEnemyBounty(wave, DIFFICULTY_CONFIG.hard);
+    assert.ok(easy > medium);
+    assert.ok(medium > hard);
+  }
 });

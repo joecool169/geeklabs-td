@@ -359,6 +359,7 @@ export class GameScene extends Phaser.Scene {
     this.lives = 20;
     this.killCount = 0;
     this.score = 0;
+    this.enemyRewardRoundingCarry = Object.create(null);
 
     this.wave = 1;
     this.waveState = "intermission";
