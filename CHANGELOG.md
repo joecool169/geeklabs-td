@@ -78,3 +78,12 @@
 - 2026-07-26 Align specialist progression: Rapid 10, Sniper/Brute 20, Laser/Armored 30
 - 2026-07-26 Add progression regression tests and npm test script
 - 2026-07-26 Establish complete single-ZIP repository and ChatGPT context workflow
+- 2026-07-27 Improve Rapid fire intervals and upgrade scaling
+- 2026-07-27 Scale enemy classes from their unlock wave
+- 2026-07-27 Move Brute introduction to wave 22
+- 2026-07-27 Smooth integer enemy rewards with deterministic fractional carry
+- 2026-07-27 Add explicit Rapid/Runner, Sniper/Brute, and Laser/Armored roles
+- 2026-07-27 Move Laser unlock to wave 28 and add Laser upgrade tiers
+- 2026-07-27 Smooth Runner-pack cadence and modeled waves 20-40 DPS growth
+- 2026-07-27 Expand progression and balance regression coverage to 27 assertions
+- 2026-07-27 Record coordinated balance pass as an intentionally unresolved checkpoint after an overpowered Wave-35 Hard run

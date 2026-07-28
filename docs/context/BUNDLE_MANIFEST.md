@@ -1,9 +1,9 @@
 # Bundle Manifest
 
 - Bundle: `geeklabs-td-context.zip`
-- Generated: 2026-07-26
+- Generated: 2026-07-27
 - Project: GeekLabs-TD / Defense Protocol
-- Baseline: complete clean `HEAD` archive uploaded from `~/projects/geeklabs-td` after the progression-alignment commit
+- Baseline: complete clean `HEAD` archive uploaded after the coordinated balance pass
 - Purpose: direct repository import and direct upload into a future ChatGPT conversation
 - Archive layout: repository-relative files at ZIP root
 
@@ -24,16 +24,16 @@
 
 ## Current documented baseline
 
-- responsive desktop and MacBook layout
-- contextual sidebar and refined bottom tower strip
-- distinct tower, enemy, projectile, impact, health, and range visuals
-- improved wave-state presentation
-- post-onboarding pressure/economy rebalance
-- concurrent-spawner wave-scaling correction
-- progression milestones at waves 1 / 10 / 20 / 30
-- Runner pack ramp at wave 10
-- Brutes at wave 20
-- Armored enemies and Laser at wave 30
-- Node progression regression tests
+- responsive desktop/laptop layout and contextual controls
+- Basic unchanged
+- Rapid anti-Runner role
+- Sniper anti-Brute role
+- Laser anti-Armored role with Wave-28 unlock and three tiers
+- Brutes at Wave 22 and Armored enemies at Wave 30
+- class-age HP scaling from unlock wave
+- deterministic fractional reward carry
+- pack-aware wave-cadence smoothing
+- 27 progression/balance assertions
+- unresolved Hard-mode calibration after a Wave-35 run ended with 16 lives and $2,250 remaining
 
 This ZIP is the complete authoritative handoff for the documented session. Do not regenerate it locally after download.

@@ -100,3 +100,29 @@
 **Reasoning:** A single self-contained handoff mirrors the established homelab workflow, eliminates patch-versus-source confusion, and ensures the next conversation can inspect the exact source and documentation baseline.
 
 **Workflow:** ChatGPT returns the completed bundle; the user extracts it over `~/projects/geeklabs-td`, reviews and commits the resulting changes, and uploads that same ZIP in the next conversation. The user does not regenerate the ZIP locally.
+
+## 2026-07-27 — Use preparation windows for specialist counters
+
+**Decision:** Keep Sniper at Wave 20 and move Brutes to Wave 22; move Laser to Wave 28 while Armored enemies remain at Wave 30.
+
+**Reasoning:** A counter should be available before the threat it is intended to answer. Two preparation waves allow placement, saving, upgrading, and player learning.
+
+## 2026-07-27 — Preserve fractional enemy rewards
+
+**Decision:** Replace per-kill reward flooring with deterministic fractional carry tracked per enemy class and reset on a fresh game.
+
+**Reasoning:** Integer flooring created a severe Wave-21 income cliff even while enemy pressure increased. Carry preserves integer payouts without discarding earned fractional value.
+
+## 2026-07-27 — Define specialist roles explicitly without nerfing Basic
+
+**Decision:** Leave Basic unchanged and establish matchup rules: Rapid against Runners, Sniper against Brutes, and Laser against Armored enemies.
+
+**Reasoning:** Basic had become the only economically safe option. Specialists must outperform it in their intended matchups without becoming universally superior.
+
+## 2026-07-27 — Preserve the coordinated rebalance as a checkpoint
+
+**Decision:** Commit and document the coordinated balance pass even though the final Hard run indicates it likely went too far.
+
+**Evidence:** Wave 35 was reached with 16 lives, $2,250, and 20 towers.
+
+**Reasoning:** The pass solved structural role and progression defects and provides a stable baseline. Future work should isolate the largest source of excess difficulty reduction through controlled comparison rather than continue ad hoc tweaking.
