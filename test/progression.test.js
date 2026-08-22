@@ -8,7 +8,22 @@ import {
   computeEnemyReward,
   createEnemyRewardCarry,
 } from "../src/game/enemies.js";
-import { computeWaveConfig } from "../src/game/waves.js";
+import {
+  computeWaveConfig,
+  startWave,
+  updateWaveSpawning,
+} from "../src/game/waves.js";
+import { createWaveRandom, normalizeRunSeed } from "../src/game/random.js";
+import {
+  createRunTelemetry,
+  observeActiveEnemies,
+  recordCheckpoint,
+  recordEnemyKill,
+  recordEnemyLeak,
+  recordEnemySpawn,
+  snapshotRunTelemetry,
+  updateTelemetryArchive,
+} from "../src/game/telemetry.js";
 import {
   computeDamageAgainstEnemy,
   computeExpectedEnemyCounts,
@@ -431,4 +446,120 @@ test("easier difficulties retain higher expected rewards", () => {
     assert.ok(easy > medium);
     assert.ok(medium > hard);
   }
+});
+
+test("wave composition random streams repeat for the same seed and wave", () => {
+  const sample = (seed, wave) => {
+    const random = createWaveRandom(seed, wave);
+    return Array.from({ length: 12 }, () => random());
+  };
+
+  assert.deepEqual(sample("comparison-a", 30), sample("comparison-a", 30));
+  assert.notDeepEqual(sample("comparison-a", 30), sample("comparison-b", 30));
+  assert.notDeepEqual(sample("comparison-a", 30), sample("comparison-a", 31));
+  assert.equal(normalizeRunSeed("  "), "balance-v0.3.0");
+});
+
+test("runtime wave spawning repeats the same enemy sequence", () => {
+  const spawnSequence = (seed, wave) => {
+    const spawned = [];
+    const scene = {
+      activeWaves: [],
+      intermissionMs: 0,
+      runSeed: seed,
+      swarmPackSpacingMs: 60,
+      time: { now: 0 },
+      spawnEnemyOfType(type) {
+        spawned.push(type);
+      },
+    };
+    startWave.call(scene, wave);
+    const spawner = scene.activeWaves[0];
+    let time = spawner.nextSpawnAt;
+    while (spawner.enemiesSpawned < spawner.enemiesTotal) {
+      updateWaveSpawning.call(scene, time);
+      time += Math.max(60, spawner.spawnDelayMs);
+    }
+    return spawned;
+  };
+
+  const first = spawnSequence("comparison-a", 30);
+  assert.equal(first.length, waveConfig(30).total);
+  assert.deepEqual(first, spawnSequence("comparison-a", 30));
+  assert.notDeepEqual(first, spawnSequence("comparison-b", 30));
+});
+
+test("balance telemetry records reproducible checkpoint summaries", () => {
+  const telemetry = createRunTelemetry({
+    seed: "comparison-a",
+    difficultyKey: "hard",
+    runLabel: "mixed-specialist",
+    startingLives: 20,
+  });
+  recordEnemySpawn(telemetry, "runner");
+  recordEnemySpawn(telemetry, "brute");
+  recordEnemyKill(telemetry, "runner");
+  recordEnemyLeak(telemetry, 18);
+  observeActiveEnemies(telemetry, 14);
+  observeActiveEnemies(telemetry, 9);
+
+  const checkpoint = recordCheckpoint(telemetry, 20, {
+    money: 240,
+    lives: 19,
+    score: 1200,
+    kills: 40,
+    activeEnemies: 0,
+    towers: [
+      { type: "basic", tier: 2 },
+      { type: "rapid", tier: 1 },
+    ],
+  });
+
+  assert.deepEqual(checkpoint.towers, {
+    total: 2,
+    upgrades: 1,
+    byType: {
+      basic: { total: 1, tiers: { 2: 1 } },
+      rapid: { total: 1, tiers: { 1: 1 } },
+    },
+  });
+  assert.equal(checkpoint.firstLeakWave, 18);
+  assert.equal(checkpoint.totalLeaks, 1);
+  assert.equal(checkpoint.peakActiveEnemies, 14);
+  assert.equal(checkpoint.peakActiveEnemiesSinceLastCheckpoint, 14);
+  assert.deepEqual(checkpoint.spawnedByType, { runner: 1, brute: 1 });
+  assert.deepEqual(checkpoint.killedByType, { runner: 1 });
+  assert.equal(recordCheckpoint(telemetry, 20, {}), null);
+  assert.equal(recordCheckpoint(telemetry, 21, {}), null);
+  assert.equal(telemetry.runId, "hard:mixed-specialist:comparison-a");
+  assert.equal(telemetry.peakActiveEnemiesSinceCheckpoint, 0);
+  assert.deepEqual(snapshotRunTelemetry(telemetry), telemetry);
+  assert.notEqual(snapshotRunTelemetry(telemetry), telemetry);
+});
+
+test("telemetry archive keeps separately labeled comparison runs", () => {
+  const mixed = createRunTelemetry({
+    seed: "comparison-a",
+    difficultyKey: "hard",
+    runLabel: "mixed-specialist",
+  });
+  const basic = createRunTelemetry({
+    seed: "comparison-a",
+    difficultyKey: "hard",
+    runLabel: "basic-heavy",
+  });
+  const firstArchive = updateTelemetryArchive(null, mixed);
+  const secondArchive = updateTelemetryArchive(
+    JSON.stringify(firstArchive),
+    basic
+  );
+
+  assert.deepEqual(Object.keys(secondArchive.runs).sort(), [
+    "hard:basic-heavy:comparison-a",
+    "hard:mixed-specialist:comparison-a",
+  ]);
+  assert.deepEqual(
+    updateTelemetryArchive("not valid json", mixed),
+    { version: 1, runs: { [mixed.runId]: mixed } }
+  );
 });

@@ -9,7 +9,7 @@ Baseline: **committed coordinated balance checkpoint at `ec50844`**
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Before this context refresh, `main`, `forgejo/main`, and `origin/main` matched `ec50844`, with a clean working tree.
-- `npm test` passes with **27/27 tests**.
+- `npm test` passes with **31/31 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
@@ -83,12 +83,13 @@ No further balance change was selected during this session. The current committe
 
 Preserve this build as the baseline and perform controlled comparison runs:
 
-1. Add lightweight checkpoint telemetry and make random wave composition seedable.
-2. Run a mixed-specialist build versus a Basic-heavy control.
-3. Record lives, money, tower mix, tiers, first leak, and peak enemies at Waves 20, 25, 30, 35, and 40.
-4. Determine whether excess survivability comes primarily from economy, specialist power, or slower spawning.
-5. Make one coordinated correction after reviewing the evidence rather than returning to repeated micro-tweaks.
-6. Deploy the reviewed balance revision and verify local/production asset parity.
+Checkpoint telemetry and seedable per-wave composition are implemented. Follow `BALANCE_TESTING.md`:
+
+1. Run a mixed-specialist build versus a Basic-heavy control using the same seed.
+2. Review the automatically recorded Waves 20, 25, 30, 35, and 40 checkpoints.
+3. Determine whether excess survivability comes primarily from economy, specialist power, or slower spawning.
+4. Make one coordinated correction after reviewing the evidence rather than returning to repeated micro-tweaks.
+5. Deploy the reviewed balance revision and verify local/production asset parity.
 
 ## Source-of-truth workflow
 

@@ -1,5 +1,6 @@
 import { clamp01, ENEMY_DEFS, WAVE_CADENCE } from "../constants.js";
 import { pickWeighted } from "./enemies.js";
+import { createWaveRandom } from "./random.js";
 
 function computeSpawnTopology(total, packEvery, packSize) {
   let spawned = 0;
@@ -167,6 +168,7 @@ function startWave(wave) {
     nextSpawnAt: this.time.now + 250,
     swarmPacksRemaining: 0,
     swarmNextPackSpawnAt: 0,
+    random: createWaveRandom(this.runSeed, wave),
   });
   this.waveState = "running";
   if (this.showWaveTransition) this.showWaveTransition(`WAVE ${wave} ENGAGED`);
@@ -208,7 +210,7 @@ function updateWaveSpawning(time) {
       spawner.swarmPacksRemaining = Math.max(0, toSpawn - 1);
       spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
     } else {
-      const r = Math.random();
+      const r = spawner.random();
       const type = pickWeighted.call(this, r, cfg.weights) || "runner";
       this.spawnEnemyOfType(type, { waveNumber: spawner.waveNumber });
       spawner.enemiesSpawned += 1;

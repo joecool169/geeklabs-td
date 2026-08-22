@@ -13,12 +13,15 @@ import * as Enemies from "./game/enemies.js";
 import * as UI from "./game/ui.js";
 import * as Towers from "./game/towers.js";
 import * as Waves from "./game/waves.js";
+import * as Telemetry from "./game/telemetry.js";
+import { normalizeRunSeed } from "./game/random.js";
 import { ENEMY_DEFS, TOWER_DEFS, WAVE_CADENCE } from "./constants.js";
 
 const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "defense_protocol_difficulty_v1";
 const LEADERBOARD_STORAGE_KEY = "defense_protocol_leaderboard_v1";
 const HELP_OVERLAY_STORAGE_KEY = "defense_protocol_help_overlay_v1";
+const BALANCE_TELEMETRY_STORAGE_KEY = "defense_protocol_balance_telemetry_v1";
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
@@ -332,6 +335,13 @@ export class GameScene extends Phaser.Scene {
     if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);
     this.difficulty = DIFFICULTY_CONFIG[this.difficultyKey];
     this.difficultyLabel = this.difficulty.label;
+    const querySeed = new URLSearchParams(window.location.search).get("seed");
+    const queryRunLabel = new URLSearchParams(window.location.search).get("run");
+    this.runSeed = normalizeRunSeed(this.startOptions?.runSeed ?? querySeed);
+    this.runLabel = String(
+      this.startOptions?.runLabel ?? queryRunLabel ?? "unlabeled"
+    ).trim() || "unlabeled";
+    this.runTelemetry = null;
 
     this.sfx = {};
     this.sfxLastAt = {};
@@ -789,6 +799,18 @@ export class GameScene extends Phaser.Scene {
     this.difficulty = cfg;
     this.difficultyLabel = cfg.label;
     this.money = cfg.startingMoney;
+    this.runTelemetry = Telemetry.createRunTelemetry({
+      seed: this.runSeed,
+      difficultyKey: normalized,
+      runLabel: this.runLabel,
+      startingLives: this.lives,
+    });
+    this.publishRunTelemetry();
+    console.info("[Defense Protocol balance run]", {
+      run: this.runLabel,
+      seed: this.runSeed,
+      difficulty: normalized,
+    });
   }
 
   showStartScreen() {
@@ -1596,6 +1618,10 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.updateWaveSpawning(time);
+    Telemetry.observeActiveEnemies(
+      this.runTelemetry,
+      this.enemies.countActive(true)
+    );
 
     if (this.isPlacing) {
       const nowValid = this.canPlaceTowerAt(this.ghostX, this.ghostY);
@@ -1633,6 +1659,7 @@ export class GameScene extends Phaser.Scene {
           this.money += clearBonus;
           this.score += clearBonus;
         }
+        this.recordBalanceCheckpoints(firstWaveCleared, lastWaveCleared);
         this.wave = this.nextWaveNumberToSpawn;
         this.enterIntermission(false);
       }
@@ -2096,7 +2123,47 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnEnemyOfType(typeKey, opts = {}) {
-    return Enemies.spawnEnemyOfType.call(this, typeKey, opts);
+    const enemy = Enemies.spawnEnemyOfType.call(this, typeKey, opts);
+    Telemetry.recordEnemySpawn(this.runTelemetry, enemy?.typeKey);
+    return enemy;
+  }
+
+  recordEnemyLeak(enemy) {
+    Telemetry.recordEnemyLeak(this.runTelemetry, enemy?.waveNumber);
+  }
+
+  publishRunTelemetry() {
+    const snapshot = Telemetry.snapshotRunTelemetry(this.runTelemetry);
+    if (!snapshot) return;
+    const archive = Telemetry.updateTelemetryArchive(
+      readStorage(BALANCE_TELEMETRY_STORAGE_KEY),
+      snapshot
+    );
+    writeStorage(BALANCE_TELEMETRY_STORAGE_KEY, JSON.stringify(archive));
+    window.defenseProtocolTelemetry = snapshot;
+    window.defenseProtocolTelemetryRuns = archive.runs;
+  }
+
+  recordBalanceCheckpoints(firstWave, lastWave) {
+    for (const wave of Telemetry.BALANCE_CHECKPOINT_WAVES) {
+      if (wave < firstWave || wave > lastWave) continue;
+      const checkpoint = Telemetry.recordCheckpoint(this.runTelemetry, wave, {
+        money: this.money,
+        lives: this.lives,
+        score: this.score,
+        kills: this.killCount,
+        activeEnemies: this.enemies.countActive(true),
+        towers: this.towers,
+      });
+      if (!checkpoint) continue;
+      this.publishRunTelemetry();
+      console.info("[Defense Protocol balance checkpoint]", {
+        run: this.runLabel,
+        seed: this.runSeed,
+        checkpoint,
+      });
+      this.showToast(`Wave ${wave} balance checkpoint recorded.`, 1800);
+    }
   }
 
   updateLaserTower(tower, _time, dt) {
@@ -2220,6 +2287,7 @@ export class GameScene extends Phaser.Scene {
       enemy.flashTween.remove(false);
       enemy.flashTween = null;
     }
+    Telemetry.recordEnemyKill(this.runTelemetry, enemy.typeKey);
     enemy.destroy();
     this.money += reward;
     this.killCount += 1;

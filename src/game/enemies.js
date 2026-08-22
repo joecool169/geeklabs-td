@@ -196,6 +196,7 @@ function spawnEnemyOfType(typeKey, opts = {}) {
   e.reward = rewardResult.reward;
   this.enemyRewardRoundingCarry[def.key] = rewardResult.roundingCarry;
   e.scoreWeight = def.scoreWeight ?? 1;
+  e.waveNumber = w;
   e.pathIndex = 0;
   e.isSwarm = !!opts.isSwarm;
   e.healthIndicator = this.add.graphics();
@@ -213,6 +214,7 @@ function spawnEnemyOfType(typeKey, opts = {}) {
 function advanceEnemy(e, dt) {
   const i = e.pathIndex;
   if (i >= this.path.length - 1) {
+    if (this.recordEnemyLeak) this.recordEnemyLeak(e);
     e.destroy();
     this.lives -= 1;
     if (this.triggerLifeLossFeedback) this.triggerLifeLossFeedback();

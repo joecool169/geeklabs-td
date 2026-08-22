@@ -11,7 +11,7 @@ The coordinated balance pass established explicit specialist roles and smoothed 
 Immediate work:
 
 - preserve the current implementation as the `v0.3.0-balance-checkpoint` baseline
-- add lightweight checkpoint telemetry and seedable wave composition
+- use the implemented checkpoint telemetry and seedable wave composition described in `BALANCE_TESTING.md`
 - run one mixed-specialist build and one Basic-heavy control
 - record lives, cash, tower composition, tiers, first leak, and peak active enemies at Waves 20, 25, 30, 35, and 40
 - isolate whether the main excess comes from spawn duration, specialist strength, reward smoothing, or enemy-growth reduction

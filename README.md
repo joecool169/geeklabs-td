@@ -32,6 +32,7 @@ Design priorities:
 - local and optional global leaderboards
 - start, pause, wave-state, and game-over presentation
 - regression tests for progression milestones
+- seeded wave composition and automatic balance-run checkpoints
 - static deployment through Nginx
 
 ## Progression milestones

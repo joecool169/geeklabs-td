@@ -14,12 +14,14 @@ Forgejo is the authoritative remote. GitHub is maintained as a secondary mirror.
 
 Validation on this baseline:
 
-- `npm test`: 27/27 assertions pass
+- `npm test`: 31/31 tests pass
 - `npm run build`: passes with Vite 7.3.6
 - `npm audit`: zero known vulnerabilities
 - `git diff --check`: passes
 
 The public site responds successfully but its JavaScript bundle predates the coordinated balance commits. The current checkpoint is intentionally not being deployed until controlled comparison runs lead to a reviewed balance revision.
+
+Seeded per-wave composition and automatic balance checkpoints are implemented for the controlled Hard-mode comparisons. Use the same `seed` and distinct `run` query parameters as documented in `docs/context/BALANCE_TESTING.md`.
 
 ## Current progression
 

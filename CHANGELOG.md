@@ -1,3 +1,4 @@
+- 2026-08-22 Add seeded per-wave composition and automatic controlled-run balance telemetry
 - 2026-08-22 Make Forgejo authoritative, retire mandatory ZIP handoffs, harden deployment verification, and align project version metadata
 - 2026-01-02 (3b24755) Initial playable vertical slice
 - 2026-01-03 (5a79def) Add GitLab CI build for Vite

@@ -19,11 +19,13 @@
 - `src/game/towers.js` — tier, upgrade, sell, and targeting-cycle helpers
 - `src/game/waves.js` — wave calculation, progression composition, intermission, spawn, and completion state
 - `src/game/ui.js` — DOM UI helper behavior and contextual state rendering
+- `src/game/random.js` — stable seed normalization and independent per-wave random streams
+- `src/game/telemetry.js` — controlled-run checkpoint collection and tower summaries
 
 ### Tests
 
 - `npm test` runs Node's built-in test runner.
-- `test/progression.test.js` protects unlock milestones, enemy introduction waves, composition ramps, and Runner pack progression.
+- `test/progression.test.js` protects unlock milestones, enemy introduction waves, composition ramps, Runner pack progression, seeded runtime spawning, and telemetry summaries.
 
 ### Current strengths
 
@@ -46,7 +48,6 @@
 - Web API calls and leaderboard presentation are coupled to the scene.
 - There is no explicit platform abstraction for browser versus native lifecycle/storage/services.
 - Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
-- Wave composition uses unseeded randomness, so otherwise identical comparison runs are not fully reproducible.
 
 ## Current layout behavior
 
