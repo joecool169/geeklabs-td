@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-08-22 — Make Forgejo authoritative and retire mandatory ZIP handoffs
+
+**Decision:** Forgejo is the authoritative repository. GitHub remains a secondary mirror and receives the same reviewed commits and tags for now.
+
+**Decision:** Git is the sole source of truth. Portable ZIPs are optional transport artifacts for situations where repository access is unavailable; they are not authoritative snapshots or a required completion artifact.
+
+**Reasoning:** Direct repository access preserves history, avoids a second potentially stale project copy, and makes the inspected commit explicit.
+
+**Supersedes:** The mandatory ZIP workflow decisions dated 2026-07-26. Those entries remain below as historical context.
+
+## 2026-08-22 — Defer deployment until balance calibration is reviewed
+
+**Decision:** Preserve and tag the coordinated balance checkpoint, run controlled mixed-specialist and Basic-heavy comparisons locally, make one evidence-based correction, and deploy the reviewed revision rather than the known-overpowered checkpoint.
+
+**Deployment rule:** Deploy only a clean committed revision, then verify local and production contents with an rsync checksum dry run.
+
 ## 2026-07-26 — Verify all three deployment states before context work
 
 **Decision:** Confirm Arch, GitHub, and the live server are synchronized before rebuilding project context.

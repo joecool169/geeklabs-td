@@ -10,11 +10,13 @@ The coordinated balance pass established explicit specialist roles and smoothed 
 
 Immediate work:
 
-- preserve the current implementation as a checkpoint
+- preserve the current implementation as the `v0.3.0-balance-checkpoint` baseline
+- add lightweight checkpoint telemetry and seedable wave composition
 - run one mixed-specialist build and one Basic-heavy control
 - record lives, cash, tower composition, tiers, first leak, and peak active enemies at Waves 20, 25, 30, 35, and 40
 - isolate whether the main excess comes from spawn duration, specialist strength, reward smoothing, or enemy-growth reduction
 - make one coordinated correction after analysis
+- deploy only the reviewed balance revision and verify asset parity
 - avoid returning to repeated isolated number tweaks
 
 Do not assume that tower roles need another redesign. The present unresolved issue is aggregate Hard-mode calibration.

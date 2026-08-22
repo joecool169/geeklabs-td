@@ -56,9 +56,9 @@ Design priorities:
 - `P`: pause or resume
 - `Esc`: cancel, deselect, or resume contextually
 
-## Project context bundle
+## Project context
 
-`geeklabs-td-context.zip` is the complete portable project handoff. The same ZIP can be extracted over `~/projects/geeklabs-td` and uploaded directly into a new ChatGPT conversation. See `docs/context/WORKFLOW.md`.
+Forgejo is the authoritative repository and GitHub is a secondary mirror. The files under `docs/context/` capture current state, architecture, decisions, and roadmap details, while Git remains the source of truth. Portable ZIP exports are optional transport artifacts; see `docs/context/PORTABLE_EXPORT.md`.
 
 ## Development commands
 

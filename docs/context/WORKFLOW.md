@@ -1,53 +1,43 @@
-# Development and Context-Bundle Workflow
+# Development, Git, and Deployment Workflow
 
-## Core principle
+## Source of truth
 
-Git remains the authoritative history for Defense Protocol. The complete project ZIP is the portable handoff used to update the local repository and to provide the next ChatGPT conversation with the exact current source and context.
-
-The ZIP is a complete replacement bundle, not a patch.
+Git is authoritative for Defense Protocol. Forgejo is the primary remote and GitHub is a secondary mirror. Project context files summarize a committed revision; they never override current source or Git history.
 
 ## Starting a development session
 
 ```bash
-cd ~/projects/geeklabs-td
+cd /Users/joe/projects/geeklabs-td
 git fetch --all --prune
 git status --short --branch
+git pull --rebase forgejo main
 ```
 
-If the tree is clean and the branch is behind its upstream:
+Do not pull or rebase across unreviewed local changes.
 
-```bash
-git pull --rebase
-```
+## Change workflow
 
-Do not pull across unreviewed local changes.
-
-## ChatGPT + Codex loop
-
-1. Define one concrete change in ChatGPT.
-2. Use one focused Codex prompt.
-3. Let Codex edit from the repository root.
-4. Inspect the result:
+1. Inspect current source and context before making project-specific claims.
+2. Make one coherent change at a time.
+3. Review the diff.
+4. Verify the affected behavior.
+5. Run validation appropriate to the change.
+6. Commit the reviewed revision.
+7. Push Forgejo first, then mirror the same commit to GitHub.
 
 ```bash
 git diff --stat
 git diff
-```
-
-5. Verify the affected behavior in the running game.
-6. Run only the validation appropriate to the change.
-7. Commit one coherent change.
-8. Push before switching devices or ending the session.
-
-Typical source validation:
-
-```bash
 npm test
 npm run build
 git diff --check
+git add -A
+git commit -m "concise description"
+git push forgejo main
+git push origin main
 ```
 
-Documentation-only changes do not require npm validation unless they also modify executable project files.
+Documentation-only changes do not require npm validation unless they also modify executable or package files.
 
 ## Refactor rules
 
@@ -55,137 +45,53 @@ Documentation-only changes do not require npm validation unless they also modify
 - Preserve visible behavior during structural refactors.
 - Do not tune balance in the same commit as code movement.
 - Record intended invariants before moving code.
-- Build after module/import changes.
-- Prefer another focused Codex prompt for multi-line corrections.
-- Use a surgical one-liner only for a truly narrow correction.
+- Build after module or import changes.
+- Prefer small independently reviewable commits over broad directory rewrites.
+
+## Balance workflow
+
+- Preserve the current coordinated pass as `v0.3.0-balance-checkpoint`.
+- Add checkpoint telemetry and seedable wave composition before further tuning.
+- Compare mixed-specialist and Basic-heavy Hard runs at Waves 20, 25, 30, 35, and 40.
+- Record lives, cash, tower composition and tiers, first leak, and peak active enemies.
+- Make one coordinated evidence-based correction.
+- Keep balance changes separate from structural refactors.
 
 ## Deployment
 
-Deployment is separate from the context-bundle workflow.
-
-Preferred command:
-
-```bash
-npm run deploy
-```
-
-The current script builds and rsyncs `dist/` to:
+Production is served from:
 
 ```text
 joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
 ```
 
-Manual equivalent:
+The deployment script refuses a dirty working tree, builds the committed revision, rsyncs `dist/`, and performs a checksum dry run afterward:
+
+```bash
+npm run deploy
+```
+
+Deploy only a reviewed revision that has been pushed to Forgejo. For the current balance work, complete the controlled comparison runs and coordinated correction before deployment.
+
+To verify parity again without changing production:
 
 ```bash
 npm run build
-rsync -av --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
-```
-
-Deploy only a reviewed, committed state.
-
-Verify local build parity without modifying production:
-
-```bash
 rsync -avnc --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
 ```
 
-No file entries means the contents match. Directory-only entries are not content differences.
+No file entries means production content matches the local build. Directory-only entries are not content differences. Record the deployed commit in `CURRENT_STATE.md` when deployment occurs.
 
-## Complete project bundle workflow
+## Portable exports
 
-### Objective
-
-At the end of meaningful work, ChatGPT returns one complete ZIP that can be used for both:
-
-1. updating `~/projects/geeklabs-td`
-2. direct upload into a new ChatGPT conversation
-
-Stable bundle name:
-
-```text
-geeklabs-td-context.zip
-```
-
-### Required contents
-
-The bundle includes the complete current tracked project structure, including source, tests, scripts, documentation, project metadata, and lightweight public assets.
-
-It excludes:
-
-- `.git/`
-- `node_modules/`
-- `dist/`
-- coverage and caches
-- editor artifacts
-- temporary screenshots and logs
-- environment files or secrets
-
-The archive uses repository-relative paths at its root so it can be extracted directly over `~/projects/geeklabs-td`.
-
-### ChatGPT responsibility
-
-ChatGPT must:
-
-1. start from the latest complete uploaded project bundle
-2. inspect the relevant current files before making project-specific claims
-3. preserve valid source and documentation
-4. update outdated context when the conversation establishes a newer state
-5. incorporate all completed source, test, workflow, and documentation changes available in the uploaded baseline
-6. return one complete replacement ZIP, not a patch
-7. provide a direct download link
-8. never instruct the user to regenerate a ZIP that ChatGPT has already supplied
-
-ChatGPT must not call a bundle authoritative if locally changed files were never uploaded or otherwise made fully available. In that case, request a fresh current repository archive first.
-
-### Applying the completed bundle locally
-
-After downloading the ZIP supplied by ChatGPT:
-
-```bash
-cd ~/projects/geeklabs-td
-unzip -o ~/Downloads/geeklabs-td-context.zip
-git status --short
-git add -A
-git diff --cached --stat
-git commit -m "docs: update Defense Protocol project context"
-git push
-```
-
-Use a different concise commit message when the bundle contains source changes rather than documentation only.
-
-Do not recreate or regenerate the downloaded ZIP. The downloaded ZIP is the completed authoritative handoff for that session.
-
-### New ChatGPT conversation
-
-Upload the same `geeklabs-td-context.zip` directly into the new conversation.
-
-The assistant should:
-
-- inspect the bundle before answering project-specific questions
-- treat current file contents as the primary source of truth
-- distinguish implemented, deployed, planned, deferred, retired, and unresolved work
-- avoid claiming the bundle was reviewed unless the relevant files were actually inspected
-- cite exact files and code locations when describing implementation
-
-## Command preferences
-
-- Assume commands run in the current Arch/tmux environment unless cross-host execution is explicitly required.
-- Begin repository workflows with `cd ~/projects/geeklabs-td`.
-- Give one logical troubleshooting or verification step at a time.
-- Warn before long-running, destructive, service-restarting, or production-deploying commands.
-- Preserve established workflows unless there is a concrete reason to change them.
-- Never fabricate command output, tests, file contents, or deployment verification.
+Portable ZIPs are optional transport artifacts, not project authority and not a routine completion requirement. See `PORTABLE_EXPORT.md` when repository access is unavailable.
 
 ## Completion criteria
 
-The context update is complete only when:
-
-- ChatGPT used the latest full project baseline
-- relevant source and context changes were incorporated
-- a complete replacement ZIP was produced
-- a working download link was supplied
-- the ZIP extracts directly over `~/projects/geeklabs-td`
-- the extracted files can be staged with `git add -A`
-- the same ZIP can be uploaded into the next ChatGPT conversation
-- no second local ZIP-generation step is required
+- The relevant source and context were inspected.
+- Changes are coherent and reviewed.
+- Appropriate tests and builds pass.
+- The working tree contains no accidental artifacts.
+- The revision is committed and pushed to Forgejo.
+- GitHub mirrors the same revision when mirror access is available.
+- Deployment status is stated explicitly rather than inferred from repository state.

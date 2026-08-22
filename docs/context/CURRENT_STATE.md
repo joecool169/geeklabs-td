@@ -1,17 +1,19 @@
 # Current State
 
-Snapshot date: **2026-07-27**  
+Snapshot date: **2026-08-22**
 Branch: **main**  
-Baseline: **complete clean `HEAD` archive uploaded after the coordinated balance pass**
+Baseline: **committed coordinated balance checkpoint at `ec50844`**
 
 ## Repository and validation
 
-- Arch project: `/home/joe/projects/geeklabs-td`
-- The uploaded repository archive contains the latest committed game source and documentation.
-- The local branch was reported five commits ahead of GitHub at session end; the final context update should be committed and pushed after extraction.
-- `npm test` passes with **27/27 assertions** against the uploaded source.
-- Codex reported the production build and `git diff --check` passing before the final playtest.
-- Deployment remains separate from the context workflow through `npm run deploy`.
+- Current project: `/Users/joe/projects/geeklabs-td`
+- Forgejo is the authoritative remote; GitHub is a secondary mirror.
+- Before this context refresh, `main`, `forgejo/main`, and `origin/main` matched `ec50844`, with a clean working tree.
+- `npm test` passes with **27/27 tests**.
+- `npm run build` passes with Vite 7.3.6.
+- `npm audit` reports zero known vulnerabilities.
+- `git diff --check` passes.
+- The public site responds successfully, but its JavaScript bundle predates the final July 27 balance commits. Production is therefore not the current gameplay baseline.
 
 ## Current gameplay baseline
 
@@ -81,11 +83,13 @@ No further balance change was selected during this session. The current committe
 
 Preserve this build as the baseline and perform controlled comparison runs:
 
-1. Mixed specialist build versus Basic-heavy control.
-2. Record lives, money, tower mix, tiers, first leak, and peak enemies at Waves 20, 25, 30, 35, and 40.
-3. Determine whether excess survivability comes primarily from economy, specialist power, or slower spawning.
-4. Make one coordinated correction after reviewing the evidence rather than returning to repeated micro-tweaks.
+1. Add lightweight checkpoint telemetry and make random wave composition seedable.
+2. Run a mixed-specialist build versus a Basic-heavy control.
+3. Record lives, money, tower mix, tiers, first leak, and peak enemies at Waves 20, 25, 30, 35, and 40.
+4. Determine whether excess survivability comes primarily from economy, specialist power, or slower spawning.
+5. Make one coordinated correction after reviewing the evidence rather than returning to repeated micro-tweaks.
+6. Deploy the reviewed balance revision and verify local/production asset parity.
 
-## Bundle workflow
+## Source-of-truth workflow
 
-The authoritative handoff is `geeklabs-td-context.zip`. Extract it over `~/projects/geeklabs-td`, review, stage with `git add -A`, commit the documentation update, and push. Upload the same ZIP into the next ChatGPT conversation; do not regenerate it locally.
+Git is authoritative. Push Forgejo first and then mirror the same commit and tags to GitHub. ZIP exports are optional transport artifacts created only when repository access is unavailable; see `PORTABLE_EXPORT.md`.

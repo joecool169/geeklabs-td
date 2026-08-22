@@ -1,6 +1,6 @@
 # GeekLabs-TD AI Context
 
-Snapshot date: **2026-07-27**
+Snapshot date: **2026-08-22**
 
 ## Project identity
 
@@ -8,12 +8,18 @@ GeekLabs-TD is a Phaser/Vite tower-defense project whose playable title is **Def
 
 ## Current baseline
 
-The uploaded repository archive contains the latest committed coordinated balance pass. Basic remains unchanged; specialist roles, reward smoothing, class-age HP scaling, unlock preparation windows, and wave-cadence smoothing are implemented.
+The repository contains the committed coordinated balance pass. Basic remains unchanged; specialist roles, reward smoothing, class-age HP scaling, unlock preparation windows, and wave-cadence smoothing are implemented.
+
+Forgejo is the authoritative remote. GitHub is maintained as a secondary mirror. Git is the sole source of truth; optional ZIP exports are disposable transport artifacts.
 
 Validation on this baseline:
 
 - `npm test`: 27/27 assertions pass
-- Codex reported production build and `git diff --check` passing before the final playtest
+- `npm run build`: passes with Vite 7.3.6
+- `npm audit`: zero known vulnerabilities
+- `git diff --check`: passes
+
+The public site responds successfully but its JavaScript bundle predates the coordinated balance commits. The current checkpoint is intentionally not being deployed until controlled comparison runs lead to a reviewed balance revision.
 
 ## Current progression
 
@@ -62,8 +68,9 @@ Record Waves 20/25/30/35/40 and isolate whether excess strength comes mostly fro
 - Keep source changes coherent and independently testable.
 - Do not nerf Basic merely to force specialists.
 - Avoid mixing structural refactors with balance changes.
-- Preserve the complete single-ZIP handoff workflow.
+- Treat Forgejo as authoritative and GitHub as a secondary mirror.
+- Treat optional ZIP exports as transport only, never as project authority.
 
-## Bundle workflow
+## Repository workflow
 
-ChatGPT returns `geeklabs-td-context.zip` as one complete repository-relative replacement bundle. The user extracts it over `~/projects/geeklabs-td`, reviews, stages with `git add -A`, commits, and pushes. The same downloaded ZIP is uploaded into the next ChatGPT conversation. Do not regenerate it locally.
+Work from the checked-out repository, verify changes, commit coherent revisions, push Forgejo first, and then mirror to GitHub. See `docs/context/WORKFLOW.md`. If repository access is unavailable, `docs/context/PORTABLE_EXPORT.md` describes an optional export from a committed revision.

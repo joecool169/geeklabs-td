@@ -46,6 +46,7 @@
 - Web API calls and leaderboard presentation are coupled to the scene.
 - There is no explicit platform abstraction for browser versus native lifecycle/storage/services.
 - Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
+- Wave composition uses unseeded randomness, so otherwise identical comparison runs are not fully reproducible.
 
 ## Current layout behavior
 
