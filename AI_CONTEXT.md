@@ -19,7 +19,7 @@ Validation on this baseline:
 - `npm audit`: zero known vulnerabilities
 - `git diff --check`: passes
 
-The public site responds successfully but its JavaScript bundle predates the coordinated balance commits. The current checkpoint is intentionally not being deployed until controlled comparison runs lead to a reviewed balance revision.
+The v0.4.0 specialist progression passed its controlled comparison and is the reviewed production release.
 
 Seeded per-wave composition and automatic balance checkpoints are implemented for the controlled Hard-mode comparisons. Use the same `seed` and distinct `run` query parameters as documented in `docs/context/BALANCE_TESTING.md`.
 
@@ -55,9 +55,11 @@ Shared damage logic applies matchup multipliers, armor multipliers, and armor pe
 
 ## Latest playtest and current balance state
 
-A seeded Hard Basic-only run reached Wave 45. A Basic/Sniper-heavy specialist run reached Wave 46. Both were perfect through Wave 35, and specialist investment yielded only a marginal survival advantage. The product goal is to support runs beyond these waves, so economy was preserved and specialist progression was clarified instead of tightening Hard mode.
+The controlled Hard comparison used the same `specialists-v0.4.0` seed. Basic-heavy failed on Wave 46 with 2,758 kills and 45,091 score; mixed specialists failed on Wave 54 with 3,682 kills and 60,273 score. First leak moved from Wave 40 to Wave 48. At Wave 45, mixed specialists had 20 lives with $8,895 invested while Basic-heavy had 9 lives with $8,975 invested.
 
-The current 10/15/20/25/30/35 progression and preferred targeting pass is implemented but not yet playtested. Compare a new Basic-only control with a true mixed-specialist run. Telemetry now records checkpoints through Wave 50 plus damage, kills, and invested capital by tower type.
+Rapid led specialist contribution through Wave 45 with 492,150 damage and 1,216 kills. The eight-wave survival improvement validates the current progression, so v0.4.0 is accepted without further balance adjustment.
+
+Telemetry v2 records checkpoints through Wave 50 plus damage, kills, and invested capital by tower type. It does not yet persist the final partial-wave state at game over; adding that snapshot is the immediate telemetry follow-up.
 
 ## Operating rules
 

@@ -46,3 +46,18 @@ defense_protocol_balance_telemetry_v2
 ```
 
 Keep the exported JSON with the playtest notes. Compare the runs before selecting a balance correction.
+
+## Accepted v0.4.0 result
+
+The controlled Hard comparison completed on 2026-08-22:
+
+| Run | First leak | Game over | Kills | Score |
+| --- | ---: | ---: | ---: | ---: |
+| Basic-heavy | 40 | 46 | 2,758 | 45,091 |
+| Mixed-specialist | 48 | 54 | 3,682 | 60,273 |
+
+At Wave 45 the two builds had nearly identical investment: $8,975 Basic-heavy versus $8,895 mixed-specialist. Basic-heavy had 9 lives and 11 leaks; mixed-specialist retained 20 lives with no leaks.
+
+The eight-wave survival gain validates the specialist progression. Rapid led specialist contribution through Wave 45 with 492,150 damage and 1,216 kills. No additional balance adjustment was selected.
+
+The archive currently persists completed checkpoints rather than the final partial wave. The game-over results above are therefore authoritative for the final Wave 46 and Wave 54 outcomes; final-snapshot persistence is the next telemetry improvement.

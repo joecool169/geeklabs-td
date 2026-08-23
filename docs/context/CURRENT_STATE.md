@@ -5,18 +5,18 @@ Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
 
-Current candidate: **v0.4.0 specialist progression**
+Current reviewed release: **v0.4.0 specialist progression**
 
 ## Repository and validation
 
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
-- Forgejo and GitHub matched before the v0.4.0 specialist-progression work began.
+- Forgejo and GitHub contain the v0.4.0 specialist-progression implementation.
 - `npm test` passes with **36/36 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- The public site responds successfully, but its JavaScript bundle predates the final July 27 balance commits. Production is therefore not the current gameplay baseline.
+- v0.4.0 is approved for production from a clean committed revision.
 
 ## Current gameplay baseline
 
@@ -58,25 +58,24 @@ Enemy rewards use deterministic fractional carry per enemy class. Currency payou
 
 Wave cadence compensates for compressed 60 ms Runner packs. Average cadence remains near 330 ms through Wave 30, then ramps toward 260 ms by Wave 40. This smoothed modeled required-DPS growth to about 7% per wave for Waves 20-30 and 8% for Waves 31-40.
 
-## Controlled baseline result
+## Controlled v0.4.0 result
 
-A seeded Hard Basic-only run reached Wave 45 with 2,649 kills and score 45,146. A Basic/Sniper-heavy comparison reached Wave 46 with 2,712 kills and score 46,231. Both cleared Wave 35 without leaks; the Basic-only run first leaked on Wave 39.
+The two Hard runs used seed `specialists-v0.4.0` with no balance changes between runs.
+
+- Basic-heavy failed on Wave 46 with 2,758 kills and score 45,091. Its first leak was Wave 40.
+- Mixed-specialist failed on Wave 54 with 3,682 kills and score 60,273. Its first leak was Wave 48.
+- Correct specialist use added eight waves, 924 kills, and 15,182 score. At the shared Wave 45 checkpoint it retained all 20 lives with $8,895 invested, while Basic-heavy had 9 lives with $8,975 invested.
+- Through Wave 45, Rapid dealt 492,150 damage and earned 1,216 kills; Sniper dealt 383,651.5 damage and earned 787 kills; Laser dealt 154,774.9 damage and earned 214 kills.
 
 ## Current assessment
 
-Specialists produced only a one-wave practical advantage, and Rapid was not attractive enough to use. Because the goal is longer endurance play, the current work clarifies specialist value instead of reducing income: Sprinter becomes Rapid's explicit threat, each specialist gets a five-wave preparation window, and preferred targeting makes counters automatic without removing manual control.
+The five-wave preparation windows and preferred targeting established a meaningful specialist advantage without nerfing Basic or reducing income. Rapid produced the most specialist damage and kills, resolving its prior lack of value. The v0.4.0 balance is accepted; no further tower-stat correction is currently justified.
 
 ## Next step
 
-Preserve this build as the baseline and perform controlled comparison runs:
-
-Follow `BALANCE_TESTING.md` against the new progression:
-
-1. Run a mixed-specialist build versus a Basic-heavy control using the same seed.
-2. Review checkpoints from Waves 10 through 50, including damage, kills, and investment by tower type.
-3. Verify that Rapid visibly answers Sprinters and that specialists create a meaningful endurance advantage.
-4. Change Rapid range or projectile behavior only if preferred targeting and the new threat still fail to establish its value.
-5. Deploy only after reviewing the comparison.
+1. Persist a final telemetry snapshot at game over; the current archive retains the last completed checkpoint but omits the final partial wave.
+2. Begin the staged architecture inventory and refactor described in `ROADMAP.md`.
+3. Leave v0.4.0 balance values unchanged until new playtest evidence identifies a specific problem.
 
 ## Source-of-truth workflow
 

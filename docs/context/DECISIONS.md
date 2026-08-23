@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-08-22 — Accept v0.4.0 specialist progression
+
+**Decision:** Accept the five-wave specialist progression and preferred-targeting balance without another tower-stat adjustment, and release v0.4.0.
+
+**Evidence:** Under the same `specialists-v0.4.0` seed on Hard, Basic-heavy failed on Wave 46 while mixed specialists failed on Wave 54. First leak moved from Wave 40 to Wave 48. At Wave 45, mixed specialists retained 20 lives with $8,895 invested while Basic-heavy had 9 lives with $8,975 invested. Rapid led specialist contribution with 492,150 damage and 1,216 kills through that checkpoint.
+
+**Follow-up:** Persist the final partial-wave state at game over. The v2 archive currently retains the most recent completed checkpoint, so the final result screen remains the authority for failure-wave totals.
+
 ## 2026-08-22 — Establish five-wave specialist preparation windows
 
 **Decision:** Use Rapid 10 / Sprinter 15 / Sniper 20 / Brute 25 / Laser 30 / Armored 35.

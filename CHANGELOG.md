@@ -1,3 +1,4 @@
+- 2026-08-22 Accept v0.4.0 after the controlled Hard comparison extended specialist survival from Wave 46 to Wave 54
 - 2026-08-22 Add Sprinter, five-wave specialist preparation windows, preferred targeting, and per-tower combat telemetry
 - 2026-08-22 Add seeded per-wave composition and automatic controlled-run balance telemetry
 - 2026-08-22 Make Forgejo authoritative, retire mandatory ZIP handoffs, harden deployment verification, and align project version metadata
