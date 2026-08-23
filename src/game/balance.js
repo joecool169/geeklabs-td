@@ -59,7 +59,7 @@ function computeClearBonus(waveNumber) {
 }
 
 function computeExpectedEnemyCounts(waveNumber) {
-  const config = computeWaveConfig.call({ intermissionMs: 0 }, waveNumber);
+  const config = computeWaveConfig(waveNumber, 0);
   const {
     forcedRunners,
     randomSpawns,

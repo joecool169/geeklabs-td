@@ -1,6 +1,4 @@
 import { clamp01, ENEMY_DEFS, WAVE_CADENCE } from "../constants.js";
-import { pickWeighted } from "./enemies.js";
-import { createWaveRandom } from "./random.js";
 
 function computeSpawnTopology(total, packEvery, packSize) {
   let spawned = 0;
@@ -33,7 +31,7 @@ function computeSpawnTopology(total, packEvery, packSize) {
   };
 }
 
-function computeWaveConfig(wave) {
+function computeWaveConfig(wave, intermissionMs = 2000) {
   const w = Math.max(1, wave);
   const rawTotal = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
   const weights = [{ key: "runner", w: 1.6 }];
@@ -120,112 +118,8 @@ function computeWaveConfig(wave) {
     weights,
     packEvery,
     packSize: reducedPackSize,
-    intermissionMs: this.intermissionMs,
+    intermissionMs,
   };
 }
 
-function enterIntermission(isInitial = false) {
-  this.waveState = "intermission";
-  this.activeWaves = [];
-  this.waveEnemiesTotal = 0;
-  this.waveEnemiesSpawned = 0;
-  this.waveNextSpawnAt = 0;
-  this.swarmPacksRemaining = 0;
-  this.swarmNextPackSpawnAt = 0;
-
-  if (this.autoStartTimer) {
-    this.autoStartTimer.remove(false);
-    this.autoStartTimer = null;
-  }
-
-  if (isInitial && !this.didStartFirstWave) {
-    this.nextWaveAvailableAt = this.time.now;
-    return;
-  }
-
-  this.nextWaveAvailableAt = this.time.now + this.intermissionMs;
-
-  if (this.autoStartWaves) {
-    this.autoStartTimer = this.time.delayedCall(this.intermissionMs, () => {
-      if (this.isPaused) return;
-      if (this.waveState !== "intermission") return;
-      const waveNumber = this.nextWaveNumberToSpawn ?? this.wave;
-      startWave.call(this, waveNumber);
-      if (typeof this.nextWaveNumberToSpawn === "number") this.nextWaveNumberToSpawn += 1;
-      if (!this.didStartFirstWave) this.didStartFirstWave = true;
-    });
-  }
-}
-
-function tryStartWave() {
-  if (this.waveState !== "intermission") return;
-  if (this.time.now < this.nextWaveAvailableAt) return;
-  startWave.call(this, this.wave);
-  if (!this.didStartFirstWave) this.didStartFirstWave = true;
-}
-
-function startWave(wave) {
-  const cfg = computeWaveConfig.call(this, wave);
-  if (!this.activeWaves) this.activeWaves = [];
-  this.activeWaves.push({
-    waveNumber: wave,
-    cfg,
-    enemiesTotal: cfg.total,
-    enemiesSpawned: 0,
-    spawnDelayMs: cfg.spawnDelayMs,
-    nextSpawnAt: this.time.now + 250,
-    swarmPacksRemaining: 0,
-    swarmNextPackSpawnAt: 0,
-    random: createWaveRandom(this.runSeed, wave),
-  });
-  this.waveState = "running";
-  if (this.showWaveTransition) this.showWaveTransition(`WAVE ${wave} ENGAGED`);
-}
-
-function updateWaveSpawning(time) {
-  if (this.waveState !== "running") return;
-
-  if (!this.activeWaves || this.activeWaves.length === 0) return;
-
-  for (const spawner of this.activeWaves) {
-    if (spawner.swarmPacksRemaining > 0 && time >= spawner.swarmNextPackSpawnAt) {
-      this.spawnEnemyOfType("runner", {
-        isSwarm: true,
-        waveNumber: spawner.waveNumber,
-      });
-      spawner.enemiesSpawned += 1;
-      spawner.swarmPacksRemaining -= 1;
-      spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
-      continue;
-    }
-
-    if (spawner.enemiesSpawned >= spawner.enemiesTotal) continue;
-    if (time < spawner.nextSpawnAt) continue;
-
-    const cfg = spawner.cfg;
-    const shouldPack =
-      cfg.packEvery > 0 &&
-      spawner.enemiesSpawned > 0 &&
-      spawner.enemiesSpawned % cfg.packEvery === 0;
-
-    if (shouldPack) {
-      const toSpawn = Math.min(cfg.packSize, spawner.enemiesTotal - spawner.enemiesSpawned);
-      this.spawnEnemyOfType("runner", {
-        isSwarm: true,
-        waveNumber: spawner.waveNumber,
-      });
-      spawner.enemiesSpawned += 1;
-      spawner.swarmPacksRemaining = Math.max(0, toSpawn - 1);
-      spawner.swarmNextPackSpawnAt = time + this.swarmPackSpacingMs;
-    } else {
-      const r = spawner.random();
-      const type = pickWeighted.call(this, r, cfg.weights) || "runner";
-      this.spawnEnemyOfType(type, { waveNumber: spawner.waveNumber });
-      spawner.enemiesSpawned += 1;
-    }
-
-    spawner.nextSpawnAt = time + spawner.spawnDelayMs;
-  }
-}
-
-export { computeWaveConfig, enterIntermission, tryStartWave, startWave, updateWaveSpawning };
+export { computeSpawnTopology, computeWaveConfig };

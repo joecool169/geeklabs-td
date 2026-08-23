@@ -1,16 +1,12 @@
 import Phaser from "phaser";
 import {
   DIFFICULTY_CONFIG,
-  MAX_CONCURRENT_SPAWNERS,
   TOP_UI,
-  WAVE_SPAM_WINDOW_MS,
 } from "./game/config.js";
-import * as Balance from "./game/balance.js";
 import * as UI from "./game/ui.js";
-import * as Waves from "./game/waves.js";
 import * as Telemetry from "./game/telemetry.js";
 import { normalizeRunSeed } from "./game/random.js";
-import { ENEMY_DEFS, TOWER_DEFS, WAVE_CADENCE } from "./constants.js";
+import { ENEMY_DEFS, TOWER_DEFS } from "./constants.js";
 import {
   recordLocalScore,
   submitGlobalScore,
@@ -36,6 +32,7 @@ import {
 import { TowerSystem, attachTowerSystem } from "./systems/TowerSystem.js";
 import { EnemySystem, attachEnemySystem } from "./systems/EnemySystem.js";
 import { CombatSystem } from "./systems/CombatSystem.js";
+import { WaveSystem, attachWaveSystem } from "./systems/WaveSystem.js";
 
 const storage = createStorageGateway();
 const SFX_CONFIG = {
@@ -114,27 +111,6 @@ export class GameScene extends Phaser.Scene {
       })
     );
     this.runController = new RunController(this.runState);
-    this.wave = 1;
-    this.waveState = "intermission";
-    this.waveEnemiesTotal = 0;
-    this.waveEnemiesSpawned = 0;
-    this.waveSpawnDelayMs = 650;
-    this.waveNextSpawnAt = 0;
-    this.intermissionMs = 2000;
-    this.nextWaveAvailableAt = 0;
-    this.autoStartWaves = true;
-    this.autoStartTimer = null;
-    this.didStartFirstWave = false;
-    this.activeWaves = [];
-    this.spaceArmedAt = 0;
-    this.spaceArmMode = null;
-    this.nextWaveNumberToSpawn = this.wave;
-    this.blockWaveStart = this.wave;
-
-    this.swarmPacksRemaining = 0;
-    this.swarmPackSpacingMs = WAVE_CADENCE.packSpacingMs;
-    this.swarmNextPackSpawnAt = 0;
-
     this.worldRenderer = new WorldRenderer(this);
     this.worldRenderer.create();
     this.path = this.worldRenderer.path;
@@ -173,6 +149,21 @@ export class GameScene extends Phaser.Scene {
       getDifficulty: () => this.difficulty,
       getTelemetry: () => this.runTelemetry,
     });
+    attachWaveSystem(
+      this,
+      new WaveSystem({
+        scene: this,
+        runController: this.runController,
+        enemySystem: this.enemySystem,
+        getRunSeed: () => this.runSeed,
+        showToast: (message, duration) => this.showToast(message, duration),
+        showTransition: (text, tone, duration) =>
+          this.showWaveTransition(text, tone, duration),
+        playWaveSfx: () => this.playSfx("wave"),
+        onWavesCleared: (firstWave, lastWave) =>
+          this.recordBalanceCheckpoints(firstWave, lastWave),
+      })
+    );
 
     this.ui = this.add.text(14, 12, "", {
       fontFamily: "monospace",
@@ -320,6 +311,8 @@ export class GameScene extends Phaser.Scene {
       this.enemySystem = null;
       this.combatSystem?.destroy();
       this.combatSystem = null;
+      this.waveSystem?.destroy();
+      this.waveSystem = null;
       this.worldRenderer?.destroy();
       this.worldRenderer = null;
     });
@@ -397,50 +390,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   handleStartWaveInput(now) {
-    if (this.waveState === "intermission") {
-      if (now < this.nextWaveAvailableAt) {
-        if (
-          this.spaceArmMode === "intermission" &&
-          now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS
-        ) {
-          this.spaceArmedAt = 0;
-          this.spaceArmMode = null;
-          this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, now);
-          this.startWave(this.nextWaveNumberToSpawn);
-          this.nextWaveNumberToSpawn += 1;
-          if (!this.didStartFirstWave) this.didStartFirstWave = true;
-        } else {
-          this.spaceArmedAt = now;
-          this.spaceArmMode = "intermission";
-          this.showToast("Press SPACE again to start early.", 1400);
-        }
-        return;
-      }
-      this.spaceArmedAt = 0;
-      this.spaceArmMode = null;
-      this.startWave(this.nextWaveNumberToSpawn);
-      this.nextWaveNumberToSpawn += 1;
-      if (!this.didStartFirstWave) this.didStartFirstWave = true;
-      return;
-    }
-    if (this.waveState !== "running") return;
-    if ((this.activeWaves?.length || 0) >= MAX_CONCURRENT_SPAWNERS) {
-      this.showToast(`Spawner cap reached (${MAX_CONCURRENT_SPAWNERS}).`, 1400);
-      return;
-    }
-    if (
-      this.spaceArmMode === "running" &&
-      now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS
-    ) {
-      this.spaceArmedAt = 0;
-      this.spaceArmMode = null;
-      this.startWave(this.nextWaveNumberToSpawn);
-      this.nextWaveNumberToSpawn += 1;
-      return;
-    }
-    this.spaceArmedAt = now;
-    this.spaceArmMode = "running";
-    this.showToast("Press SPACE again to add a spawner.", 1400);
+    this.waveSystem.handleStartInput(now);
   }
 
   handleSecondaryPointer(x, y) {
@@ -648,8 +598,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if (this.autoStartTimer) {
-      this.autoStartTimer.remove(false);
-      this.autoStartTimer = null;
+      this.waveSystem.cancelAutoStart();
     }
     if (this.isPlacing) this.setPlacement(false);
     this.clearSelection();
@@ -669,7 +618,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   computeWaveConfig(wave) {
-    return Waves.computeWaveConfig.call(this, wave);
+    return this.waveSystem.computeConfig(wave);
   }
 
   setHelpOverlay(show) {
@@ -718,18 +667,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   enterIntermission(isInitial = false) {
-    Waves.enterIntermission.call(this, isInitial);
-    this.nextWaveNumberToSpawn = this.wave;
-    this.blockWaveStart = this.wave;
+    this.waveSystem.enterIntermission(isInitial);
   }
 
   tryStartWave() {
-    Waves.tryStartWave.call(this);
+    return this.waveSystem.tryStartWave();
   }
 
   startWave(wave) {
-    this.playSfx("wave");
-    Waves.startWave.call(this, wave);
+    this.waveSystem.startWave(wave);
   }
 
   update(time, dt) {
@@ -738,7 +684,7 @@ export class GameScene extends Phaser.Scene {
     this.combatSystem.update(time, dt);
     this.enemySystem.update(dt);
 
-    this.updateWaveSpawning(time);
+    this.waveSystem.update(time);
     Telemetry.observeActiveEnemies(
       this.runTelemetry,
       this.enemies.countActive(true)
@@ -761,35 +707,11 @@ export class GameScene extends Phaser.Scene {
       this.hideRangeRing();
     }
 
-    if (this.waveState === "running") {
-      const alive = this.enemies.countActive(true);
-      const spawners = this.activeWaves || [];
-      const allDone = spawners.length > 0 && spawners.every((spawner) => spawner.enemiesSpawned >= spawner.enemiesTotal);
-      if (allDone && alive === 0) {
-        const wavesCleared = Math.max(1, this.nextWaveNumberToSpawn - this.blockWaveStart);
-        const firstWaveCleared = this.blockWaveStart;
-        const lastWaveCleared = this.nextWaveNumberToSpawn - 1;
-        const completionLabel =
-          wavesCleared === 1
-            ? `WAVE ${firstWaveCleared} COMPLETE`
-            : `WAVES ${firstWaveCleared}–${lastWaveCleared} COMPLETE`;
-        this.showWaveTransition(completionLabel, "positive", 1200);
-        for (let i = 0; i < wavesCleared; i += 1) {
-          const waveNum = this.blockWaveStart + i;
-          const clearBonus = Balance.computeClearBonus(waveNum);
-          this.runController.awardWaveClear(clearBonus);
-        }
-        this.recordBalanceCheckpoints(firstWaveCleared, lastWaveCleared);
-        this.wave = this.nextWaveNumberToSpawn;
-        this.enterIntermission(false);
-      }
-    }
-
     this.updateUI();
   }
 
   updateWaveSpawning(time) {
-    Waves.updateWaveSpawning.call(this, time);
+    this.waveSystem.updateSpawning(time);
   }
 
   enterPlacementModeIfNeeded() {

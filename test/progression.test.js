@@ -16,9 +16,10 @@ import {
 } from "../src/game/towers.js";
 import {
   computeWaveConfig,
-  startWave,
-  updateWaveSpawning,
 } from "../src/game/waves.js";
+import { RunController } from "../src/core/RunController.js";
+import { RunState } from "../src/core/RunState.js";
+import { WaveSystem } from "../src/systems/WaveSystem.js";
 import { createWaveRandom, normalizeRunSeed } from "../src/game/random.js";
 import {
   createRunTelemetry,
@@ -40,7 +41,7 @@ import {
   computeWaveBalance,
 } from "../src/game/balance.js";
 
-const waveConfig = (wave) => computeWaveConfig.call({ intermissionMs: 5000 }, wave);
+const waveConfig = (wave) => computeWaveConfig(wave, 5000);
 const weightMap = (wave) =>
   Object.fromEntries(waveConfig(wave).weights.map(({ key, w }) => [key, w]));
 
@@ -503,21 +504,24 @@ test("wave composition random streams repeat for the same seed and wave", () => 
 test("runtime wave spawning repeats the same enemy sequence", () => {
   const spawnSequence = (seed, wave) => {
     const spawned = [];
-    const scene = {
-      activeWaves: [],
-      intermissionMs: 0,
-      runSeed: seed,
-      swarmPackSpacingMs: 60,
-      time: { now: 0 },
-      spawnEnemyOfType(type) {
-        spawned.push(type);
+    const scene = { time: { now: 0, delayedCall() {} } };
+    const state = new RunState({ startScreenActive: false });
+    const system = new WaveSystem({
+      scene,
+      runController: new RunController(state),
+      enemySystem: {
+        spawn(type) { spawned.push(type); },
+        countActive() { return 1; },
       },
-    };
-    startWave.call(scene, wave);
-    const spawner = scene.activeWaves[0];
+      getRunSeed: () => seed,
+      intermissionMs: 0,
+    });
+    system.swarmPackSpacingMs = 60;
+    system.startWave(wave);
+    const spawner = system.activeWaves[0];
     let time = spawner.nextSpawnAt;
     while (spawner.enemiesSpawned < spawner.enemiesTotal) {
-      updateWaveSpawning.call(scene, time);
+      system.updateSpawning(time);
       time += Math.max(60, spawner.spawnDelayMs);
     }
     return spawned;
