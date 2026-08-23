@@ -1017,6 +1017,11 @@ html.touch-ui .game-overlay-input {
   min-height: 48px;
   touch-action: manipulation;
 }
+@media (min-width: 1100px) and (min-height: 700px) {
+  html.touch-ui #stage {
+    width: min(100%, 1140px);
+  }
+}
 @media (max-width: 520px) {
   html.touch-ui #touch-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
