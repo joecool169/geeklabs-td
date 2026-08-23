@@ -28,15 +28,24 @@ The v0.4.0 balance is accepted. Preserve `v0.3.0-balance-checkpoint` as the earl
 - action targets, portrait/landscape layouts, and safe-area spacing are implemented
 - desktop keyboard and mouse behavior is preserved
 
-## Phase 5 — Early iOS proof of concept — in progress
+## Phase 5 — Early iOS proof of concept — completed
 
 - add a minimal Capacitor project — completed
 - add native lifecycle pause and durable preference mirroring — completed
 - build and run in the iOS Simulator — completed with Xcode 26.6 and iOS 26.5
 - build, install, and launch on a real iPhone — completed on an iPhone 17 Pro Max
-- verify canvas sizing, touch coordinates, orientation, safe areas, audio activation, pause/resume, persistence, heat, and dense-wave performance
+- verify canvas sizing, touch coordinates, orientation, safe areas, audio activation, pause/resume, preference bridging, and dense-wave performance — completed
+- retain measured battery/thermal endurance and force-quit restoration as release-candidate checks
 
 See `IOS_POC.md` for the exact validation commands and device checklist.
+
+## Phase 6 — Presentation polish — in progress
+
+- strengthen HUD and state hierarchy without changing gameplay balance
+- refine touch-control spacing, alignment, and interaction states
+- coordinate visual and audio feedback for placement, upgrades, leaks, unlocks, and wave transitions
+- reduce visual noise and preserve target readability during dense waves
+- complete web, Simulator, and physical-device validation before release
 
 ## Later product work
 

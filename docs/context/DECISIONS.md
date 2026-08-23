@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-08-23 — Accept the iOS proof of concept
+
+**Decision:** Accept the Capacitor 8 shell as the mobile-development foundation and proceed to presentation polish without changing the shared Phaser game core or accepted balance.
+
+**Evidence:** The signed app builds, installs, and launches on an iPhone 17 Pro Max. Touch play reached Wave 54 on Easy with 37 towers and 40 active enemies without a reported interaction or frame-pacing blocker. Physical-device audio activation and the persistent sound control pass; Simulator safe-area, orientation, lifecycle pause, and native-preference checks pass.
+
+**Release follow-up:** Keep a measured battery/thermal endurance run and final force-quit restoration audit in the release-candidate gate. They are not blockers for continuing product work.
+
 ## 2026-08-23 — Establish the Capacitor iOS boundary
 
 **Decision:** Use a minimal Capacitor 8 iOS shell with the existing Phaser/Vite bundle as the only game core. The native runtime is isolated under `src/platform/`.

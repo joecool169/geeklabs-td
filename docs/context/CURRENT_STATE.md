@@ -12,7 +12,7 @@ Current reviewed release: **v0.5.0 touch controls**, preserving the accepted v0.
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **59/59 tests**.
+- `npm test` passes with **62/62 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
@@ -89,11 +89,19 @@ The five-wave preparation windows and preferred targeting established a meaningf
 - Start Wave, Add Wave, Pause/Resume, Cancel, portrait/landscape layout, safe areas, and viewport-level overlays are implemented.
 - The canvas alone suppresses browser gestures; surrounding controls retain normal touch behavior.
 
+## iOS proof-of-concept state
+
+- The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro Max.
+- Safe areas, supported orientations, touch placement, contextual actions, and lifecycle pause behavior pass Simulator validation.
+- A physical-device Easy run reached Wave 54 with 37 towers and 40 active enemies without a reported touch or frame-pacing blocker.
+- Audio now unlocks from DOM or canvas gestures, uses clearer levels, respects Silent Mode, and has a persistent Sound On/Off control.
+- Native Preferences mirrors managed browser settings. A measured thermal/battery run and final force-quit restoration audit remain release-candidate checks rather than proof-of-concept blockers.
+
 ## Next step
 
-1. Complete the real-iPhone playtest for touch accuracy, orientation, audio, persistence, lifecycle pause/resume, heat, and dense-wave performance using `IOS_POC.md`.
-2. Resolve any device-only blocker found by that playtest.
-3. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
+1. Polish hierarchy, touch-control presentation, and gameplay feedback without changing accepted balance values.
+2. Re-run web, Simulator, and physical-device checks after the polish slices.
+3. Keep measured battery/thermal and force-quit restoration checks in the release-candidate gate.
 
 ## Source-of-truth workflow
 

@@ -1,6 +1,6 @@
 # iOS proof of concept
 
-## Current status
+## Current status — accepted proof of concept
 
 The Capacitor 8 shell and generated iOS 15+ project are in the repository. The native project uses bundle identifier `tv.geekstreet.td` and includes the App and Preferences plugins.
 
@@ -19,10 +19,13 @@ Implemented and locally verified:
 - touch placement, wave start, and contextual tower controls work in the Simulator
 - backgrounding during an active wave returns to an explicit pause screen
 - the signed app installs and launches on an iPhone 17 Pro Max
+- a real-device Easy run reached Wave 54 with 37 towers, 3,626 kills, 20 lives, and 40 active enemies without a reported touch or frame-pacing blocker
+- real-device sound activation works after the first touch; effects are audible, Silent Mode is respected, and the persistent Sound On/Off control works
+- the production bundle, 62-test suite, dependency audit, Capacitor sync, Simulator build, signed device build, installation, and launch pass
 
-Not yet verified:
+Deferred to release endurance testing:
 
-- real-device audio activation, persistence, heat, and dense-wave performance
+- a measured battery/thermal run and force-quit restoration audit on the release candidate
 
 The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`. Automatic development signing is configured and version `1.0 (1)` has been installed on Joe's iPhone.
 
@@ -32,7 +35,9 @@ The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`.
 - development signing and provisioning succeeded
 - `tv.geekstreet.td` installed successfully
 - the native process launched and remained alive
-- visual interaction, audio, persistence, heat, and endurance checks remain a hands-on playtest
+- touch interaction and dense-wave play reached Wave 54 without a reported blocker
+- audio activation and the persistent sound toggle passed on the physical device
+- the proof of concept is accepted as the mobile-development foundation
 
 ## Simulator validation — 2026-08-23
 
