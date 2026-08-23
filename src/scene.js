@@ -31,6 +31,8 @@ import { OverlayManager } from "./ui/OverlayManager.js";
 import { GameDomView } from "./ui/GameDomView.js";
 import { GAME_ACTIONS } from "./input/actions.js";
 import { InputController } from "./input/InputController.js";
+import { RunController } from "./core/RunController.js";
+import { RunState, attachRunState } from "./core/RunState.js";
 
 const storage = createStorageGateway();
 const RANGE_FILL_ALPHA = {
@@ -111,10 +113,14 @@ export class GameScene extends Phaser.Scene {
       this.sfxLastAt[key] = now;
     };
 
-    this.money = 0;
-    this.lives = 20;
-    this.killCount = 0;
-    this.score = 0;
+    attachRunState(
+      this,
+      new RunState({
+        startingLives: 20,
+        startScreenActive: !this.startOptions?.skipStartScreen,
+      })
+    );
+    this.runController = new RunController(this.runState);
     this.enemyRewardRoundingCarry = Enemies.createEnemyRewardCarry();
 
     this.wave = 1;
@@ -223,9 +229,6 @@ export class GameScene extends Phaser.Scene {
     this.lifeFlashTween = null;
     this.lifeHudTween = null;
 
-    this.isStartScreenActive = !this.startOptions?.skipStartScreen;
-    this.isGameOver = false;
-    this.isPaused = false;
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!this.cache.audio.exists(key)) return;
       const volume = typeof cfg.volume === "number" ? cfg.volume : 0.4;
@@ -276,7 +279,7 @@ export class GameScene extends Phaser.Scene {
     this.setPaused = (paused) => {
       const p = !!paused;
       if (p === this.isPaused) return;
-      this.isPaused = p;
+      this.runController.setPaused(p);
       this.physics.world.isPaused = this.isPaused;
       if (this.autoStartTimer) this.autoStartTimer.paused = this.isPaused;
       if (this.isPaused && this.isPlacing) this.setPlacement(false);
@@ -480,7 +483,7 @@ export class GameScene extends Phaser.Scene {
     this.difficultyKey = normalized;
     this.difficulty = cfg;
     this.difficultyLabel = cfg.label;
-    this.money = cfg.startingMoney;
+    this.runController.applyStartingMoney(cfg.startingMoney);
     this.runTelemetry = Telemetry.createRunTelemetry({
       seed: this.runSeed,
       difficultyKey: normalized,
@@ -497,7 +500,7 @@ export class GameScene extends Phaser.Scene {
 
   showStartScreen() {
     if (!this.overlays?.host) {
-      this.isStartScreenActive = false;
+      this.runController.startGame();
       this.applyDifficulty(this.difficultyKey);
       return;
     }
@@ -511,7 +514,7 @@ export class GameScene extends Phaser.Scene {
         storage.write(STORAGE_KEYS.playerName, name);
         this.applyDifficulty(difficultyKey);
         storage.write(STORAGE_KEYS.difficulty, difficultyKey);
-        this.isStartScreenActive = false;
+        this.runController.startGame();
         this.inputController?.setKeyboardEnabled(true);
         this.overlays.remove("defense-protocol-start-overlay");
       },
@@ -613,8 +616,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   triggerGameOver() {
-    if (this.isGameOver) return;
-    this.isGameOver = true;
+    if (!this.runController.endGame()) return;
     const finalTelemetry = Telemetry.recordFinalSnapshot(this.runTelemetry, {
       outcome: "game-over",
       wave: this.wave,
@@ -786,8 +788,7 @@ export class GameScene extends Phaser.Scene {
         for (let i = 0; i < wavesCleared; i += 1) {
           const waveNum = this.blockWaveStart + i;
           const clearBonus = Balance.computeClearBonus(waveNum);
-          this.money += clearBonus;
-          this.score += clearBonus;
+          this.runController.awardWaveClear(clearBonus);
         }
         this.recordBalanceCheckpoints(firstWaveCleared, lastWaveCleared);
         this.wave = this.nextWaveNumberToSpawn;
@@ -1206,7 +1207,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.canPlaceTowerAt(x, y)) return;
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
-    this.money -= tier0.cost;
+    this.runController.spend(tier0.cost);
     const img = this.add.image(x, y, this.getTowerTextureKey(def.key));
     const t = {
       x,
@@ -1429,12 +1430,11 @@ export class GameScene extends Phaser.Scene {
     Telemetry.recordEnemyKill(this.runTelemetry, enemy.typeKey);
     Telemetry.recordTowerKill(this.runTelemetry, tower?.type);
     enemy.destroy();
-    this.money += reward;
-    this.killCount += 1;
-    const baseScoreGain = reward + Math.round(weight * 10);
-    const scoreMul = this.difficulty?.scoreMul ?? 1;
-    const scoreGain = Math.round(baseScoreGain * scoreMul);
-    this.score += scoreGain;
+    this.runController.recordKill({
+      reward,
+      scoreWeight: weight,
+      scoreMultiplier: this.difficulty?.scoreMul ?? 1,
+    });
   }
 
   fireBullet(t, target) {

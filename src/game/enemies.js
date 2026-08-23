@@ -244,10 +244,12 @@ function advanceEnemy(e, dt) {
   if (i >= this.path.length - 1) {
     if (this.recordEnemyLeak) this.recordEnemyLeak(e);
     e.destroy();
-    this.lives -= 1;
+    const shouldEndRun = this.runController
+      ? this.runController.loseLife()
+      : ((this.lives -= 1), this.lives <= 0);
     if (this.triggerLifeLossFeedback) this.triggerLifeLossFeedback();
     if (this.playSfx) this.playSfx("life");
-    if (this.lives <= 0) this.triggerGameOver();
+    if (shouldEndRun) this.triggerGameOver();
     return;
   }
   const a = this.path[i];

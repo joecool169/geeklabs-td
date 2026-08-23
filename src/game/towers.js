@@ -30,7 +30,8 @@ function tryUpgradeTower(t) {
   const nextCost = getNextUpgradeCost(t);
   if (nextCost === null) return;
   if (this.money < nextCost) return;
-  this.money -= nextCost;
+  if (this.runController) this.runController.spend(nextCost);
+  else this.money -= nextCost;
   t.spent += nextCost;
   applyTowerTier(t, t.tier);
   if (this.selectedTower === t) this.showRangeRing(t, 0x00ffff);
@@ -44,7 +45,8 @@ function trySellTower(t) {
   if (t.badge) t.badge.destroy();
   t.sprite.destroy();
   this.towers.splice(idx, 1);
-  this.money += refund;
+  if (this.runController) this.runController.earn(refund);
+  else this.money += refund;
   if (this.selectedTower === t) this.clearSelection();
 }
 
