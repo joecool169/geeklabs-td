@@ -39,9 +39,12 @@ class GameDomView {
       towerStripEl: root.getElementById("tower-strip"),
       touchControlsEl: root.getElementById("touch-controls"),
       touchStartWaveBtnEl: root.getElementById("touch-start-wave"),
+      touchStartWaveLabelEl: root.getElementById("touch-start-wave-label"),
       touchPlaceBtnEl: root.getElementById("touch-place"),
+      touchPlaceLabelEl: root.getElementById("touch-place-label"),
       touchCancelBtnEl: root.getElementById("touch-cancel"),
       touchPauseBtnEl: root.getElementById("touch-pause"),
+      touchPauseLabelEl: root.getElementById("touch-pause-label"),
       touchTowerActionsEl: root.getElementById("touch-tower-actions"),
       touchTowerNameEl: root.getElementById("touch-tower-name"),
       touchTowerStatsEl: root.getElementById("touch-tower-stats"),
@@ -82,9 +85,27 @@ class GameDomView {
         card.className = "tower-card";
         card.dataset.towerKey = def.key;
         card.setAttribute("aria-label", `${def.name} tower`);
-        const title = this.root.createElement("div");
+        const header = this.root.createElement("div");
+        header.className = "tower-card-header";
+        const icon = this.root.createElement("span");
+        icon.className = "tower-card-icon";
+        icon.textContent = def.name.slice(0, 1);
+        icon.setAttribute("aria-hidden", "true");
+        const identity = this.root.createElement("span");
+        identity.className = "tower-card-identity";
+        const title = this.root.createElement("span");
         title.className = "tower-card-title";
         title.textContent = def.name;
+        const role = this.root.createElement("span");
+        role.className = "tower-card-role";
+        role.textContent = {
+          basic: "Generalist",
+          rapid: "Anti-fast",
+          sniper: "Anti-heavy",
+          laser: "Anti-armor",
+        }[def.key] ?? "Defense";
+        identity.append(title, role);
+        header.append(icon, identity);
         const description = this.root.createElement("div");
         description.className = "tower-card-desc";
         description.textContent = def.desc || "";
@@ -95,7 +116,7 @@ class GameDomView {
         keycap.className = "keycap";
         keycap.textContent = def.hotkey;
         meta.append(metaText, keycap);
-        card.append(title, description, meta);
+        card.append(header, description, meta);
         this.listen(card, "click", () => onSelectTowerType(def.key));
         towerStrip.append(card);
         this.towerStripSlots.push({

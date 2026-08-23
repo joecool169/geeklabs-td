@@ -206,7 +206,7 @@ function updateWaveHint(scene, text, visible) {
 
 function updateUI(scene) {
   if (scene.touchStartWaveBtnEl) {
-    scene.touchStartWaveBtnEl.textContent =
+    scene.touchStartWaveLabelEl.textContent =
       scene.waveState === "running" ? "Add Wave" : "Start Wave";
     scene.touchStartWaveBtnEl.disabled =
       scene.isPaused || scene.isStartScreenActive || scene.isGameOver;
@@ -220,7 +220,7 @@ function updateUI(scene) {
     );
   }
   if (scene.touchPauseBtnEl) {
-    scene.touchPauseBtnEl.textContent = scene.isPaused ? "Resume" : "Pause";
+    scene.touchPauseLabelEl.textContent = scene.isPaused ? "Resume" : "Pause";
     scene.touchPauseBtnEl.disabled =
       scene.isStartScreenActive || scene.isGameOver;
     scene.touchPauseBtnEl.classList.toggle("is-paused", scene.isPaused);
@@ -336,7 +336,7 @@ function updateUI(scene) {
         slot.el.dataset.locked = locked ? "true" : "false";
         slot.el.setAttribute("aria-disabled", String(locked || !affordable));
         if (slot.metaEl) {
-          slot.metaEl.textContent = locked ? `W${unlockWave}` : `$${cost}`;
+          slot.metaEl.textContent = locked ? `Unlock W${unlockWave}` : `$${cost}`;
         }
         if (slot.keyEl) {
           slot.keyEl.style.display = locked ? "none" : "inline-flex";

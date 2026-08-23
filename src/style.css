@@ -411,6 +411,9 @@ body {
   border-radius: 10px;
   background: #101a28;
   color: #dbe7ff;
+  display: grid;
+  align-content: center;
+  gap: 4px;
   font: 700 14px/1 "Trebuchet MS", "Segoe UI", sans-serif;
   touch-action: manipulation;
   cursor: pointer;
@@ -421,6 +424,13 @@ body {
     color 120ms ease,
     box-shadow 120ms ease;
 }
+.touch-control small {
+  color: rgba(142, 161, 181, 0.78);
+  font: 700 8px/1 monospace;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.touch-control span { position: relative; }
 .touch-control:not(:disabled):active {
   transform: translateY(1px) scale(0.985);
   background: #16243a;
@@ -477,9 +487,9 @@ body {
 }
 #bottom-bar {
   height: var(--bottom-bar-height);
-  border: 1px solid #1a2a3d;
+  border: 1px solid var(--dp-line);
   border-radius: 10px;
-  background: rgba(11, 15, 20, 0.95);
+  background: linear-gradient(180deg, rgba(14, 22, 32, 0.98), rgba(8, 13, 20, 0.98));
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   padding: calc(8px * var(--ui-scale)) calc(10px * var(--ui-scale));
   box-sizing: border-box;
@@ -503,8 +513,8 @@ body {
   gap: 4px;
   padding: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale));
   border-radius: 8px;
-  border: 1px solid #2b3f5e;
-  background: #0f1623;
+  border: 1px solid var(--dp-line);
+  background: linear-gradient(145deg, rgba(17, 28, 40, 0.98), rgba(10, 16, 24, 0.98));
   color: #dbe7ff;
   font-size: calc(12px * var(--ui-scale));
   cursor: pointer;
@@ -515,6 +525,38 @@ body {
     border-color 120ms ease,
     background-color 120ms ease,
     box-shadow 120ms ease;
+}
+.tower-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.tower-card-icon {
+  display: grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--tower-accent);
+  background: rgba(4, 10, 16, 0.76);
+  color: #eef8ff;
+  font: 900 12px/1 monospace;
+  box-shadow: inset 0 0 12px rgba(83, 213, 192, 0.08);
+}
+.tower-card-identity {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.tower-card-role {
+  overflow: hidden;
+  color: var(--tower-accent);
+  font: 700 8px/1 monospace;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .tower-card.is-unaffordable:not(.locked):not(.is-selected) {
   border-color: #29364a;
@@ -979,10 +1021,10 @@ html.touch-ui #touch-controls {
   grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 7px;
-  border: 1px solid #1a2a3d;
-  border-radius: 11px;
-  background: rgba(11, 15, 20, 0.92);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  border: 1px solid var(--dp-line);
+  border-radius: 4px;
+  background: linear-gradient(155deg, rgba(15, 24, 34, 0.98), rgba(7, 12, 18, 0.98));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
 }
 html.touch-ui #touch-tower-actions:not([hidden]) {
   display: grid;
@@ -1062,9 +1104,17 @@ html.touch-ui #tower-strip {
 }
 html.touch-ui .tower-card {
   min-width: 0;
-  padding: 7px 9px;
+  padding: 7px 8px;
   touch-action: pan-x;
 }
+html.touch-ui .tower-card-header { gap: 6px; }
+html.touch-ui .tower-card-icon {
+  flex-basis: 24px;
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+html.touch-ui .tower-card-role { font-size: 7px; }
 html.touch-ui .tower-card-desc {
   display: none;
 }
