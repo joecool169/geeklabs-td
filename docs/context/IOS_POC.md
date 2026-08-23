@@ -18,13 +18,21 @@ Implemented and locally verified:
 - portrait and both landscape orientations respect safe areas
 - touch placement, wave start, and contextual tower controls work in the Simulator
 - backgrounding during an active wave returns to an explicit pause screen
+- the signed app installs and launches on an iPhone 17 Pro Max
 
 Not yet verified:
 
-- signing and installation on a real iPhone
 - real-device audio activation, persistence, heat, and dense-wave performance
 
-The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`. The remaining gate is signing and running on a real iPhone.
+The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`. Automatic development signing is configured and version `1.0 (1)` has been installed on Joe's iPhone.
+
+## Physical-device installation — 2026-08-23
+
+- device: iPhone 17 Pro Max
+- development signing and provisioning succeeded
+- `tv.geekstreet.td` installed successfully
+- the native process launched and remained alive
+- visual interaction, audio, persistence, heat, and endurance checks remain a hands-on playtest
 
 ## Simulator validation — 2026-08-23
 

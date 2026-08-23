@@ -91,8 +91,8 @@ The five-wave preparation windows and preferred targeting established a meaningf
 
 ## Next step
 
-1. Configure Apple development signing and run the Capacitor proof of concept on a real iPhone.
-2. Verify audio activation, persistence, lifecycle pause/resume, heat, and dense-wave performance on-device using `IOS_POC.md`.
+1. Complete the real-iPhone playtest for touch accuracy, orientation, audio, persistence, lifecycle pause/resume, heat, and dense-wave performance using `IOS_POC.md`.
+2. Resolve any device-only blocker found by that playtest.
 3. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
 
 ## Source-of-truth workflow
