@@ -5,8 +5,6 @@ import {
   TOP_UI,
   WAVE_SPAM_WINDOW_MS,
 } from "./game/config.js";
-import { dist2, segCircleHit } from "./game/utils.js";
-import * as Bullets from "./game/bullets.js";
 import * as Balance from "./game/balance.js";
 import * as UI from "./game/ui.js";
 import * as Waves from "./game/waves.js";
@@ -37,6 +35,7 @@ import {
 } from "./presentation/WorldRenderer.js";
 import { TowerSystem, attachTowerSystem } from "./systems/TowerSystem.js";
 import { EnemySystem, attachEnemySystem } from "./systems/EnemySystem.js";
+import { CombatSystem } from "./systems/CombatSystem.js";
 
 const storage = createStorageGateway();
 const SFX_CONFIG = {
@@ -166,7 +165,14 @@ export class GameScene extends Phaser.Scene {
         onGameOver: () => this.triggerGameOver(),
       })
     );
-    this.bullets = this.physics.add.group();
+    this.combatSystem = new CombatSystem({
+      scene: this,
+      towerSystem: this.towerSystem,
+      enemySystem: this.enemySystem,
+      runController: this.runController,
+      getDifficulty: () => this.difficulty,
+      getTelemetry: () => this.runTelemetry,
+    });
 
     this.ui = this.add.text(14, 12, "", {
       fontFamily: "monospace",
@@ -312,6 +318,8 @@ export class GameScene extends Phaser.Scene {
       this.towerSystem = null;
       this.enemySystem?.destroy();
       this.enemySystem = null;
+      this.combatSystem?.destroy();
+      this.combatSystem = null;
       this.worldRenderer?.destroy();
       this.worldRenderer = null;
     });
@@ -727,18 +735,7 @@ export class GameScene extends Phaser.Scene {
   update(time, dt) {
     if (this.isGameOver || this.isPaused || this.isStartScreenActive) return;
 
-    for (const t of this.towers) {
-      if (t.type === "laser") {
-        this.updateLaserTower(t, time, dt);
-        continue;
-      }
-      if (time < t.nextShotAt) continue;
-      const target = this.enemySystem.findTarget(t, t.targetMode);
-      if (!target) continue;
-      t.nextShotAt = time + t.fireMs;
-      Bullets.fireBullet.call(this, t, target);
-    }
-
+    this.combatSystem.update(time, dt);
     this.enemySystem.update(dt);
 
     this.updateWaveSpawning(time);
@@ -953,147 +950,4 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  updateLaserTower(tower, _time, dt) {
-    const range2 = tower.range * tower.range;
-    const hasTarget =
-      tower.lockTarget &&
-      tower.lockTarget.active &&
-      dist2(tower.x, tower.y, tower.lockTarget.x, tower.lockTarget.y) <= range2;
-
-    if (!hasTarget) {
-      const nextTarget = this.enemySystem.findTarget(tower, tower.targetMode);
-      if (!nextTarget) {
-        tower.lockTarget = null;
-        tower.lockMs = 0;
-        tower.beamAcc = 0;
-        if (tower.beam) {
-          tower.beam.clear();
-          tower.beam.setVisible(false);
-        }
-        return;
-      }
-      if (tower.lockTarget !== nextTarget) {
-        tower.lockMs = 0;
-        tower.beamAcc = 0;
-      }
-      tower.lockTarget = nextTarget;
-    }
-
-    const target = tower.lockTarget;
-    if (!target) return;
-    const dx = target.x - tower.x;
-    const dy = target.y - tower.y;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const ux = dx / len;
-    const uy = dy / len;
-    const endX = tower.x + ux * tower.range;
-    const endY = tower.y + uy * tower.range;
-    tower.lockMs += dt;
-    tower.beamAcc += dt;
-
-    if (tower.beam) {
-      tower.beam.clear();
-      tower.beam.lineStyle(3, 0xff6bff, 0.18);
-      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
-      tower.beam.lineStyle(1, 0xffd1ff, 0.85);
-      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
-      tower.beam.setVisible(true);
-    }
-
-    const tickMs = tower.beamTickMs || tower.fireMs || 110;
-    while (tower.beamAcc >= tickMs) {
-      tower.beamAcc -= tickMs;
-      if (!tower.lockTarget || !tower.lockTarget.active) break;
-      this.applyLaserTick(tower, tower.lockTarget, endX, endY);
-    }
-
-    if (tower.lockTarget && !tower.lockTarget.active) {
-      tower.lockTarget = null;
-      tower.lockMs = 0;
-      tower.beamAcc = 0;
-      if (tower.beam) {
-        tower.beam.clear();
-        tower.beam.setVisible(false);
-      }
-    }
-  }
-
-  applyLaserTick(tower, target, endX, endY) {
-    const towerDef = TOWER_DEFS[tower.type];
-    const hits = [];
-
-    this.enemies.children.iterate((e) => {
-      if (!e || !e.active) return;
-      if (!segCircleHit(tower.x, tower.y, endX, endY, e.x, e.y, 14)) return;
-      hits.push({ enemy: e, dist2: dist2(tower.x, tower.y, e.x, e.y) });
-    });
-
-    hits.sort((a, b) => a.dist2 - b.dist2);
-    const primaryIndex = hits.findIndex((hit) => hit.enemy === target);
-    if (primaryIndex === -1) {
-      tower.lockTarget = null;
-      tower.lockMs = 0;
-      tower.beamAcc = 0;
-      return;
-    }
-    if (primaryIndex > 0) {
-      const [primary] = hits.splice(primaryIndex, 1);
-      hits.unshift(primary);
-    }
-
-    const ramp =
-      1 +
-      Math.min(
-        tower.lockMs / (towerDef.lockRampMs ?? 2000),
-        towerDef.maxLockBonus ?? 1.5
-      );
-    const falloff = towerDef.pierceFalloff ?? 0.7;
-    const maxPierce = towerDef.maxPierce ?? 1;
-
-    for (let i = 0; i < hits.length && i < maxPierce; i += 1) {
-      const enemy = hits[i].enemy;
-      if (!enemy || !enemy.active) continue;
-      const base = tower.damage * ramp * Math.pow(falloff, i);
-      const dmg = Balance.computeDamageAgainstEnemy(tower, base, enemy);
-      Bullets.showHitEffect(
-        this,
-        "laser",
-        enemy.x,
-        enemy.y,
-        tower.sprite?.tintTopLeft ?? 0xff6bff
-      );
-      this.recordTowerDamage(tower, enemy, dmg);
-      enemy.hp -= dmg;
-      if (enemy.hp <= 0) this.handleEnemyKilled(enemy, tower);
-    }
-  }
-
-  recordTowerDamage(tower, enemy, damage) {
-    const actualDamage = Math.min(
-      Math.max(0, Number(enemy?.hp) || 0),
-      Math.max(0, Number(damage) || 0)
-    );
-    Telemetry.recordTowerDamage(this.runTelemetry, tower?.type, actualDamage);
-  }
-
-  handleEnemyKilled(enemy, tower) {
-    const reward = enemy.reward ?? 8;
-    const weight = enemy.scoreWeight ?? 1;
-    if (enemy.flashTween) {
-      enemy.flashTween.remove(false);
-      enemy.flashTween = null;
-    }
-    Telemetry.recordEnemyKill(this.runTelemetry, enemy.typeKey);
-    Telemetry.recordTowerKill(this.runTelemetry, tower?.type);
-    enemy.destroy();
-    this.runController.recordKill({
-      reward,
-      scoreWeight: weight,
-      scoreMultiplier: this.difficulty?.scoreMul ?? 1,
-    });
-  }
-
-  fireBullet(t, target) {
-    Bullets.fireBullet.call(this, t, target);
-  }
 }
