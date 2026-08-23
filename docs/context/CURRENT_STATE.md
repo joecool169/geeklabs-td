@@ -1,6 +1,6 @@
 # Current State
 
-Snapshot date: **2026-08-22**
+Snapshot date: **2026-08-23**
 Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
@@ -12,7 +12,7 @@ Current reviewed release: **v0.5.0 touch controls**, preserving the accepted v0.
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **55/55 tests**.
+- `npm test` passes with **59/59 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
@@ -91,9 +91,10 @@ The five-wave preparation windows and preferred targeting established a meaningf
 
 ## Next step
 
-1. Build and run an early Capacitor iOS proof of concept on a real iPhone.
-2. Verify orientation changes, safe areas, audio activation, persistence, lifecycle pause/resume, heat, and dense-wave performance on-device.
-3. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
+1. Install and select full Xcode 26 or newer, then run `npm run ios:validate`.
+2. Build and run the Capacitor proof of concept in the Simulator and on a real iPhone.
+3. Verify orientation changes, safe areas, audio activation, persistence, lifecycle pause/resume, heat, and dense-wave performance on-device using `IOS_POC.md`.
+4. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
 
 ## Source-of-truth workflow
 

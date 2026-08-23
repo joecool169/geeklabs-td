@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Establish the Capacitor iOS boundary
+
+**Decision:** Use a minimal Capacitor 8 iOS shell with the existing Phaser/Vite bundle as the only game core. The native runtime is isolated under `src/platform/`.
+
+**Lifecycle:** When iOS makes the app inactive, pause any active run. Returning to the app refreshes canvas sizing but requires the player to resume explicitly, preventing unseen simulation progress.
+
+**Persistence:** Keep the synchronous browser storage contract and mirror `defense_protocol_*` values to Capacitor Preferences. Browser values win when present; Preferences restores them when WebKit storage is missing.
+
+**Validation gate:** Project generation, native sync, tests, audit, and shared-web smoke checks pass. Simulator compilation and real-device testing require full Xcode 26+ and remain mandatory before accepting Capacitor for the mobile edition.
+
 ## 2026-08-23 — Ship the touch-ready browser surface
 
 **Decision:** Release touch controls as v0.5.0 while preserving desktop controls and all accepted balance values.

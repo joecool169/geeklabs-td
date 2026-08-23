@@ -21,12 +21,13 @@
 - `src/ui/GameDomView.js` and `OverlayManager.js` — persistent DOM panels and start/pause/results overlays
 - `src/game/ui.js` (`HudController`) — Phaser HUD, wave hints, transitions, and sidebar projection
 - `src/services/` — preferences/storage, run query options, leaderboard I/O, and telemetry archive publication
+- `src/platform/nativeRuntime.js` — Capacitor detection, lifecycle events, and native Preferences mirroring
 
 Pure definitions and calculations remain under `src/constants.js` and `src/game/`. `src/scene.js` coordinates Phaser lifecycle and the explicit systems.
 
 ### Tests
 
-- `npm test` runs Node's built-in test runner; the current suite has 54 tests.
+- `npm test` runs Node's built-in test runner; the current suite has 59 tests.
 - Focused system/service tests cover run state, input, world presentation, towers, enemies, combat, waves, preferences, leaderboard access, and telemetry publication.
 - `test/progression.test.js` continues to protect all accepted balance and deterministic-composition invariants.
 
@@ -45,7 +46,7 @@ Pure definitions and calculations remain under `src/constants.js` and `src/game/
 ### Current weaknesses
 
 - `src/scene.js` still creates Phaser HUD/effect objects and coordinates menus; further reduction should be driven by native lifecycle needs, not code movement alone.
-- Browser services are isolated, but a native adapter and application lifecycle bridge do not exist yet.
+- Native compilation and device behavior remain unverified until full Xcode and an iPhone are available.
 - Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
 
 ## Current layout behavior
@@ -126,5 +127,7 @@ Keyboard, mouse, touch, and future controller input should map into those comman
 - Use Capacitor as the initial iOS wrapper candidate.
 - Run an early device proof of concept.
 - Add native-specific services only behind a platform boundary.
+- Pause active gameplay when iOS becomes inactive and require an explicit resume after returning.
+- Keep browser storage synchronous while mirroring managed values to native Preferences for durability.
 - Test safe areas, app backgrounding, touch coordinate accuracy, audio activation, persistence, orientation, heat, and dense-wave performance.
 - Do not start a parallel Swift gameplay implementation.
