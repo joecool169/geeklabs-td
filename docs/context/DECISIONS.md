@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Adopt landscape-only mobile interaction polish
+
+**Decision:** Support landscape left and right on iPhone and iPad, with the iOS full-screen compatibility preference enabled. Keep the shared web layout responsive, but treat portrait as unsupported in the native app.
+
+**Touch model:** Exit placement after each successful build, taper the above-finger aiming offset near the bottom edge so every grid row remains reachable, and expose compact selected-tower damage, range, rate, and DPS stats.
+
+**Presentation model:** Use a compact, non-scrolling pause menu on short landscape screens and modestly widen the touch stage on large iPads while preserving safe areas and vertical fit.
+
+**Platform note:** `UIRequiresFullScreen` preserves compatibility behavior on older supported iPadOS releases. iPadOS 26 may present the app as a fixed-size compatibility window under its newer windowing system.
+
 ## 2026-08-23 — Release v0.6.0 presentation polish
 
 **Decision:** Release the accepted Capacitor foundation and presentation-polish slices together as v0.6.0 while preserving all v0.4.0 balance values.

@@ -12,7 +12,7 @@ Current reviewed release: **v0.6.0 presentation polish and accepted iOS foundati
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **64/64 tests**.
+- `npm test` passes with **66/66 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
@@ -83,16 +83,18 @@ The five-wave preparation windows and preferred targeting established a meaningf
 ## Touch interaction state
 
 - Touch and hybrid devices receive a responsive control surface while desktop controls remain unchanged.
-- Tower cards enter placement; dragging over the playfield aims a ghost offset above the finger; Place confirms.
-- Selected towers expose Target, Upgrade, and Sell in a contextual action bar.
+- Tower cards enter placement; dragging over the playfield aims a ghost offset above the finger, with an adaptive bottom-edge offset that keeps every grid row reachable.
+- A successful build exits placement mode and returns to normal tower selection.
+- Selected towers expose compact damage, range, rate, and DPS stats alongside Target, Upgrade, and Sell actions.
 - Touch selling requires two taps and disarms automatically.
-- Start Wave, Add Wave, Pause/Resume, Cancel, portrait/landscape layout, safe areas, and viewport-level overlays are implemented.
+- Start Wave, Add Wave, Pause/Resume, Cancel, landscape-only iOS layout, safe areas, and viewport-level overlays are implemented.
 - The canvas alone suppresses browser gestures; surrounding controls retain normal touch behavior.
 
 ## iOS proof-of-concept state
 
 - The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro Max.
-- Safe areas, supported orientations, touch placement, contextual actions, and lifecycle pause behavior pass Simulator validation.
+- The touch-polish build is installed on both the iPhone 17 Pro Max and a 12.9-inch iPad Pro; automated launch passed on the iPad, while the updated iPhone build awaits an unlocked manual launch.
+- Safe areas, landscape-left/right orientation, edge-row touch placement, contextual stats/actions, and lifecycle pause behavior pass Simulator validation.
 - A physical-device Easy run reached Wave 54 with 37 towers and 40 active enemies without a reported touch or frame-pacing blocker.
 - Audio now unlocks from DOM or canvas gestures, uses clearer levels, respects Silent Mode, and has a persistent Sound On/Off control.
 - Native Preferences mirrors managed browser settings. A measured thermal/battery run and final force-quit restoration audit remain release-candidate checks rather than proof-of-concept blockers.
@@ -102,13 +104,14 @@ The five-wave preparation windows and preferred targeting established a meaningf
 - The HUD uses a compact, higher-contrast hierarchy with grouped values and readable large-number formatting.
 - Tower cards communicate locked, affordable, unaffordable, selected, and newly unlocked states.
 - Touch controls retain 48px landscape targets and now expose clearer ready, placement, context, pause, upgrade, and pressed states.
+- Short-landscape pause actions fit without scrolling, and the large-touch layout uses more of the iPad width without overflowing vertically.
 - Placement and upgrades receive restrained visual pulses; unlocks coordinate animation, toast, and sound.
 - Kill audio uses the existing rate limiter, while light-enemy health bars stay hidden until meaningful damage reduces dense-wave clutter.
 
 ## Next step
 
 1. Run the measured battery/thermal and force-quit restoration checks on the v0.6.0 release candidate.
-2. Collect device-play feedback before choosing the next content or progression feature.
+2. Accept the landscape-only touch-polish build on the installed iPhone and iPad before choosing the next content or progression feature.
 3. Leave accepted balance values unchanged until new evidence identifies a specific problem.
 
 ## Source-of-truth workflow

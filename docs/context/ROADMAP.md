@@ -25,7 +25,7 @@ The v0.4.0 balance is accepted. Preserve `v0.3.0-balance-checkpoint` as the earl
 - keyboard and mouse map through the action layer
 - touch-friendly controls and contextual actions are implemented
 - touch play no longer depends on right-click or hover
-- action targets, portrait/landscape layouts, and safe-area spacing are implemented
+- action targets, responsive touch layouts, and safe-area spacing are implemented
 - desktop keyboard and mouse behavior is preserved
 
 ## Phase 5 — Early iOS proof of concept — completed
@@ -45,6 +45,10 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - refine touch-control spacing, alignment, and interaction states
 - coordinate visual and audio feedback for placement, upgrades, leaks, unlocks, and wave transitions
 - reduce visual noise and preserve target readability during dense waves
+- exit placement after a successful build and preserve access to every grid row
+- expose selected-tower combat stats on touch layouts
+- compact the short-landscape pause menu and refine the large iPad layout
+- ship the native app in landscape-left/right orientation only
 - complete web, Simulator, and physical-device validation before release
 
 ## Later product work
