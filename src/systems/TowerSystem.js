@@ -259,6 +259,7 @@ class TowerSystem {
     this.selectTower(tower);
     showTowerPulse(this.scene, tower, tier0.tint);
     this.scene.playSfx("place");
+    if (this.isPlacing) this.setPlacement(false);
     return tower;
   }
 

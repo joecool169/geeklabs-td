@@ -53,8 +53,10 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
 
   assert.equal(system.isTowerUnlocked("rapid"), true);
   assert.equal(system.isTowerUnlocked("sniper"), false);
+  system.setPlacement(true);
   const tower = system.tryPlaceTowerAt(300, 300);
   assert.equal(tower.type, "basic");
+  assert.equal(system.isPlacing, false);
   assert.equal(state.money, 450);
   assert.equal(scene.towers.length, 1);
   assert.equal(scene.selectedTower, tower);

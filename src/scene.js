@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import {
   DIFFICULTY_CONFIG,
+  GRID,
   TOP_UI,
 } from "./game/config.js";
 import { HudController } from "./game/ui.js";
@@ -21,7 +22,7 @@ import { readRunOptions } from "./services/runOptions.js";
 import { publishTelemetryArchive } from "./services/telemetryArchive.js";
 import { OverlayManager } from "./ui/OverlayManager.js";
 import { GameDomView } from "./ui/GameDomView.js";
-import { GAME_ACTIONS, TOUCH_GHOST_OFFSET } from "./input/actions.js";
+import { GAME_ACTIONS, getTouchPlacementY } from "./input/actions.js";
 import { InputController } from "./input/InputController.js";
 import { RunController } from "./core/RunController.js";
 import { RunState, attachRunState } from "./core/RunState.js";
@@ -416,7 +417,10 @@ export class GameScene extends Phaser.Scene {
       if (phase === "down") this.handlePrimaryPointer(x, y, false);
       return;
     }
-    this.towerSystem.updateGhost(x, y - TOUCH_GHOST_OFFSET);
+    this.towerSystem.updateGhost(
+      x,
+      getTouchPlacementY(y, this.scale.height, GRID)
+    );
   }
 
   confirmTouchPlacement() {

@@ -17,4 +17,10 @@ const GAME_ACTIONS = Object.freeze({
 
 const TOUCH_GHOST_OFFSET = 56;
 
-export { GAME_ACTIONS, TOUCH_GHOST_OFFSET };
+function getTouchPlacementY(pointerY, sceneHeight, gridSize) {
+  const bottomPlacementLimit = sceneHeight - gridSize / 2;
+  const availableOffset = Math.max(0, bottomPlacementLimit - pointerY);
+  return pointerY - Math.min(TOUCH_GHOST_OFFSET, availableOffset);
+}
+
+export { GAME_ACTIONS, TOUCH_GHOST_OFFSET, getTouchPlacementY };

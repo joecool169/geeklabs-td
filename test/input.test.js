@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { GAME_ACTIONS } from "../src/input/actions.js";
+import {
+  GAME_ACTIONS,
+  getTouchPlacementY,
+} from "../src/input/actions.js";
 import { InputController } from "../src/input/InputController.js";
 
 class FakeEmitter {
@@ -155,4 +158,10 @@ test("input controller maps device events into semantic game actions", () => {
   keys.get("t").emit("down");
   input.emit("pointermove", { worldX: 1, worldY: 2 });
   assert.equal(actions.length, 10);
+});
+
+test("touch placement preserves the finger offset while reaching the bottom row", () => {
+  assert.equal(getTouchPlacementY(400, 730, 40), 344);
+  assert.equal(getTouchPlacementY(700, 730, 40), 690);
+  assert.equal(getTouchPlacementY(710, 730, 40), 710);
 });
