@@ -39,7 +39,7 @@ The v0.4.0 balance is accepted. Preserve `v0.3.0-balance-checkpoint` as the earl
 
 See `IOS_POC.md` for the exact validation commands and device checklist.
 
-## Phase 6 — Presentation polish — in progress
+## Phase 6 — Presentation polish — completed
 
 - strengthen HUD and state hierarchy without changing gameplay balance
 - refine touch-control spacing, alignment, and interaction states

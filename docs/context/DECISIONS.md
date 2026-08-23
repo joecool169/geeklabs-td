@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Release v0.6.0 presentation polish
+
+**Decision:** Release the accepted Capacitor foundation and presentation-polish slices together as v0.6.0 while preserving all v0.4.0 balance values.
+
+**Presentation model:** Use a compact high-contrast HUD, explicit tower affordability and unlock states, grouped 48px touch controls, restrained placement/upgrade pulses, coordinated unlock feedback, and reduced light-enemy health-bar noise during dense waves.
+
+**Audio model:** Respect iOS Silent Mode, unlock Web Audio from DOM or canvas gestures, keep a persistent in-game sound control, and rate-limit repeated kill feedback.
+
+**Next gate:** Complete measured battery/thermal endurance and force-quit preference restoration on the release candidate before broader mobile distribution.
+
 ## 2026-08-23 — Accept the iOS proof of concept
 
 **Decision:** Accept the Capacitor 8 shell as the mobile-development foundation and proceed to presentation polish without changing the shared Phaser game core or accepted balance.

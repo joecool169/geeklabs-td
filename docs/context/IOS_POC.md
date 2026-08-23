@@ -21,7 +21,7 @@ Implemented and locally verified:
 - the signed app installs and launches on an iPhone 17 Pro Max
 - a real-device Easy run reached Wave 54 with 37 towers, 3,626 kills, 20 lives, and 40 active enemies without a reported touch or frame-pacing blocker
 - real-device sound activation works after the first touch; effects are audible, Silent Mode is respected, and the persistent Sound On/Off control works
-- the production bundle, 62-test suite, dependency audit, Capacitor sync, Simulator build, signed device build, installation, and launch pass
+- the production bundle, 64-test suite, dependency audit, Capacitor sync, Simulator build, signed device build, installation, and launch pass
 
 Deferred to release endurance testing:
 

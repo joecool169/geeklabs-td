@@ -5,19 +5,19 @@ Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
 
-Current reviewed release: **v0.5.0 touch controls**, preserving the accepted v0.4.0 balance and v0.4.1 architecture
+Current reviewed release: **v0.6.0 presentation polish and accepted iOS foundation**, preserving the accepted v0.4.0 balance and v0.4.1 architecture
 
 ## Repository and validation
 
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **62/62 tests**.
+- `npm test` passes with **64/64 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- The v0.5.0 deployment is built from a clean committed revision and verified by checksum dry run.
-- The live page reports v0.5.0.
+- The v0.6.0 deployment is built from a clean committed revision and verified by checksum dry run.
+- The live page reports v0.6.0.
 
 ## Current gameplay baseline
 
@@ -97,11 +97,19 @@ The five-wave preparation windows and preferred targeting established a meaningf
 - Audio now unlocks from DOM or canvas gestures, uses clearer levels, respects Silent Mode, and has a persistent Sound On/Off control.
 - Native Preferences mirrors managed browser settings. A measured thermal/battery run and final force-quit restoration audit remain release-candidate checks rather than proof-of-concept blockers.
 
+## Presentation polish state
+
+- The HUD uses a compact, higher-contrast hierarchy with grouped values and readable large-number formatting.
+- Tower cards communicate locked, affordable, unaffordable, selected, and newly unlocked states.
+- Touch controls retain 48px landscape targets and now expose clearer ready, placement, context, pause, upgrade, and pressed states.
+- Placement and upgrades receive restrained visual pulses; unlocks coordinate animation, toast, and sound.
+- Kill audio uses the existing rate limiter, while light-enemy health bars stay hidden until meaningful damage reduces dense-wave clutter.
+
 ## Next step
 
-1. Polish hierarchy, touch-control presentation, and gameplay feedback without changing accepted balance values.
-2. Re-run web, Simulator, and physical-device checks after the polish slices.
-3. Keep measured battery/thermal and force-quit restoration checks in the release-candidate gate.
+1. Run the measured battery/thermal and force-quit restoration checks on the v0.6.0 release candidate.
+2. Collect device-play feedback before choosing the next content or progression feature.
+3. Leave accepted balance values unchanged until new evidence identifies a specific problem.
 
 ## Source-of-truth workflow
 
