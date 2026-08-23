@@ -18,6 +18,35 @@ function formatHudText(snapshot) {
   ].join("   •   ");
 }
 
+function formatWaveHint({
+  wave,
+  waveState,
+  didStartFirstWave,
+  ready,
+  seconds,
+  autoStartWaves,
+  activeGroups = 0,
+  activeEnemies = 0,
+  touchUi = false,
+}) {
+  if (waveState === "running") {
+    return `WAVE ${wave} ACTIVE  •  Groups ${activeGroups}  •  On field ${activeEnemies}`;
+  }
+  const startAction = touchUi ? "Tap Start Wave" : "SPACE to start";
+  const deployAction = touchUi
+    ? "Tap Start Wave twice to deploy"
+    : "SPACE twice to deploy now";
+  if (!didStartFirstWave) return `WAVE ${wave} READY  •  ${startAction}`;
+  if (ready) {
+    return autoStartWaves
+      ? `WAVE ${wave}  •  Deploying`
+      : `WAVE ${wave} READY  •  ${startAction}`;
+  }
+  return autoStartWaves
+    ? `NEXT WAVE  •  ${seconds}s  •  ${deployAction}`
+    : `WAVE ${wave} READY IN ${seconds}s  •  ${deployAction}`;
+}
+
 function formatTouchTowerStats(tower) {
   const shotsPerSecond = 1000 / tower.fireMs;
   const dps = tower.damage * shotsPerSecond;
@@ -92,6 +121,14 @@ function showTransitionBanner(scene, text, tone = "neutral", duration = 1100) {
 
 function updateWaveHint(scene, text, visible) {
   const hint = scene.waveHint;
+  if (scene.hudWaveStatusEl) {
+    scene.hudWaveStatusEl.hidden = !visible;
+    scene.hudWaveStatusEl.textContent = text;
+    scene.hudWaveStatusEl.classList.toggle("is-live", text.includes("ACTIVE"));
+    scene.hudWaveStatusEl.classList.toggle("is-ready", text.includes("READY"));
+    hint?.setVisible(false);
+    return;
+  }
   if (!hint) return;
   if (scene._waveHintTween) {
     scene._waveHintTween.stop();
@@ -205,41 +242,19 @@ function updateUI(scene) {
     );
   }
 
-  if (scene.waveState === "intermission") {
-    const wait = Math.max(0, scene.nextWaveAvailableAt - scene.time.now);
-    const ready = wait <= 0;
-    const sec = Math.ceil(wait / 1000);
-
-    if (!scene.didStartFirstWave) {
-      updateWaveHint(scene, `WAVE ${scene.wave} READY  •  SPACE to start`, true);
-    } else if (ready) {
-      updateWaveHint(
-        scene,
-        scene.autoStartWaves
-          ? `WAVE ${scene.wave}  •  Deploying`
-          : `WAVE ${scene.wave} READY  •  SPACE to start`
-        ,
-        true
-      );
-    } else {
-      updateWaveHint(
-        scene,
-        scene.autoStartWaves
-          ? `NEXT WAVE  •  ${sec}s  •  SPACE twice to deploy now`
-          : `WAVE ${scene.wave} READY IN ${sec}s  •  SPACE twice to deploy now`
-        ,
-        true
-      );
-    }
-  } else {
-    const spawners = scene.activeWaves?.length ?? 0;
-    const alive = scene.enemies.countActive(true);
-    updateWaveHint(
-      scene,
-      `WAVE ${scene.wave} ACTIVE  •  Groups: ${spawners}  •  On field: ${alive}`,
-      true
-    );
-  }
+  const wait = Math.max(0, scene.nextWaveAvailableAt - scene.time.now);
+  const touchUi = globalThis.document?.documentElement?.classList.contains("touch-ui") ?? false;
+  updateWaveHint(scene, formatWaveHint({
+    wave: scene.wave,
+    waveState: scene.waveState,
+    didStartFirstWave: scene.didStartFirstWave,
+    ready: wait <= 0,
+    seconds: Math.ceil(wait / 1000),
+    autoStartWaves: scene.autoStartWaves,
+    activeGroups: scene.activeWaves?.length ?? 0,
+    activeEnemies: scene.enemies.countActive(true),
+    touchUi,
+  }), true);
 
   const label = scene.difficultyLabel || "Easy";
   const uiSnapshot = {
@@ -262,8 +277,20 @@ function updateUI(scene) {
     scene._uiCache.diff === uiSnapshot.diff;
   if (!hudUnchanged) {
     scene._uiCache = uiSnapshot;
-    scene.ui.setText(formatHudText(uiSnapshot));
-    scene.ui.setColor(uiSnapshot.lives <= 5 ? "#ff9bad" : "#e8f2ff");
+    if (scene.gameHudEl) {
+      scene.ui.setVisible(false);
+      scene.hudMoneyEl.textContent = `$${formatHudNumber(uiSnapshot.money)}`;
+      scene.hudLivesEl.textContent = formatHudNumber(uiSnapshot.lives);
+      scene.hudWaveEl.textContent = formatHudNumber(uiSnapshot.wave);
+      scene.hudTowersEl.textContent = formatHudNumber(uiSnapshot.towers);
+      scene.hudKillsEl.textContent = formatHudNumber(uiSnapshot.kills);
+      scene.hudScoreEl.textContent = formatHudNumber(uiSnapshot.score);
+      scene.hudDifficultyEl.textContent = uiSnapshot.diff;
+      scene.gameHudEl.classList.toggle("is-critical", uiSnapshot.lives <= 5);
+    } else {
+      scene.ui.setText(formatHudText(uiSnapshot));
+      scene.ui.setColor(uiSnapshot.lives <= 5 ? "#ff9bad" : "#e8f2ff");
+    }
   }
 
   if (scene.placementContextEl) {
@@ -423,4 +450,4 @@ class HudController {
   }
 }
 
-export { HudController, formatHudText, formatTouchTowerStats };
+export { HudController, formatHudText, formatTouchTowerStats, formatWaveHint };

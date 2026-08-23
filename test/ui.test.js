@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { formatHudText, formatTouchTowerStats } from "../src/game/ui.js";
+import {
+  formatHudText,
+  formatTouchTowerStats,
+  formatWaveHint,
+} from "../src/game/ui.js";
 
 test("HUD text is compact, grouped, and readable at large values", () => {
   assert.equal(
@@ -23,4 +27,18 @@ test("touch tower stats summarize combat output compactly", () => {
     formatTouchTowerStats({ damage: 24, range: 130, fireMs: 170 }),
     "DMG 24  •  RNG 130  •  RATE 5.9/s  •  DPS 141.2"
   );
+});
+
+test("wave hints use device-appropriate actions", () => {
+  const state = {
+    wave: 4,
+    waveState: "intermission",
+    didStartFirstWave: false,
+    ready: true,
+    seconds: 0,
+    autoStartWaves: false,
+  };
+  assert.match(formatWaveHint({ ...state, touchUi: true }), /Tap Start Wave/);
+  assert.doesNotMatch(formatWaveHint({ ...state, touchUi: true }), /SPACE/);
+  assert.match(formatWaveHint({ ...state, touchUi: false }), /SPACE to start/);
 });

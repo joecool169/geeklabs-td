@@ -251,6 +251,18 @@ body {
   white-space: nowrap;
 }
 :root {
+  --dp-void: #070b10;
+  --dp-panel: #0d141d;
+  --dp-panel-raised: #111c28;
+  --dp-line: #23364a;
+  --dp-line-bright: #3e5f7d;
+  --dp-text: #e8edf2;
+  --dp-muted: #8ea1b5;
+  --dp-cream: #f0d7c0;
+  --dp-teal: #53d5c0;
+  --dp-green: #57e39a;
+  --dp-red: #e94b61;
+  --dp-gold: #e0ad59;
   --stage-width: 1080px;
   --playfield-height: 730px;
   --stage-aspect-ratio: 1080 / 730;
@@ -288,6 +300,101 @@ body {
   width: var(--stage-width);
   height: var(--playfield-height);
 }
+
+#app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(62, 95, 125, 0.46);
+  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.26);
+}
+#game-hud {
+  position: absolute;
+  inset: 8px 10px auto;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1.35fr repeat(6, minmax(72px, auto)) auto;
+  gap: 5px;
+  pointer-events: none;
+  color: var(--dp-text);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+#hud-brand,
+.hud-stat,
+#hud-difficulty,
+#hud-wave-status {
+  box-sizing: border-box;
+  border: 1px solid rgba(35, 54, 74, 0.9);
+  background: linear-gradient(180deg, rgba(17, 28, 40, 0.96), rgba(9, 15, 23, 0.96));
+}
+#hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 126px;
+  padding: 5px 9px;
+  border-color: rgba(83, 213, 192, 0.36);
+}
+#hud-brand span {
+  color: var(--dp-cream);
+  font: 900 15px/1 monospace;
+  letter-spacing: 0.08em;
+}
+#hud-brand small {
+  color: var(--dp-muted);
+  font: 700 8px/1.1 monospace;
+  letter-spacing: 0.13em;
+}
+.hud-stat {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding: 4px 8px;
+}
+.hud-stat small {
+  color: var(--dp-muted);
+  font: 700 8px/1 monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hud-stat strong {
+  margin-top: 3px;
+  overflow: hidden;
+  font: 800 13px/1 monospace;
+  text-overflow: ellipsis;
+}
+.hud-stat.is-resource strong { color: var(--dp-green); }
+.hud-stat.is-integrity strong { color: var(--dp-teal); }
+#game-hud.is-critical .hud-stat.is-integrity {
+  border-color: rgba(233, 75, 97, 0.78);
+  background: linear-gradient(180deg, rgba(53, 19, 28, 0.98), rgba(22, 11, 17, 0.98));
+}
+#game-hud.is-critical .hud-stat.is-integrity strong { color: #ff8aa0; }
+#hud-difficulty {
+  display: grid;
+  place-items: center;
+  padding: 0 9px;
+  color: var(--dp-gold);
+  font: 800 10px/1 monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+#hud-wave-status {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-width: 330px;
+  padding: 5px 10px;
+  border-left: 3px solid var(--dp-line-bright);
+  color: #cbd7e2;
+  font: 700 10px/1.1 monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#hud-wave-status.is-ready { border-left-color: var(--dp-green); }
+#hud-wave-status.is-live { border-left-color: var(--dp-gold); color: #f0d7c0; }
 
 #app canvas {
   display: block;
@@ -920,6 +1027,21 @@ html.touch-ui #app canvas {
   user-select: none;
   -webkit-user-select: none;
 }
+html.touch-ui #game-hud {
+  grid-template-columns: 1.15fr repeat(4, minmax(0, 1fr)) auto;
+  gap: 4px;
+}
+html.touch-ui #hud-brand small,
+html.touch-ui .hud-stat.is-secondary {
+  display: none;
+}
+html.touch-ui #hud-brand {
+  min-width: 0;
+  justify-content: center;
+  padding-inline: 6px;
+}
+html.touch-ui .hud-stat { padding-inline: 6px; }
+html.touch-ui #hud-wave-status { min-width: 0; }
 html.touch-ui #brand-panel {
   display: none;
 }
@@ -1036,6 +1158,23 @@ html.touch-ui .game-overlay-input {
   }
 }
 @media (orientation: landscape) and (max-height: 600px) {
+  html.touch-ui #game-hud {
+    inset: 6px 8px auto;
+  }
+  html.touch-ui #hud-brand,
+  html.touch-ui .hud-stat,
+  html.touch-ui #hud-difficulty {
+    min-height: 25px;
+    padding-block: 3px;
+  }
+  html.touch-ui .hud-stat small { font-size: 6px; }
+  html.touch-ui .hud-stat strong { margin-top: 2px; font-size: 9px; }
+  html.touch-ui #hud-brand span { font-size: 11px; }
+  html.touch-ui #hud-difficulty { font-size: 7px; }
+  html.touch-ui #hud-wave-status {
+    padding: 4px 8px;
+    font-size: 7px;
+  }
   html.touch-ui #layout {
     padding:
       max(6px, env(safe-area-inset-top))

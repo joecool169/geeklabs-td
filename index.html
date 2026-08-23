@@ -13,7 +13,19 @@
   <body>
     <div id="layout">
       <div id="stage">
-        <div id="app"></div>
+        <div id="app">
+          <section id="game-hud" aria-label="Defense status">
+            <div id="hud-brand"><span>DP</span><small>DEFENSE GRID</small></div>
+            <div class="hud-stat is-resource"><small>Credits</small><strong id="hud-money">$0</strong></div>
+            <div class="hud-stat is-integrity"><small>Integrity</small><strong id="hud-lives">20</strong></div>
+            <div class="hud-stat"><small>Wave</small><strong id="hud-wave">1</strong></div>
+            <div class="hud-stat"><small>Towers</small><strong id="hud-towers">0</strong></div>
+            <div class="hud-stat is-secondary"><small>Kills</small><strong id="hud-kills">0</strong></div>
+            <div class="hud-stat is-secondary"><small>Score</small><strong id="hud-score">0</strong></div>
+            <div id="hud-difficulty">Easy</div>
+            <div id="hud-wave-status" role="status">Wave 1 ready</div>
+          </section>
+        </div>
         <nav id="touch-controls" aria-label="Game controls" aria-live="polite">
           <button id="touch-start-wave" class="touch-control is-primary" type="button">Start Wave</button>
           <button id="touch-place" class="touch-control is-primary" type="button">Place</button>

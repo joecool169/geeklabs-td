@@ -8,6 +8,15 @@ class GameDomView {
     this.touchSelectedTower = null;
     this.touchSellGuard = null;
     this.refs = {
+      gameHudEl: root.getElementById("game-hud"),
+      hudMoneyEl: root.getElementById("hud-money"),
+      hudLivesEl: root.getElementById("hud-lives"),
+      hudWaveEl: root.getElementById("hud-wave"),
+      hudTowersEl: root.getElementById("hud-towers"),
+      hudKillsEl: root.getElementById("hud-kills"),
+      hudScoreEl: root.getElementById("hud-score"),
+      hudDifficultyEl: root.getElementById("hud-difficulty"),
+      hudWaveStatusEl: root.getElementById("hud-wave-status"),
       controlsSelectedEl: root.getElementById("controls-selected"),
       controlsPlacementEl: root.getElementById("controls-placement"),
       selectedTowerPanelEl: root.getElementById("selected-tower-panel"),
