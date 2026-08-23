@@ -138,6 +138,15 @@ class TowerSystem {
     this.world.showTowerRange(tower, 0x00ffff);
   }
 
+  emphasizeTower(tower) {
+    const tierIndex = Math.max(0, (tower?.tier ?? 1) - 1);
+    showTowerPulse(
+      this.scene,
+      tower,
+      TOWER_DEFS[tower?.type]?.tiers?.[tierIndex]?.tint ?? 0x39ff8f
+    );
+  }
+
   clearSelection() {
     this.selectedTower = null;
     this.world.hideRange();

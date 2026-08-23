@@ -451,6 +451,7 @@ export class GameScene extends Phaser.Scene {
     if (tower) {
       if (modified) this.towerSystem.tryUpgradeTower(tower);
       this.towerSystem.selectTower(tower);
+      if (touch) this.towerSystem.emphasizeTower(tower);
       this.updateUI();
       return;
     }

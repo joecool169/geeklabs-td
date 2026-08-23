@@ -47,6 +47,17 @@ body {
   background: linear-gradient(155deg, rgba(16, 26, 37, 0.985), rgba(7, 12, 18, 0.99));
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.62);
   color: var(--dp-text);
+  animation: protocolPanelIn 180ms ease-out both;
+}
+@keyframes protocolPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .game-overlay-panel.is-start {
   min-width: 460px;
@@ -209,12 +220,37 @@ body {
   background: #101a28;
   color: #dbe7ff;
 }
+@media (hover: hover) {
+  .game-overlay-button:hover,
+  .touch-control:not(:disabled):hover {
+    filter: brightness(1.1);
+  }
+}
+.game-overlay-button:active {
+  transform: translateY(1px);
+  filter: brightness(0.94);
+}
+.game-overlay-button:focus-visible {
+  outline: 2px solid var(--dp-teal);
+  outline-offset: 2px;
+}
 .game-overlay-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
   margin-bottom: 14px;
   color: #dbe7ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 .game-overlay-stat {
   display: grid;
@@ -1086,6 +1122,18 @@ html.touch-ui #touch-tower-actions[data-tower-type="basic"] { border-left: 3px s
 html.touch-ui #touch-tower-actions[data-tower-type="rapid"] { border-left: 3px solid #39ff8f; }
 html.touch-ui #touch-tower-actions[data-tower-type="sniper"] { border-left: 3px solid #ffc857; }
 html.touch-ui #touch-tower-actions[data-tower-type="laser"] { border-left: 3px solid #ff6bff; }
+html.touch-ui #touch-tower-actions.is-selection-flash {
+  animation: towerSelectionConfirmed 260ms ease-out;
+}
+@keyframes towerSelectionConfirmed {
+  0% {
+    background-color: rgba(46, 105, 112, 0.5);
+    box-shadow: 0 0 0 2px rgba(72, 199, 210, 0.45);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
 html.touch-ui {
   background: #0b0f14;
 }

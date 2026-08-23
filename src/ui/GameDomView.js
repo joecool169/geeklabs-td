@@ -152,6 +152,12 @@ class GameDomView {
     if (tower === this.touchSelectedTower) return;
     this.touchSelectedTower = tower;
     this.touchSellGuard?.reset();
+    const actions = this.refs.touchTowerActionsEl;
+    if (tower && actions) {
+      actions.classList.remove("is-selection-flash");
+      void actions.offsetWidth;
+      actions.classList.add("is-selection-flash");
+    }
   }
 
   emphasizeControls(duration = 1600) {
