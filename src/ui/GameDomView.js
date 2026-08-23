@@ -26,6 +26,7 @@ class GameDomView {
       towerStripEl: root.getElementById("tower-strip"),
       touchControlsEl: root.getElementById("touch-controls"),
       touchStartWaveBtnEl: root.getElementById("touch-start-wave"),
+      touchPlaceBtnEl: root.getElementById("touch-place"),
       touchCancelBtnEl: root.getElementById("touch-cancel"),
       touchPauseBtnEl: root.getElementById("touch-pause"),
     };
@@ -45,6 +46,7 @@ class GameDomView {
     onSell,
     onTarget,
     onStartWave,
+    onPlace,
     onCancel,
     onPause,
   }) {
@@ -84,6 +86,7 @@ class GameDomView {
     this.listen(this.refs.selectedTowerSellBtnEl, "click", onSell);
     this.listen(this.refs.selectedTowerTargetBtnEl, "click", onTarget);
     this.listen(this.refs.touchStartWaveBtnEl, "click", onStartWave);
+    this.listen(this.refs.touchPlaceBtnEl, "click", onPlace);
     this.listen(this.refs.touchCancelBtnEl, "click", onCancel);
     this.listen(this.refs.touchPauseBtnEl, "click", onPause);
   }

@@ -21,7 +21,7 @@ import { readRunOptions } from "./services/runOptions.js";
 import { publishTelemetryArchive } from "./services/telemetryArchive.js";
 import { OverlayManager } from "./ui/OverlayManager.js";
 import { GameDomView } from "./ui/GameDomView.js";
-import { GAME_ACTIONS } from "./input/actions.js";
+import { GAME_ACTIONS, TOUCH_GHOST_OFFSET } from "./input/actions.js";
 import { InputController } from "./input/InputController.js";
 import { RunController } from "./core/RunController.js";
 import { RunState, attachRunState } from "./core/RunState.js";
@@ -247,6 +247,8 @@ export class GameScene extends Phaser.Scene {
         this.handleInputAction({ type: GAME_ACTIONS.CYCLE_TARGETING }),
       onStartWave: () =>
         this.handleInputAction({ type: GAME_ACTIONS.START_WAVE }),
+      onPlace: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.CONFIRM_PLACEMENT }),
       onCancel: () =>
         this.handleInputAction({ type: GAME_ACTIONS.CANCEL }),
       onPause: () =>
@@ -377,6 +379,12 @@ export class GameScene extends Phaser.Scene {
       case GAME_ACTIONS.START_WAVE:
         this.handleStartWaveInput(this.time.now);
         break;
+      case GAME_ACTIONS.CONFIRM_PLACEMENT:
+        this.confirmTouchPlacement();
+        break;
+      case GAME_ACTIONS.TOUCH_AT:
+        this.handleTouchPointer(action);
+        break;
       case GAME_ACTIONS.SECONDARY_AT:
         this.handleSecondaryPointer(action.x, action.y);
         break;
@@ -393,6 +401,21 @@ export class GameScene extends Phaser.Scene {
 
   handleStartWaveInput(now) {
     this.waveSystem.handleStartInput(now);
+  }
+
+  handleTouchPointer({ x, y, phase }) {
+    if (!this.isPlacing) {
+      if (phase === "down") this.handlePrimaryPointer(x, y, false);
+      return;
+    }
+    this.towerSystem.updateGhost(x, y - TOUCH_GHOST_OFFSET);
+  }
+
+  confirmTouchPlacement() {
+    if (!this.isPlacing || !this.ghostValid) return false;
+    const tower = this.towerSystem.tryPlaceTowerAt(this.ghostX, this.ghostY);
+    this.towerSystem.refreshGhostVisual();
+    return !!tower;
   }
 
   handleSecondaryPointer(x, y) {

@@ -157,6 +157,10 @@ function updateUI(scene) {
     scene.touchPauseBtnEl.disabled =
       scene.isStartScreenActive || scene.isGameOver;
   }
+  if (scene.touchPlaceBtnEl) {
+    scene.touchPlaceBtnEl.disabled =
+      !scene.isPlacing || !scene.ghostValid || scene.isPaused || scene.isGameOver;
+  }
   if (scene.touchCancelBtnEl) {
     scene.touchCancelBtnEl.disabled =
       !scene.isPaused && !scene.isPlacing && !scene.selectedTower;

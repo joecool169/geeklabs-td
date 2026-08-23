@@ -34,6 +34,10 @@ class InputController {
     }
 
     this.pointerDownHandler = (pointer) => {
+      if (this.isTouchPointer(pointer)) {
+        this.dispatchTouch(pointer, "down");
+        return;
+      }
       this.dispatch({
         type: pointer.rightButtonDown()
           ? GAME_ACTIONS.SECONDARY_AT
@@ -44,20 +48,48 @@ class InputController {
       });
     };
     this.pointerMoveHandler = (pointer) => {
+      if (this.isTouchPointer(pointer)) {
+        if (pointer.isDown) this.dispatchTouch(pointer, "move");
+        return;
+      }
       this.dispatch({
         type: GAME_ACTIONS.POINTER_MOVED,
         x: pointer.worldX,
         y: pointer.worldY,
       });
     };
+    this.pointerUpHandler = (pointer) => {
+      if (this.isTouchPointer(pointer)) this.dispatchTouch(pointer, "up");
+    };
     input.on("pointerdown", this.pointerDownHandler);
     input.on("pointermove", this.pointerMoveHandler);
+    input.on("pointerup", this.pointerUpHandler);
     this.removeListeners.push(() =>
       input.off("pointerdown", this.pointerDownHandler)
     );
     this.removeListeners.push(() =>
       input.off("pointermove", this.pointerMoveHandler)
     );
+    this.removeListeners.push(() =>
+      input.off("pointerup", this.pointerUpHandler)
+    );
+  }
+
+  isTouchPointer(pointer) {
+    return (
+      pointer?.wasTouch === true ||
+      pointer?.pointerType === "touch" ||
+      pointer?.event?.pointerType === "touch"
+    );
+  }
+
+  dispatchTouch(pointer, phase) {
+    this.dispatch({
+      type: GAME_ACTIONS.TOUCH_AT,
+      x: pointer.worldX,
+      y: pointer.worldY,
+      phase,
+    });
   }
 
   dispatch(action) {
