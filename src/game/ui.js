@@ -2,36 +2,36 @@ import { TOWER_DEFS } from "../constants.js";
 import { round1 } from "./utils.js";
 import { getNextUpgradeCost, getTargetModeLabel } from "./towers.js";
 
-function showToast(msg, ms = 2400) {
-  this.toast.setText(msg);
-  this.toast.setVisible(true);
-  if (this.toastTimer) this.toastTimer.remove(false);
-  this.toastTimer = this.time.delayedCall(ms, () => {
-    this.toast.setVisible(false);
+function showToast(scene, msg, ms = 2400) {
+  scene.toast.setText(msg);
+  scene.toast.setVisible(true);
+  if (scene.toastTimer) scene.toastTimer.remove(false);
+  scene.toastTimer = scene.time.delayedCall(ms, () => {
+    scene.toast.setVisible(false);
   });
 }
 
-function clearTransitionBanner() {
-  if (this._transitionBannerTimer) {
-    this._transitionBannerTimer.remove(false);
-    this._transitionBannerTimer = null;
+function clearTransitionBanner(scene) {
+  if (scene._transitionBannerTimer) {
+    scene._transitionBannerTimer.remove(false);
+    scene._transitionBannerTimer = null;
   }
-  if (this._transitionBannerTween) {
-    this._transitionBannerTween.stop();
-    this._transitionBannerTween.remove();
-    this._transitionBannerTween = null;
+  if (scene._transitionBannerTween) {
+    scene._transitionBannerTween.stop();
+    scene._transitionBannerTween.remove();
+    scene._transitionBannerTween = null;
   }
-  if (this.transitionBanner) {
-    this.transitionBanner.setVisible(false);
-    this.transitionBanner.setAlpha(0);
+  if (scene.transitionBanner) {
+    scene.transitionBanner.setVisible(false);
+    scene.transitionBanner.setAlpha(0);
   }
 }
 
-function showTransitionBanner(text, tone = "neutral", duration = 1100) {
-  const banner = this.transitionBanner;
+function showTransitionBanner(scene, text, tone = "neutral", duration = 1100) {
+  const banner = scene.transitionBanner;
   if (!banner) return;
 
-  clearTransitionBanner.call(this);
+  clearTransitionBanner(scene);
   const color = tone === "positive" ? "#a9ffc9" : "#dbe7ff";
   const backgroundColor =
     tone === "positive" ? "rgba(12, 42, 28, 0.88)" : "rgba(10, 23, 38, 0.88)";
@@ -43,55 +43,55 @@ function showTransitionBanner(text, tone = "neutral", duration = 1100) {
     .setVisible(true)
     .setAlpha(0);
 
-  this._transitionBannerTween = this.tweens.add({
+  scene._transitionBannerTween = scene.tweens.add({
     targets: banner,
     alpha: 1,
     duration: 120,
     ease: "Sine.easeOut",
     onComplete: () => {
-      this._transitionBannerTween = null;
+      scene._transitionBannerTween = null;
     },
   });
 
-  this._transitionBannerTimer = this.time.delayedCall(Math.max(120, duration - 200), () => {
-    this._transitionBannerTimer = null;
-    this._transitionBannerTween = this.tweens.add({
+  scene._transitionBannerTimer = scene.time.delayedCall(Math.max(120, duration - 200), () => {
+    scene._transitionBannerTimer = null;
+    scene._transitionBannerTween = scene.tweens.add({
       targets: banner,
       alpha: 0,
       duration: 200,
       ease: "Sine.easeIn",
       onComplete: () => {
         banner.setVisible(false);
-        this._transitionBannerTween = null;
+        scene._transitionBannerTween = null;
       },
     });
   });
 }
 
-function updateWaveHint(text, visible) {
-  const hint = this.waveHint;
+function updateWaveHint(scene, text, visible) {
+  const hint = scene.waveHint;
   if (!hint) return;
-  if (this._waveHintTween) {
-    this._waveHintTween.stop();
-    this._waveHintTween.remove();
-    this._waveHintTween = null;
+  if (scene._waveHintTween) {
+    scene._waveHintTween.stop();
+    scene._waveHintTween.remove();
+    scene._waveHintTween = null;
   }
 
-  const prevText = this._waveHintText;
-  const prevVisible = this._waveHintVisible;
+  const prevText = scene._waveHintText;
+  const prevVisible = scene._waveHintVisible;
 
   if (!visible) {
     if (prevVisible) {
-      this._waveHintVisible = false;
+      scene._waveHintVisible = false;
       hint.setAlpha(1);
-      this._waveHintTween = this.tweens.add({
+      scene._waveHintTween = scene.tweens.add({
         targets: hint,
         alpha: 0,
         duration: 140,
         ease: "Sine.easeOut",
         onComplete: () => {
           hint.setVisible(false);
-          this._waveHintTween = null;
+          scene._waveHintTween = null;
         },
       });
     } else {
@@ -104,7 +104,7 @@ function updateWaveHint(text, visible) {
   hint.setVisible(true);
 
   if (shouldAnimate && prevVisible && prevText !== text) {
-    this._waveHintTween = this.tweens.add({
+    scene._waveHintTween = scene.tweens.add({
       targets: hint,
       alpha: 0,
       duration: 140,
@@ -112,13 +112,13 @@ function updateWaveHint(text, visible) {
       onComplete: () => {
         hint.setText(text);
         hint.setAlpha(0);
-        this._waveHintTween = this.tweens.add({
+        scene._waveHintTween = scene.tweens.add({
           targets: hint,
           alpha: 1,
           duration: 160,
           ease: "Sine.easeIn",
           onComplete: () => {
-            this._waveHintTween = null;
+            scene._waveHintTween = null;
           },
         });
       },
@@ -127,13 +127,13 @@ function updateWaveHint(text, visible) {
     if (shouldAnimate) hint.setAlpha(0);
     hint.setText(text);
     if (shouldAnimate) {
-      this._waveHintTween = this.tweens.add({
+      scene._waveHintTween = scene.tweens.add({
         targets: hint,
         alpha: 1,
         duration: 160,
         ease: "Sine.easeIn",
         onComplete: () => {
-          this._waveHintTween = null;
+          scene._waveHintTween = null;
         },
       });
     } else {
@@ -141,101 +141,101 @@ function updateWaveHint(text, visible) {
     }
   }
 
-  this._waveHintVisible = true;
-  this._waveHintText = text;
+  scene._waveHintVisible = true;
+  scene._waveHintText = text;
 }
 
-function updateUI() {
-  if (this.waveState === "intermission") {
-    const wait = Math.max(0, this.nextWaveAvailableAt - this.time.now);
+function updateUI(scene) {
+  if (scene.waveState === "intermission") {
+    const wait = Math.max(0, scene.nextWaveAvailableAt - scene.time.now);
     const ready = wait <= 0;
     const sec = Math.ceil(wait / 1000);
 
-    if (!this.didStartFirstWave) {
-      updateWaveHint.call(this, `WAVE ${this.wave} READY  •  SPACE to start`, true);
+    if (!scene.didStartFirstWave) {
+      updateWaveHint(scene, `WAVE ${scene.wave} READY  •  SPACE to start`, true);
     } else if (ready) {
-      updateWaveHint.call(
-        this,
-        this.autoStartWaves
-          ? `WAVE ${this.wave}  •  Deploying`
-          : `WAVE ${this.wave} READY  •  SPACE to start`
+      updateWaveHint(
+        scene,
+        scene.autoStartWaves
+          ? `WAVE ${scene.wave}  •  Deploying`
+          : `WAVE ${scene.wave} READY  •  SPACE to start`
         ,
         true
       );
     } else {
-      updateWaveHint.call(
-        this,
-        this.autoStartWaves
+      updateWaveHint(
+        scene,
+        scene.autoStartWaves
           ? `NEXT WAVE  •  ${sec}s  •  SPACE twice to deploy now`
-          : `WAVE ${this.wave} READY IN ${sec}s  •  SPACE twice to deploy now`
+          : `WAVE ${scene.wave} READY IN ${sec}s  •  SPACE twice to deploy now`
         ,
         true
       );
     }
   } else {
-    const spawners = this.activeWaves?.length ?? 0;
-    const alive = this.enemies.countActive(true);
-    updateWaveHint.call(
-      this,
-      `WAVE ${this.wave} ACTIVE  •  Groups: ${spawners}  •  On field: ${alive}`,
+    const spawners = scene.activeWaves?.length ?? 0;
+    const alive = scene.enemies.countActive(true);
+    updateWaveHint(
+      scene,
+      `WAVE ${scene.wave} ACTIVE  •  Groups: ${spawners}  •  On field: ${alive}`,
       true
     );
   }
 
-  const label = this.difficultyLabel || "Easy";
+  const label = scene.difficultyLabel || "Easy";
   const uiSnapshot = {
-    money: this.money,
-    lives: this.lives,
-    towers: this.towers.length,
-    wave: this.wave,
-    kills: this.killCount,
-    score: this.score,
+    money: scene.money,
+    lives: scene.lives,
+    towers: scene.towers.length,
+    wave: scene.wave,
+    kills: scene.killCount,
+    score: scene.score,
     diff: label,
   };
   const hudUnchanged =
-    this._uiCache &&
-    this._uiCache.money === uiSnapshot.money &&
-    this._uiCache.lives === uiSnapshot.lives &&
-    this._uiCache.towers === uiSnapshot.towers &&
-    this._uiCache.wave === uiSnapshot.wave &&
-    this._uiCache.kills === uiSnapshot.kills &&
-    this._uiCache.score === uiSnapshot.score &&
-    this._uiCache.diff === uiSnapshot.diff;
+    scene._uiCache &&
+    scene._uiCache.money === uiSnapshot.money &&
+    scene._uiCache.lives === uiSnapshot.lives &&
+    scene._uiCache.towers === uiSnapshot.towers &&
+    scene._uiCache.wave === uiSnapshot.wave &&
+    scene._uiCache.kills === uiSnapshot.kills &&
+    scene._uiCache.score === uiSnapshot.score &&
+    scene._uiCache.diff === uiSnapshot.diff;
   if (!hudUnchanged) {
-    this._uiCache = uiSnapshot;
-    this.ui.setText(
+    scene._uiCache = uiSnapshot;
+    scene.ui.setText(
       `Money: $${uiSnapshot.money}    Lives: ${uiSnapshot.lives}    Towers: ${uiSnapshot.towers}    Wave: ${uiSnapshot.wave}    Kills: ${uiSnapshot.kills}    Score: ${uiSnapshot.score}    Diff: ${uiSnapshot.diff}`
     );
   }
 
-  if (this.placementContextEl) {
-    this.placementContextEl.style.display = this.isPlacing ? "block" : "none";
+  if (scene.placementContextEl) {
+    scene.placementContextEl.style.display = scene.isPlacing ? "block" : "none";
   }
-  if (this.isPlacing) {
-    const def = TOWER_DEFS[this.placeType] || TOWER_DEFS.basic;
+  if (scene.isPlacing) {
+    const def = TOWER_DEFS[scene.placeType] || TOWER_DEFS.basic;
     const tier0 = def.tiers[0];
-    if (this.placementTowerNameEl && this.placementTowerNameEl.textContent !== def.name) {
-      this.placementTowerNameEl.textContent = def.name;
+    if (scene.placementTowerNameEl && scene.placementTowerNameEl.textContent !== def.name) {
+      scene.placementTowerNameEl.textContent = def.name;
     }
     const costText = `$${tier0.cost}`;
-    if (this.placementTowerCostEl && this.placementTowerCostEl.textContent !== costText) {
-      this.placementTowerCostEl.textContent = costText;
+    if (scene.placementTowerCostEl && scene.placementTowerCostEl.textContent !== costText) {
+      scene.placementTowerCostEl.textContent = costText;
     }
     const rangeText = `${tier0.range}`;
-    if (this.placementTowerRangeEl && this.placementTowerRangeEl.textContent !== rangeText) {
-      this.placementTowerRangeEl.textContent = rangeText;
+    if (scene.placementTowerRangeEl && scene.placementTowerRangeEl.textContent !== rangeText) {
+      scene.placementTowerRangeEl.textContent = rangeText;
     }
-    if (this.placementValidityEl) {
-      const validityText = this.ghostValid ? "Valid" : "Blocked";
-      if (this.placementValidityEl.textContent !== validityText) {
-        this.placementValidityEl.textContent = validityText;
+    if (scene.placementValidityEl) {
+      const validityText = scene.ghostValid ? "Valid" : "Blocked";
+      if (scene.placementValidityEl.textContent !== validityText) {
+        scene.placementValidityEl.textContent = validityText;
       }
-      this.placementValidityEl.classList.toggle("is-valid", this.ghostValid);
-      this.placementValidityEl.classList.toggle("is-blocked", !this.ghostValid);
+      scene.placementValidityEl.classList.toggle("is-valid", scene.ghostValid);
+      scene.placementValidityEl.classList.toggle("is-blocked", !scene.ghostValid);
     }
   }
-  if (this.towerStripSlots && this._towerStripWave !== uiSnapshot.wave) {
-    this._towerStripWave = uiSnapshot.wave;
+  if (scene.towerStripSlots && scene._towerStripWave !== uiSnapshot.wave) {
+    scene._towerStripWave = uiSnapshot.wave;
     const updateSlots = (slots) => {
       if (!slots) return;
       for (const slot of slots) {
@@ -263,24 +263,24 @@ function updateUI() {
         }
       }
     };
-    updateSlots(this.towerStripSlots);
+    updateSlots(scene.towerStripSlots);
   }
 
-  if (!this.selectedTower || !this.towers.includes(this.selectedTower)) {
-    const selectedGroup = this.controlsSelectedEl;
+  if (!scene.selectedTower || !scene.towers.includes(scene.selectedTower)) {
+    const selectedGroup = scene.controlsSelectedEl;
     if (selectedGroup) selectedGroup.classList.add("is-inactive");
-    if (this.selectedTowerPanelEl) this.selectedTowerPanelEl.style.display = "none";
-    if (this.selectedTowerUpgradeBtnEl) this.selectedTowerUpgradeBtnEl.disabled = true;
-    if (this.selectedTowerSellBtnEl) this.selectedTowerSellBtnEl.disabled = true;
-    if (this.selectedTowerTargetBtnEl) this.selectedTowerTargetBtnEl.disabled = true;
+    if (scene.selectedTowerPanelEl) scene.selectedTowerPanelEl.style.display = "none";
+    if (scene.selectedTowerUpgradeBtnEl) scene.selectedTowerUpgradeBtnEl.disabled = true;
+    if (scene.selectedTowerSellBtnEl) scene.selectedTowerSellBtnEl.disabled = true;
+    if (scene.selectedTowerTargetBtnEl) scene.selectedTowerTargetBtnEl.disabled = true;
     return;
   }
 
-  const selectedGroup = this.controlsSelectedEl;
+  const selectedGroup = scene.controlsSelectedEl;
   if (selectedGroup) selectedGroup.classList.remove("is-inactive");
-  if (this.selectedTowerPanelEl) this.selectedTowerPanelEl.style.display = "block";
+  if (scene.selectedTowerPanelEl) scene.selectedTowerPanelEl.style.display = "block";
 
-  const t = this.selectedTower;
+  const t = scene.selectedTower;
   const def = TOWER_DEFS[t.type];
   const sps = 1000 / t.fireMs;
   const dps = t.damage * sps;
@@ -288,18 +288,44 @@ function updateUI() {
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
   const targetLabel = getTargetModeLabel(t);
-  if (this.selectedTowerNameEl) this.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
-  if (this.selectedTowerTargetEl) this.selectedTowerTargetEl.textContent = targetLabel;
-  if (this.selectedTowerDmgEl) this.selectedTowerDmgEl.textContent = `${t.damage}`;
-  if (this.selectedTowerFireEl) this.selectedTowerFireEl.textContent = `${t.fireMs}ms (${round1(sps)}/s)`;
-  if (this.selectedTowerRangeEl) this.selectedTowerRangeEl.textContent = `${t.range}`;
-  if (this.selectedTowerDpsEl) this.selectedTowerDpsEl.textContent = `${round1(dps)}`;
-  if (this.selectedTowerUpgradeEl) this.selectedTowerUpgradeEl.textContent = `${nextText}`;
-  if (this.selectedTowerSellEl) this.selectedTowerSellEl.textContent = `$${refund}`;
-  const canUpgrade = nextCost !== null && this.money >= nextCost;
-  if (this.selectedTowerUpgradeBtnEl) this.selectedTowerUpgradeBtnEl.disabled = !canUpgrade;
-  if (this.selectedTowerSellBtnEl) this.selectedTowerSellBtnEl.disabled = false;
-  if (this.selectedTowerTargetBtnEl) this.selectedTowerTargetBtnEl.disabled = false;
+  if (scene.selectedTowerNameEl) scene.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
+  if (scene.selectedTowerTargetEl) scene.selectedTowerTargetEl.textContent = targetLabel;
+  if (scene.selectedTowerDmgEl) scene.selectedTowerDmgEl.textContent = `${t.damage}`;
+  if (scene.selectedTowerFireEl) scene.selectedTowerFireEl.textContent = `${t.fireMs}ms (${round1(sps)}/s)`;
+  if (scene.selectedTowerRangeEl) scene.selectedTowerRangeEl.textContent = `${t.range}`;
+  if (scene.selectedTowerDpsEl) scene.selectedTowerDpsEl.textContent = `${round1(dps)}`;
+  if (scene.selectedTowerUpgradeEl) scene.selectedTowerUpgradeEl.textContent = `${nextText}`;
+  if (scene.selectedTowerSellEl) scene.selectedTowerSellEl.textContent = `$${refund}`;
+  const canUpgrade = nextCost !== null && scene.money >= nextCost;
+  if (scene.selectedTowerUpgradeBtnEl) scene.selectedTowerUpgradeBtnEl.disabled = !canUpgrade;
+  if (scene.selectedTowerSellBtnEl) scene.selectedTowerSellBtnEl.disabled = false;
+  if (scene.selectedTowerTargetBtnEl) scene.selectedTowerTargetBtnEl.disabled = false;
 }
 
-export { clearTransitionBanner, showToast, showTransitionBanner, updateUI };
+class HudController {
+  constructor(scene) {
+    this.scene = scene;
+  }
+
+  showToast(message, duration) {
+    showToast(this.scene, message, duration);
+  }
+
+  update() {
+    updateUI(this.scene);
+  }
+
+  showTransition(text, tone, duration) {
+    showTransitionBanner(this.scene, text, tone, duration);
+  }
+
+  clearTransition() {
+    clearTransitionBanner(this.scene);
+  }
+
+  destroy() {
+    this.clearTransition();
+  }
+}
+
+export { HudController };

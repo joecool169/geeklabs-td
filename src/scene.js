@@ -3,7 +3,7 @@ import {
   DIFFICULTY_CONFIG,
   TOP_UI,
 } from "./game/config.js";
-import * as UI from "./game/ui.js";
+import { HudController } from "./game/ui.js";
 import * as Telemetry from "./game/telemetry.js";
 import { normalizeRunSeed } from "./game/random.js";
 import { ENEMY_DEFS, TOWER_DEFS } from "./constants.js";
@@ -254,6 +254,7 @@ export class GameScene extends Phaser.Scene {
     });
     Object.assign(this, this.domView.refs);
     this.towerStripSlots = this.domView.towerStripSlots;
+    this.hudController = new HudController(this);
     this._uiCache = null;
     this._towerStripWave = null;
     this.pauseText = this.add
@@ -280,7 +281,7 @@ export class GameScene extends Phaser.Scene {
       this.pauseText.setText(this.isPaused ? "PAUSED — P / ESC to resume" : "");
       this.pauseText.setVisible(this.isPaused);
       if (this.isPaused) {
-        UI.clearTransitionBanner.call(this);
+        this.hudController.clearTransition();
         this.showPauseMenu();
       } else {
         this.hidePauseMenu();
@@ -298,7 +299,8 @@ export class GameScene extends Phaser.Scene {
     this.updateUI();
     this.enterIntermission(true);
     this.events.once("shutdown", () => {
-      UI.clearTransitionBanner.call(this);
+      this.hudController?.destroy();
+      this.hudController = null;
       this.overlays?.destroy();
       this.overlays = null;
       this.domView?.destroy();
@@ -420,15 +422,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   showToast(msg, ms = 2400) {
-    UI.showToast.call(this, msg, ms);
+    this.hudController.showToast(msg, ms);
   }
 
   updateUI() {
-    UI.updateUI.call(this);
+    this.hudController.update();
   }
 
   showWaveTransition(text, tone = "neutral", duration = 1100) {
-    UI.showTransitionBanner.call(this, text, tone, duration);
+    this.hudController.showTransition(text, tone, duration);
   }
 
   applyDifficulty(key, opts = {}) {
@@ -589,7 +591,7 @@ export class GameScene extends Phaser.Scene {
         final: finalTelemetry,
       });
     }
-    UI.clearTransitionBanner.call(this);
+    this.hudController.clearTransition();
     this.playSfx("gameover", { allowDuringGameOver: true });
     for (const t of this.towers) {
       if (t.beam) {
