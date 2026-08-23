@@ -34,6 +34,7 @@ test("preferences preserve public storage keys and normalize inputs", () => {
   assert.equal(STORAGE_KEYS.playerName, "defense_protocol_player_name_v1");
   assert.equal(STORAGE_KEYS.difficulty, "defense_protocol_difficulty_v1");
   assert.equal(STORAGE_KEYS.leaderboard, "defense_protocol_leaderboard_v1");
+  assert.equal(STORAGE_KEYS.soundEnabled, "defense_protocol_sound_enabled_v1");
   assert.equal(
     STORAGE_KEYS.balanceTelemetry,
     "defense_protocol_balance_telemetry_v2"

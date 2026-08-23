@@ -33,18 +33,19 @@ import { EnemySystem, attachEnemySystem } from "./systems/EnemySystem.js";
 import { CombatSystem } from "./systems/CombatSystem.js";
 import { WaveSystem, attachWaveSystem } from "./systems/WaveSystem.js";
 import { persistNativePreference } from "./platform/nativeRuntime.js";
+import { AudioController } from "./audio/AudioController.js";
 
 const storage = createStorageGateway(globalThis.localStorage, {
   writeThrough: persistNativePreference,
 });
 const SFX_CONFIG = {
-  place: { url: "/sfx/place.wav", volume: 0.26 },
-  upgrade: { url: "/sfx/upgrade.wav", volume: 0.26 },
-  sell: { url: "/sfx/sell.wav", volume: 0.26 },
-  wave: { url: "/sfx/wave.wav", volume: 0.35 },
-  death: { url: "/sfx/death.wav", volume: 0.35 },
-  life: { url: "/sfx/life.wav", volume: 0.35 },
-  gameover: { url: "/sfx/gameover.wav", volume: 0.45 },
+  place: { url: "/sfx/place.wav", volume: 0.65, rate: 0.9 },
+  upgrade: { url: "/sfx/upgrade.wav", volume: 0.7, rate: 0.9 },
+  sell: { url: "/sfx/sell.wav", volume: 0.65, rate: 0.9 },
+  wave: { url: "/sfx/wave.wav", volume: 0.75, rate: 0.85 },
+  death: { url: "/sfx/death.wav", volume: 0.68, rate: 0.9 },
+  life: { url: "/sfx/life.wav", volume: 0.8, rate: 0.85 },
+  gameover: { url: "/sfx/gameover.wav", volume: 0.85, rate: 0.85 },
 };
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -83,8 +84,6 @@ export class GameScene extends Phaser.Scene {
     ).trim() || "unlabeled";
     this.runTelemetry = null;
 
-    this.sfx = {};
-    this.sfxLastAt = {};
     this.playSfx = (key, opts = {}) => {
       const {
         allowDuringPause = false,
@@ -94,15 +93,9 @@ export class GameScene extends Phaser.Scene {
       if (!allowDuringStart && this.isStartScreenActive) return;
       if (!allowDuringPause && this.isPaused) return;
       if (!allowDuringGameOver && this.isGameOver) return;
-      const sound = this.sfx[key];
-      if (!sound) return;
       const minInterval = key === "death" ? 100 : 0;
-      const lastAt = this.sfxLastAt[key] || 0;
       const now = this.time?.now ?? Date.now();
-      if (now - lastAt < minInterval) return;
-      if (sound.isPlaying) return;
-      sound.play();
-      this.sfxLastAt[key] = now;
+      this.audioController?.play(key, { minInterval, now });
     };
 
     attachRunState(
@@ -225,10 +218,16 @@ export class GameScene extends Phaser.Scene {
     this.lifeFlashTween = null;
     this.lifeHudTween = null;
 
+    this.audioController = new AudioController({
+      soundManager: this.sound,
+      storage,
+      storageKey: STORAGE_KEYS.soundEnabled,
+    });
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!this.cache.audio.exists(key)) return;
       const volume = typeof cfg.volume === "number" ? cfg.volume : 0.4;
-      this.sfx[key] = this.sound.add(key, { volume });
+      const rate = typeof cfg.rate === "number" ? cfg.rate : 1;
+      this.audioController.register(key, this.sound.add(key, { volume, rate }));
     });
     this.showHelp = storage.read(STORAGE_KEYS.helpOverlay) === "true";
     this.buildTowerDefs = Object.values(TOWER_DEFS).sort(
@@ -306,6 +305,8 @@ export class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.hudController?.destroy();
       this.hudController = null;
+      this.audioController?.destroy();
+      this.audioController = null;
       this.overlays?.destroy();
       this.overlays = null;
       this.domView?.destroy();
@@ -490,6 +491,8 @@ export class GameScene extends Phaser.Scene {
     this.overlays.showStart({
       playerName: this.playerName,
       difficultyKey: this.difficultyKey,
+      soundEnabled: this.audioController.enabled,
+      onToggleSound: () => this.toggleSound(),
       onStart: ({ playerName, difficultyKey }) => {
         const name = normalizePlayerName(playerName);
         this.playerName = name;
@@ -529,6 +532,8 @@ export class GameScene extends Phaser.Scene {
     if (this.isStartScreenActive || this.isGameOver) return;
     this.overlays?.showPause({
       difficultyKey: this.difficultyKey,
+      soundEnabled: this.audioController.enabled,
+      onToggleSound: () => this.toggleSound(),
       onResume: () => this.setPaused(false),
       onRestart: () => {
         this.setPaused(false);
@@ -549,6 +554,19 @@ export class GameScene extends Phaser.Scene {
 
   hidePauseMenu() {
     this.overlays?.hidePause();
+  }
+
+  toggleSound() {
+    const enabled = this.audioController.toggle();
+    if (enabled) {
+      this.audioController.unlock();
+      this.playSfx("place", {
+        allowDuringPause: true,
+        allowDuringStart: true,
+        allowDuringGameOver: true,
+      });
+    }
+    return enabled;
   }
 
   handleAppInactive() {

@@ -7,6 +7,7 @@ const STORAGE_KEYS = Object.freeze({
   difficulty: "defense_protocol_difficulty_v1",
   leaderboard: "defense_protocol_leaderboard_v1",
   helpOverlay: "defense_protocol_help_overlay_v1",
+  soundEnabled: "defense_protocol_sound_enabled_v1",
   balanceTelemetry: "defense_protocol_balance_telemetry_v2",
 });
 

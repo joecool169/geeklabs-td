@@ -208,7 +208,13 @@ class OverlayManager {
     ].forEach((id) => this.remove(id));
   }
 
-  showStart({ playerName, difficultyKey, onStart }) {
+  showStart({
+    playerName,
+    difficultyKey,
+    soundEnabled = true,
+    onToggleSound = () => soundEnabled,
+    onStart,
+  }) {
     if (!this.host) return false;
     const { overlay, panel } = this.mount(
       "defense-protocol-start-overlay",
@@ -254,6 +260,17 @@ class OverlayManager {
     });
 
     const startButton = makeButton("Start", "primary");
+    const soundButton = makeButton("", "neutral");
+    let isSoundEnabled = soundEnabled !== false;
+    const renderSoundButton = () => {
+      soundButton.textContent = `Sound: ${isSoundEnabled ? "On" : "Off"}`;
+      soundButton.setAttribute("aria-pressed", String(isSoundEnabled));
+    };
+    renderSoundButton();
+    soundButton.addEventListener("click", () => {
+      isSoundEnabled = onToggleSound() !== false;
+      renderSoundButton();
+    });
     const start = () =>
       onStart({
         playerName: nameInput.value,
@@ -268,7 +285,8 @@ class OverlayManager {
       nameLabel,
       difficultyLabel,
       difficultyOptions,
-      startButton
+      startButton,
+      soundButton
     );
     if (!document.documentElement.classList.contains("touch-ui")) {
       nameInput.focus();
@@ -329,7 +347,14 @@ class OverlayManager {
     return overlay;
   }
 
-  showPause({ difficultyKey, onResume, onRestart, onChange }) {
+  showPause({
+    difficultyKey,
+    soundEnabled = true,
+    onToggleSound = () => soundEnabled,
+    onResume,
+    onRestart,
+    onChange,
+  }) {
     if (!this.host) return false;
     const { panel } = this.mount(
       "defense-protocol-pause-overlay",
@@ -347,6 +372,17 @@ class OverlayManager {
     const leaderboard = makeButton("Leaderboard", "gold");
     const restart = makeButton("Restart", "primary");
     const change = makeButton("Change name / difficulty", "neutral");
+    const sound = makeButton("", "neutral");
+    let isSoundEnabled = soundEnabled !== false;
+    const renderSoundButton = () => {
+      sound.textContent = `Sound: ${isSoundEnabled ? "On" : "Off"}`;
+      sound.setAttribute("aria-pressed", String(isSoundEnabled));
+    };
+    renderSoundButton();
+    sound.addEventListener("click", () => {
+      isSoundEnabled = onToggleSound() !== false;
+      renderSoundButton();
+    });
     const controlsPanel = makeControlsPanel();
     const leaderboardPanel = makeLeaderboardPanel(
       this.storage,
@@ -364,7 +400,7 @@ class OverlayManager {
     });
     restart.addEventListener("click", onRestart);
     change.addEventListener("click", onChange);
-    buttons.append(resume, controls, leaderboard, restart, change);
+    buttons.append(resume, sound, controls, leaderboard, restart, change);
     panel.append(
       makeBrandHeader(),
       title,
