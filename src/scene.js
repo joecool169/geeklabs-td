@@ -234,22 +234,23 @@ export class GameScene extends Phaser.Scene {
     this.domView = new GameDomView();
     this.domView.bind({
       towerDefs: this.buildTowerDefs,
-      onSelectTowerType: (type) => {
-        if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-        this.towerSystem.trySetPlaceType(type);
-      },
-      onUpgrade: () => {
-        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
-        this.towerSystem.tryUpgradeTower(this.selectedTower);
-      },
-      onSell: () => {
-        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
-        this.towerSystem.trySellTower(this.selectedTower);
-      },
-      onTarget: () => {
-        if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
-        this.towerSystem.cycleTargetMode(this.selectedTower);
-      },
+      onSelectTowerType: (towerType) =>
+        this.handleInputAction({
+          type: GAME_ACTIONS.SELECT_TOWER_TYPE,
+          towerType,
+        }),
+      onUpgrade: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.UPGRADE_SELECTED }),
+      onSell: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.SELL_SELECTED }),
+      onTarget: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.CYCLE_TARGETING }),
+      onStartWave: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.START_WAVE }),
+      onCancel: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.CANCEL }),
+      onPause: () =>
+        this.handleInputAction({ type: GAME_ACTIONS.TOGGLE_PAUSE }),
     });
     Object.assign(this, this.domView.refs);
     this.towerStripSlots = this.domView.towerStripSlots;

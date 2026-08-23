@@ -146,6 +146,22 @@ function updateWaveHint(scene, text, visible) {
 }
 
 function updateUI(scene) {
+  if (scene.touchStartWaveBtnEl) {
+    scene.touchStartWaveBtnEl.textContent =
+      scene.waveState === "running" ? "Add Wave" : "Start Wave";
+    scene.touchStartWaveBtnEl.disabled =
+      scene.isPaused || scene.isStartScreenActive || scene.isGameOver;
+  }
+  if (scene.touchPauseBtnEl) {
+    scene.touchPauseBtnEl.textContent = scene.isPaused ? "Resume" : "Pause";
+    scene.touchPauseBtnEl.disabled =
+      scene.isStartScreenActive || scene.isGameOver;
+  }
+  if (scene.touchCancelBtnEl) {
+    scene.touchCancelBtnEl.disabled =
+      !scene.isPaused && !scene.isPlacing && !scene.selectedTower;
+  }
+
   if (scene.waveState === "intermission") {
     const wait = Math.max(0, scene.nextWaveAvailableAt - scene.time.now);
     const ready = wait <= 0;

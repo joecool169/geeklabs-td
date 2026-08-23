@@ -24,6 +24,10 @@ class GameDomView {
       placementTowerRangeEl: root.getElementById("placement-tower-range"),
       placementValidityEl: root.getElementById("placement-validity"),
       towerStripEl: root.getElementById("tower-strip"),
+      touchControlsEl: root.getElementById("touch-controls"),
+      touchStartWaveBtnEl: root.getElementById("touch-start-wave"),
+      touchCancelBtnEl: root.getElementById("touch-cancel"),
+      touchPauseBtnEl: root.getElementById("touch-pause"),
     };
     this.towerStripSlots = [];
   }
@@ -34,7 +38,16 @@ class GameDomView {
     this.listeners.push(() => target.removeEventListener(eventName, handler));
   }
 
-  bind({ towerDefs, onSelectTowerType, onUpgrade, onSell, onTarget }) {
+  bind({
+    towerDefs,
+    onSelectTowerType,
+    onUpgrade,
+    onSell,
+    onTarget,
+    onStartWave,
+    onCancel,
+    onPause,
+  }) {
     const towerStrip = this.refs.towerStripEl;
     if (towerStrip) {
       towerStrip.replaceChildren();
@@ -70,6 +83,9 @@ class GameDomView {
     this.listen(this.refs.selectedTowerUpgradeBtnEl, "click", onUpgrade);
     this.listen(this.refs.selectedTowerSellBtnEl, "click", onSell);
     this.listen(this.refs.selectedTowerTargetBtnEl, "click", onTarget);
+    this.listen(this.refs.touchStartWaveBtnEl, "click", onStartWave);
+    this.listen(this.refs.touchCancelBtnEl, "click", onCancel);
+    this.listen(this.refs.touchPauseBtnEl, "click", onPause);
   }
 
   emphasizeControls(duration = 1600) {
