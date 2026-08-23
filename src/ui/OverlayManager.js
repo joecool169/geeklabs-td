@@ -33,6 +33,11 @@ function makeBrandHeader(large = false) {
   logo.src = BRAND_LOGO_URL;
   logo.alt = "Defense Protocol logo";
   header.append(
+    element(
+      "div",
+      "game-overlay-eyebrow",
+      large ? "TACTICAL DEFENSE NETWORK" : "DEFENSE PROTOCOL"
+    ),
     logo,
     element("div", "game-overlay-brand-title", "Defense Protocol"),
     element(
@@ -259,7 +264,7 @@ class OverlayManager {
       difficultyOptions.append(option);
     });
 
-    const startButton = makeButton("Start", "primary");
+    const startButton = makeButton("Engage Protocol", "primary");
     const soundButton = makeButton("", "neutral");
     let isSoundEnabled = soundEnabled !== false;
     const renderSoundButton = () => {
@@ -313,12 +318,17 @@ class OverlayManager {
       ["Wave", result.wave],
       ["Total Kills", result.kills],
       ["Final Score", result.score],
-    ].forEach(([label, value]) =>
-      stats.append(element("div", null, `${label}: ${value}`))
-    );
+    ].forEach(([label, value]) => {
+      const stat = element("div", "game-overlay-stat");
+      stat.append(
+        element("span", null, label),
+        element("strong", null, String(value))
+      );
+      stats.append(stat);
+    });
 
     const buttons = element("div", "game-overlay-actions");
-    const restart = makeButton("Restart", "primary");
+    const restart = makeButton("Re-engage", "primary");
     const change = makeButton("Change name / difficulty", "neutral");
     const leaderboard = makeButton("Leaderboard", "gold");
     const leaderboardPanel = makeLeaderboardPanel(
@@ -361,7 +371,7 @@ class OverlayManager {
       "pause",
       "is-pause"
     );
-    const title = element("div", "game-overlay-title", "PAUSED");
+    const title = element("div", "game-overlay-title", "PROTOCOL PAUSED");
     const detail = element(
       "div",
       "game-overlay-detail desktop-instruction",
