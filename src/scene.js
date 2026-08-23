@@ -1,17 +1,15 @@
 import Phaser from "phaser";
 import {
   DIFFICULTY_CONFIG,
-  GRID,
   MAX_CONCURRENT_SPAWNERS,
   TOP_UI,
   WAVE_SPAM_WINDOW_MS,
 } from "./game/config.js";
-import { dist2, segCircleHit, snapX, snapY } from "./game/utils.js";
+import { dist2, segCircleHit } from "./game/utils.js";
 import * as Bullets from "./game/bullets.js";
 import * as Balance from "./game/balance.js";
 import * as Enemies from "./game/enemies.js";
 import * as UI from "./game/ui.js";
-import * as Towers from "./game/towers.js";
 import * as Waves from "./game/waves.js";
 import * as Telemetry from "./game/telemetry.js";
 import { normalizeRunSeed } from "./game/random.js";
@@ -38,6 +36,7 @@ import {
   getTowerTextureKey,
   pointToSegmentDistance,
 } from "./presentation/WorldRenderer.js";
+import { TowerSystem, attachTowerSystem } from "./systems/TowerSystem.js";
 
 const storage = createStorageGateway();
 const SFX_CONFIG = {
@@ -143,11 +142,16 @@ export class GameScene extends Phaser.Scene {
     this.worldRenderer.create();
     this.path = this.worldRenderer.path;
 
-    this.towers = [];
+    attachTowerSystem(
+      this,
+      new TowerSystem({
+        scene: this,
+        world: this.worldRenderer,
+        runController: this.runController,
+      })
+    );
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
-
-    this.selectedTower = null;
 
     this.ui = this.add.text(14, 12, "", {
       fontFamily: "monospace",
@@ -273,13 +277,6 @@ export class GameScene extends Phaser.Scene {
 
     this.togglePause = () => this.setPaused(!this.isPaused);
 
-    this.ghost = null;
-    this.isPlacing = false;
-    this.placeType = "basic";
-    this.ghostValid = false;
-    this.ghostX = 0;
-    this.ghostY = 0;
-
     this.inputController = new InputController({
       input: this.input,
       keyCodes: Phaser.Input.Keyboard.KeyCodes,
@@ -296,6 +293,8 @@ export class GameScene extends Phaser.Scene {
       this.domView = null;
       this.inputController?.destroy();
       this.inputController = null;
+      this.towerSystem?.destroy();
+      this.towerSystem = null;
       this.worldRenderer?.destroy();
       this.worldRenderer = null;
     });
@@ -784,144 +783,63 @@ export class GameScene extends Phaser.Scene {
   }
 
   enterPlacementModeIfNeeded() {
-    if (!this.isPlacing) this.setPlacement(true);
+    this.towerSystem.enterPlacementModeIfNeeded();
   }
 
   getTowerUnlockWave(type) {
-    const def = TOWER_DEFS[type];
-    return def?.unlockWave ?? 1;
+    return this.towerSystem.getTowerUnlockWave(type);
   }
 
   isTowerUnlocked(type) {
-    return this.wave >= this.getTowerUnlockWave(type);
+    return this.towerSystem.isTowerUnlocked(type);
   }
 
   getPlacementKeyHint() {
-    const defs = this.buildTowerDefs || Object.values(TOWER_DEFS);
-    const keys = defs
-      .filter((def) => this.wave >= (def.unlockWave ?? 1))
-      .map((def) => def.hotkey);
-    return keys.length ? keys.join("/") : "1";
+    return this.towerSystem.getPlacementKeyHint();
   }
 
   trySetPlaceType(type) {
-    const def = TOWER_DEFS[type];
-    if (!def) return;
-    this.enterPlacementModeIfNeeded();
-    const unlockWave = def.unlockWave ?? 1;
-    if (this.wave < unlockWave) {
-      this.showToast(`Unlocks at Wave ${unlockWave}.`, 2200);
-      return;
-    }
-    this.setPlaceType(type);
+    this.towerSystem.trySetPlaceType(type);
   }
 
   getPlaceDef() {
-    return TOWER_DEFS[this.placeType] || TOWER_DEFS.basic;
+    return this.towerSystem.getPlaceDef();
   }
 
   setPlaceType(type) {
-    if (!TOWER_DEFS[type]) return;
-    this.placeType = type;
-    if (this.isPlacing) {
-      if (this.ghost) this.ghost.setTexture(this.getTowerTextureKey(this.placeType));
-      this.refreshGhostVisual();
-    }
-    this.syncTowerStripSelection();
+    this.towerSystem.setPlaceType(type);
   }
 
   syncTowerStripSelection() {
-    if (!this.towerStripSlots) return;
-    const activeKey = this.isPlacing ? this.placeType : null;
-    for (const slot of this.towerStripSlots) {
-      slot.el.classList.toggle("is-selected", !!activeKey && slot.def?.key === activeKey);
-    }
+    this.towerSystem.syncTowerStripSelection();
   }
 
   togglePlacement() {
-    this.setPlacement(!this.isPlacing);
+    this.towerSystem.togglePlacement();
   }
 
   setPlacement(on) {
-    if (on === this.isPlacing) return;
-    this.isPlacing = on;
-    if (this.controlsPlacementEl) {
-      this.controlsPlacementEl.classList.toggle("is-active", this.isPlacing);
-    }
-
-    if (on) {
-      this.clearSelection();
-      if (!this.didShowPlaceToast) {
-        this.didShowPlaceToast = true;
-        const hint = this.getPlacementKeyHint();
-        this.showToast(`Placement: press ${hint} to switch tower type.`, 2600);
-      }
-      this.ghost = this.add.image(0, 0, this.getTowerTextureKey(this.placeType));
-      this.ghost.setDepth(9000);
-      this.ghost.setAlpha(0.5);
-      const p = this.input.activePointer;
-      if (p) {
-        this.ghostX = NaN;
-        this.ghostY = NaN;
-        this.updateGhost(p.worldX, p.worldY);
-      }
-      this.hideRangeRing();
-      this.syncTowerStripSelection();
-      return;
-    }
-
-    if (this.ghost) {
-      this.ghost.destroy();
-      this.ghost = null;
-    }
-    this.placeHint.setText("");
-    this.hideRangeRing();
-    this.syncTowerStripSelection();
+    this.towerSystem.setPlacement(on);
   }
 
-  selectTower(t) {
-    this.selectedTower = t;
-    this.showRangeRing(t, 0x00ffff);
+  selectTower(tower) {
+    this.towerSystem.selectTower(tower);
   }
 
   clearSelection() {
-    this.selectedTower = null;
-    this.hideRangeRing();
+    this.towerSystem.clearSelection();
   }
 
-  updateGhost(wx, wy) {
-    const x = snapX(wx);
-    const y = snapY(wy);
-    if (x === this.ghostX && y === this.ghostY) return;
-    this.ghostX = x;
-    this.ghostY = y;
-    this.ghostValid = this.canPlaceTowerAt(x, y);
-    this.refreshGhostVisual();
+  updateGhost(worldX, worldY) {
+    this.towerSystem.updateGhost(worldX, worldY);
   }
 
   refreshGhostVisual() {
-    if (!this.ghost) return;
-    const def = this.getPlaceDef();
-    const tier0 = def.tiers[0];
-    this.ghost.setPosition(this.ghostX, this.ghostY);
-    const col = this.ghostValid ? tier0.tint : 0xff4d6d;
-    this.ghost.setTint(col);
-    this.ghost.setScale(tier0.scale ?? 1);
-    const ringCol = this.ghostValid ? 0x39ff8f : 0xff4d6d;
-    this.showGhostRing(this.ghostX, this.ghostY, tier0.range, ringCol);
-    this.updatePlaceHint();
+    this.towerSystem.refreshGhostVisual();
   }
 
   updatePlaceHint() {
-    if (!this.isPlacing) return;
-    const def = this.getPlaceDef();
-    const tier0 = def.tiers[0];
-    const ok = this.ghostValid ? "OK" : "BLOCKED";
-    const need = this.money < tier0.cost ? " (not enough $)" : "";
-    const switchHint = this.getPlacementKeyHint();
-    this.placeHint.setText(
-      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${ok}${need}   (${switchHint}: switch)`
-    );
+    this.towerSystem.updatePlaceHint();
   }
 
   showGhostRing(x, y, range, color) {
@@ -944,10 +862,8 @@ export class GameScene extends Phaser.Scene {
     return pointToSegmentDistance(px, py, ax, ay, bx, by);
   }
 
-  getTowerAt(wx, wy) {
-    const x = snapX(wx);
-    const y = snapY(wy);
-    return this.towers.find((t) => t.x === x && t.y === y);
+  getTowerAt(worldX, worldY) {
+    return this.towerSystem.getTowerAt(worldX, worldY);
   }
 
   getTowerTextureKey(type) {
@@ -955,79 +871,31 @@ export class GameScene extends Phaser.Scene {
   }
 
   canPlaceTowerAt(x, y) {
-    const def = this.getPlaceDef();
-    const tier0 = def.tiers[0];
-    if (this.money < tier0.cost) return false;
-    if (x < GRID / 2 || y < TOP_UI + GRID / 2 || x > this.scale.width - GRID / 2 || y > this.scale.height - GRID / 2) return false;
-    if (this.isOnPath(x, y)) return false;
-    for (const t of this.towers) {
-      if (t.x === x && t.y === y) return false;
-    }
-    return true;
+    return this.towerSystem.canPlaceTowerAt(x, y);
   }
 
-  getNextUpgradeCost(t) {
-    return Towers.getNextUpgradeCost.call(this, t);
+  getNextUpgradeCost(tower) {
+    return this.towerSystem.getNextUpgradeCost(tower);
   }
 
-  applyTowerTier(t, tierIdx) {
-    Towers.applyTowerTier.call(this, t, tierIdx);
+  applyTowerTier(tower, tierIndex) {
+    this.towerSystem.applyTowerTier(tower, tierIndex);
   }
 
-  tryUpgradeTower(t) {
-    const prevTier = t?.tier ?? 0;
-    Towers.tryUpgradeTower.call(this, t);
-    if (t && t.tier > prevTier) this.playSfx("upgrade");
+  tryUpgradeTower(tower) {
+    return this.towerSystem.tryUpgradeTower(tower);
   }
 
   tryPlaceTowerAt(x, y) {
-    if (!this.canPlaceTowerAt(x, y)) return;
-    const def = this.getPlaceDef();
-    const tier0 = def.tiers[0];
-    this.runController.spend(tier0.cost);
-    const img = this.add.image(x, y, this.getTowerTextureKey(def.key));
-    const t = {
-      x,
-      y,
-      type: def.key,
-      tier: 1,
-      damage: tier0.damage,
-      range: tier0.range,
-      fireMs: tier0.fireMs,
-      nextShotAt: 0,
-      spent: tier0.cost,
-      targetMode: def.defaultTargetMode ?? "first",
-      sprite: img,
-      badge: null,
-    };
-    if (def.key === "laser") {
-      t.beamTickMs = tier0.fireMs;
-      t.beamAcc = 0;
-      t.lockTarget = null;
-      t.lockMs = 0;
-      t.beam = this.add.graphics();
-      t.beam.setDepth(70);
-      t.beam.setVisible(false);
-    }
-    img.setTint(tier0.tint);
-    img.setScale(tier0.scale ?? 1);
-    this.towers.push(t);
-    this.selectTower(t);
-    this.playSfx("place");
+    return this.towerSystem.tryPlaceTowerAt(x, y);
   }
 
-  trySellTower(t) {
-    const hadTower = !!t && this.towers.includes(t);
-    if (t?.beam) {
-      t.beam.destroy();
-      t.beam = null;
-    }
-    Towers.trySellTower.call(this, t);
-    if (hadTower && !this.towers.includes(t)) this.playSfx("sell");
+  trySellTower(tower) {
+    return this.towerSystem.trySellTower(tower);
   }
 
-  cycleTargetMode(t) {
-    Towers.cycleTargetMode.call(this, t);
+  cycleTargetMode(tower) {
+    this.towerSystem.cycleTargetMode(tower);
   }
 
   spawnEnemyOfType(typeKey, opts = {}) {

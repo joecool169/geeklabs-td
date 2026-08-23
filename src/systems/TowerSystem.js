@@ -1,0 +1,307 @@
+import { TOWER_DEFS } from "../constants.js";
+import { GRID, TOP_UI } from "../game/config.js";
+import { snapX, snapY } from "../game/utils.js";
+import {
+  applyTowerTier,
+  cycleTargetMode,
+  getNextUpgradeCost,
+} from "../game/towers.js";
+import { getTowerTextureKey } from "../presentation/WorldRenderer.js";
+
+const TOWER_SYSTEM_FIELDS = Object.freeze([
+  "towers",
+  "selectedTower",
+  "isPlacing",
+  "placeType",
+  "ghost",
+  "ghostValid",
+  "ghostX",
+  "ghostY",
+]);
+
+class TowerSystem {
+  constructor({ scene, world, runController }) {
+    this.scene = scene;
+    this.world = world;
+    this.runController = runController;
+    this.towers = [];
+    this.selectedTower = null;
+    this.isPlacing = false;
+    this.placeType = "basic";
+    this.ghost = null;
+    this.ghostValid = false;
+    this.ghostX = 0;
+    this.ghostY = 0;
+    this.didShowPlaceToast = false;
+  }
+
+  getTowerUnlockWave(type) {
+    return TOWER_DEFS[type]?.unlockWave ?? 1;
+  }
+
+  isTowerUnlocked(type) {
+    return this.scene.wave >= this.getTowerUnlockWave(type);
+  }
+
+  getPlacementKeyHint() {
+    const def = this.getPlaceDef();
+    return def.hotkey || "1 / 2 / 3 / 4";
+  }
+
+  trySetPlaceType(type) {
+    if (!TOWER_DEFS[type]) return;
+    if (!this.isTowerUnlocked(type)) {
+      this.scene.showToast(
+        `${TOWER_DEFS[type].name} unlocks at Wave ${this.getTowerUnlockWave(type)}.`,
+        1700
+      );
+      return;
+    }
+    this.setPlaceType(type);
+    if (!this.isPlacing) this.setPlacement(true);
+  }
+
+  getPlaceDef() {
+    return TOWER_DEFS[this.placeType] || TOWER_DEFS.basic;
+  }
+
+  setPlaceType(type) {
+    if (!TOWER_DEFS[type] || !this.isTowerUnlocked(type)) return;
+    this.placeType = type;
+    this.syncTowerStripSelection();
+    if (this.ghost) {
+      this.ghost.setTexture(getTowerTextureKey(type));
+      this.refreshGhostVisual();
+    }
+  }
+
+  syncTowerStripSelection() {
+    for (const slot of this.scene.towerStripSlots || []) {
+      slot.el.classList.toggle(
+        "is-selected",
+        this.isPlacing && slot.def.key === this.placeType
+      );
+    }
+  }
+
+  enterPlacementModeIfNeeded() {
+    if (!this.isPlacing) this.setPlacement(true);
+  }
+
+  togglePlacement() {
+    this.setPlacement(!this.isPlacing);
+  }
+
+  setPlacement(on) {
+    if (on === this.isPlacing) return;
+    this.isPlacing = on;
+    this.scene.controlsPlacementEl?.classList.toggle("is-active", on);
+    if (on) {
+      this.clearSelection();
+      if (!this.didShowPlaceToast) {
+        this.didShowPlaceToast = true;
+        this.scene.showToast(
+          `Placement: press ${this.getPlacementKeyHint()} to switch tower type.`,
+          2600
+        );
+      }
+      this.ghost = this.scene.add.image(
+        0,
+        0,
+        getTowerTextureKey(this.placeType)
+      );
+      this.ghost.setDepth(9000).setAlpha(0.5);
+      const pointer = this.scene.input.activePointer;
+      if (pointer) {
+        this.ghostX = Number.NaN;
+        this.ghostY = Number.NaN;
+        this.updateGhost(pointer.worldX, pointer.worldY);
+      }
+      this.world.hideRange();
+      this.syncTowerStripSelection();
+      return;
+    }
+    this.ghost?.destroy();
+    this.ghost = null;
+    this.scene.placeHint.setText("");
+    this.world.hideRange();
+    this.syncTowerStripSelection();
+  }
+
+  selectTower(tower) {
+    this.selectedTower = tower;
+    this.world.showTowerRange(tower, 0x00ffff);
+  }
+
+  clearSelection() {
+    this.selectedTower = null;
+    this.world.hideRange();
+  }
+
+  updateGhost(worldX, worldY) {
+    const x = snapX(worldX);
+    const y = snapY(worldY);
+    if (x === this.ghostX && y === this.ghostY) return;
+    this.ghostX = x;
+    this.ghostY = y;
+    this.ghostValid = this.canPlaceTowerAt(x, y);
+    this.refreshGhostVisual();
+  }
+
+  refreshGhostVisual() {
+    if (!this.ghost) return;
+    const def = this.getPlaceDef();
+    const tier0 = def.tiers[0];
+    this.ghost.setPosition(this.ghostX, this.ghostY);
+    const color = this.ghostValid ? tier0.tint : 0xff4d6d;
+    this.ghost.setTint(color).setScale(tier0.scale ?? 1);
+    this.world.showGhostRing(
+      this.ghostX,
+      this.ghostY,
+      tier0.range,
+      this.ghostValid ? 0x39ff8f : 0xff4d6d
+    );
+    this.updatePlaceHint();
+  }
+
+  updatePlaceHint() {
+    if (!this.isPlacing) return;
+    const def = this.getPlaceDef();
+    const tier0 = def.tiers[0];
+    const validity = this.ghostValid ? "OK" : "BLOCKED";
+    const funds = this.scene.money < tier0.cost ? " (not enough $)" : "";
+    this.scene.placeHint.setText(
+      `Placing: ${def.name} [${def.hotkey}]  Cost: $${tier0.cost}  Range: ${tier0.range}  ${validity}${funds}   (${this.getPlacementKeyHint()}: switch)`
+    );
+  }
+
+  getTowerAt(worldX, worldY) {
+    const x = snapX(worldX);
+    const y = snapY(worldY);
+    return this.towers.find((tower) => tower.x === x && tower.y === y);
+  }
+
+  canPlaceTowerAt(x, y) {
+    const tier0 = this.getPlaceDef().tiers[0];
+    if (this.scene.money < tier0.cost) return false;
+    if (
+      x < GRID / 2 ||
+      y < TOP_UI + GRID / 2 ||
+      x > this.scene.scale.width - GRID / 2 ||
+      y > this.scene.scale.height - GRID / 2
+    ) {
+      return false;
+    }
+    if (this.world.isOnPath(x, y)) return false;
+    return !this.towers.some((tower) => tower.x === x && tower.y === y);
+  }
+
+  getNextUpgradeCost(tower) {
+    return getNextUpgradeCost(tower);
+  }
+
+  applyTowerTier(tower, tierIndex) {
+    applyTowerTier(tower, tierIndex);
+  }
+
+  tryUpgradeTower(tower) {
+    const nextCost = getNextUpgradeCost(tower);
+    if (nextCost === null || !this.runController.spend(nextCost)) return false;
+    tower.spent += nextCost;
+    applyTowerTier(tower, tower.tier);
+    if (this.selectedTower === tower) {
+      this.world.showTowerRange(tower, 0x00ffff);
+    }
+    this.scene.playSfx("upgrade");
+    return true;
+  }
+
+  tryPlaceTowerAt(x, y) {
+    if (!this.canPlaceTowerAt(x, y)) return null;
+    const def = this.getPlaceDef();
+    const tier0 = def.tiers[0];
+    if (!this.runController.spend(tier0.cost)) return null;
+    const sprite = this.scene.add.image(
+      x,
+      y,
+      getTowerTextureKey(def.key)
+    );
+    const tower = {
+      x,
+      y,
+      type: def.key,
+      tier: 1,
+      damage: tier0.damage,
+      range: tier0.range,
+      fireMs: tier0.fireMs,
+      nextShotAt: 0,
+      spent: tier0.cost,
+      targetMode: def.defaultTargetMode ?? "first",
+      sprite,
+      badge: null,
+    };
+    if (def.key === "laser") {
+      tower.beamTickMs = tier0.fireMs;
+      tower.beamAcc = 0;
+      tower.lockTarget = null;
+      tower.lockMs = 0;
+      tower.beam = this.scene.add.graphics();
+      tower.beam.setDepth(70).setVisible(false);
+    }
+    sprite.setTint(tier0.tint).setScale(tier0.scale ?? 1);
+    this.towers.push(tower);
+    this.selectTower(tower);
+    this.scene.playSfx("place");
+    return tower;
+  }
+
+  trySellTower(tower) {
+    if (!tower) return false;
+    const index = this.towers.indexOf(tower);
+    if (index === -1) return false;
+    const refund = Math.floor((tower.spent || 0) * 0.7);
+    tower.badge?.destroy();
+    tower.beam?.destroy();
+    tower.sprite.destroy();
+    this.towers.splice(index, 1);
+    this.runController.earn(refund);
+    if (this.selectedTower === tower) this.clearSelection();
+    this.scene.playSfx("sell");
+    return true;
+  }
+
+  cycleTargetMode(tower) {
+    cycleTargetMode(tower);
+  }
+
+  destroy() {
+    this.ghost?.destroy();
+    for (const tower of this.towers) {
+      tower.beam?.destroy();
+      tower.badge?.destroy();
+      tower.sprite?.destroy();
+    }
+    this.towers = [];
+    this.selectedTower = null;
+    this.scene = null;
+    this.world = null;
+  }
+}
+
+function attachTowerSystem(owner, towerSystem) {
+  owner.towerSystem = towerSystem;
+  for (const field of TOWER_SYSTEM_FIELDS) {
+    Object.defineProperty(owner, field, {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return this.towerSystem[field];
+      },
+      set(value) {
+        this.towerSystem[field] = value;
+      },
+    });
+  }
+}
+
+export { TOWER_SYSTEM_FIELDS, TowerSystem, attachTowerSystem };
