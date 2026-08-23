@@ -1503,6 +1503,24 @@ export class GameScene extends Phaser.Scene {
   triggerGameOver() {
     if (this.isGameOver) return;
     this.isGameOver = true;
+    const finalTelemetry = Telemetry.recordFinalSnapshot(this.runTelemetry, {
+      outcome: "game-over",
+      wave: this.wave,
+      money: this.money,
+      lives: this.lives,
+      score: this.score,
+      kills: this.killCount,
+      activeEnemies: this.enemies.countActive(true),
+      towers: this.towers,
+    });
+    if (finalTelemetry) {
+      this.publishRunTelemetry();
+      console.info("[Defense Protocol balance final]", {
+        run: this.runLabel,
+        seed: this.runSeed,
+        final: finalTelemetry,
+      });
+    }
     UI.clearTransitionBanner.call(this);
     this.playSfx("gameover", { allowDuringGameOver: true });
     for (const t of this.towers) {

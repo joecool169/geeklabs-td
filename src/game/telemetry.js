@@ -31,6 +31,7 @@ function createRunTelemetry({
     damageByTowerType: {},
     killsByTowerType: {},
     checkpoints: [],
+    final: null,
   };
 }
 
@@ -131,6 +132,29 @@ function recordCheckpoint(telemetry, waveNumber, state) {
   return checkpoint;
 }
 
+function recordFinalSnapshot(telemetry, state) {
+  if (!telemetry || telemetry.final) return null;
+  const final = {
+    outcome: state.outcome || "game-over",
+    wave: Math.max(1, Number(state.wave) || 1),
+    money: Number(state.money) || 0,
+    lives: Number(state.lives) || 0,
+    score: Number(state.score) || 0,
+    kills: Number(state.kills) || 0,
+    totalLeaks: telemetry.totalLeaks,
+    firstLeakWave: telemetry.firstLeakWave,
+    activeEnemies: Math.max(0, Number(state.activeEnemies) || 0),
+    peakActiveEnemies: telemetry.peakActiveEnemies,
+    towers: summarizeTowers(state.towers),
+    spawnedByType: { ...telemetry.spawnedByType },
+    killedByType: { ...telemetry.killedByType },
+    damageByTowerType: roundedCounts(telemetry.damageByTowerType),
+    killsByTowerType: { ...telemetry.killsByTowerType },
+  };
+  telemetry.final = final;
+  return final;
+}
+
 function snapshotRunTelemetry(telemetry) {
   return telemetry ? JSON.parse(JSON.stringify(telemetry)) : null;
 }
@@ -158,6 +182,7 @@ export {
   createRunTelemetry,
   observeActiveEnemies,
   recordCheckpoint,
+  recordFinalSnapshot,
   recordEnemyKill,
   recordEnemyLeak,
   recordEnemySpawn,

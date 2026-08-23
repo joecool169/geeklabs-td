@@ -24,6 +24,7 @@ import {
   createRunTelemetry,
   observeActiveEnemies,
   recordCheckpoint,
+  recordFinalSnapshot,
   recordEnemyKill,
   recordEnemyLeak,
   recordEnemySpawn,
@@ -579,6 +580,57 @@ test("balance telemetry records reproducible checkpoint summaries", () => {
   assert.equal(telemetry.peakActiveEnemiesSinceCheckpoint, 0);
   assert.deepEqual(snapshotRunTelemetry(telemetry), telemetry);
   assert.notEqual(snapshotRunTelemetry(telemetry), telemetry);
+});
+
+test("balance telemetry persists the final partial-wave result once", () => {
+  const telemetry = createRunTelemetry({
+    seed: "specialists-v0.4.0",
+    difficultyKey: "hard",
+    runLabel: "mixed-specialist",
+  });
+  recordEnemySpawn(telemetry, "armored");
+  recordEnemyKill(telemetry, "armored");
+  recordEnemyLeak(telemetry, 48);
+  recordTowerDamage(telemetry, "laser", 123.45);
+  recordTowerKill(telemetry, "laser");
+  observeActiveEnemies(telemetry, 73);
+
+  const final = recordFinalSnapshot(telemetry, {
+    wave: 54,
+    money: 17,
+    lives: 0,
+    score: 60273,
+    kills: 3682,
+    activeEnemies: 61,
+    towers: [{ type: "laser", tier: 3, spent: 610 }],
+  });
+
+  assert.deepEqual(final, {
+    outcome: "game-over",
+    wave: 54,
+    money: 17,
+    lives: 0,
+    score: 60273,
+    kills: 3682,
+    totalLeaks: 1,
+    firstLeakWave: 48,
+    activeEnemies: 61,
+    peakActiveEnemies: 73,
+    towers: {
+      total: 1,
+      upgrades: 2,
+      invested: 610,
+      byType: {
+        laser: { total: 1, invested: 610, tiers: { 3: 1 } },
+      },
+    },
+    spawnedByType: { armored: 1 },
+    killedByType: { armored: 1 },
+    damageByTowerType: { laser: 123.5 },
+    killsByTowerType: { laser: 1 },
+  });
+  assert.equal(recordFinalSnapshot(telemetry, { wave: 55 }), null);
+  assert.deepEqual(telemetry.final, final);
 });
 
 test("specialists default to preferred targets and retain manual modes", () => {
