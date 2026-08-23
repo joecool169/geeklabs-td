@@ -11,6 +11,12 @@ const ENEMY_HEALTH_DEPTH = 21;
 const ENEMY_HEALTH_WIDTH = 20;
 const ENEMY_HEALTH_Y = -17;
 
+function shouldShowEnemyHealth(typeKey, ratio) {
+  if (ratio >= 1) return false;
+  if (typeKey === "brute" || typeKey === "armored") return true;
+  return ratio <= 0.55;
+}
+
 function getEnemyTextureKey(typeKey) {
   return `enemy_${ENEMY_DEFS[typeKey] ? typeKey : "runner"}`;
 }
@@ -112,7 +118,7 @@ function updateEnemyVisual(e) {
 
   const ratio = clamp01(e.hp / Math.max(1, e.maxHp));
   indicator.clear();
-  if (ratio >= 1) {
+  if (!shouldShowEnemyHealth(e.typeKey, ratio)) {
     indicator.setVisible(false);
     return;
   }
@@ -273,6 +279,7 @@ export {
   getEnemyTextureKey,
   drawEnemyTexture,
   updateEnemyVisual,
+  shouldShowEnemyHealth,
   pickWeighted,
   computeEnemyHp,
   computeEnemyReward,

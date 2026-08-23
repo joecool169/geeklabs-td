@@ -12,8 +12,9 @@ test("combat system clips telemetry damage and owns kill rewards", () => {
     seed: "combat-test",
     difficultyKey: "hard",
   });
+  const sounds = [];
   const combat = new CombatSystem({
-    scene: {},
+    scene: { playSfx: (key) => sounds.push(key) },
     towerSystem: { towers: [] },
     enemySystem: {},
     runController: new RunController(state),
@@ -39,4 +40,5 @@ test("combat system clips telemetry damage and owns kill rewards", () => {
   assert.equal(state.money, 7);
   assert.equal(state.kills, 1);
   assert.equal(state.score, 38);
+  assert.deepEqual(sounds, ["death"]);
 });

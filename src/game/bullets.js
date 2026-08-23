@@ -44,4 +44,20 @@ const flashEnemy = (scene, target) => {
   });
 };
 
-export { flashEnemy, showHitEffect };
+const showTowerPulse = (scene, tower, color = 0x39ff8f) => {
+  if (!scene?.add?.image || !scene?.tweens?.add || !tower) return;
+  const pulse = scene.add.image(tower.x, tower.y, "impact_basic");
+  pulse.setDepth(IMPACT_DEPTH - 1).setTint(color).setScale(1.35).setAlpha(0.9);
+  scene.tweens.add({
+    targets: pulse,
+    alpha: 0,
+    scale: 2.35,
+    duration: 190,
+    ease: "Sine.easeOut",
+    onComplete: () => {
+      if (pulse.active) pulse.destroy();
+    },
+  });
+};
+
+export { flashEnemy, showHitEffect, showTowerPulse };

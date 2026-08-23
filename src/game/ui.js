@@ -312,6 +312,8 @@ function updateUI(scene) {
           slot.wasLocked = locked;
         } else if (slot.wasLocked && !locked) {
           slot.el.classList.add("just-unlocked");
+          scene.showToast(`${slot.def.name} tower unlocked.`, 1800);
+          scene.playSfx("upgrade");
           window.setTimeout(() => {
             slot.el.classList.remove("just-unlocked");
           }, 1200);

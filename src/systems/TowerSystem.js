@@ -7,6 +7,7 @@ import {
   getNextUpgradeCost,
 } from "../game/towers.js";
 import { getTowerTextureKey } from "../presentation/WorldRenderer.js";
+import { showTowerPulse } from "../game/bullets.js";
 
 const TOWER_SYSTEM_FIELDS = Object.freeze([
   "towers",
@@ -212,6 +213,11 @@ class TowerSystem {
     if (this.selectedTower === tower) {
       this.world.showTowerRange(tower, 0x00ffff);
     }
+    showTowerPulse(
+      this.scene,
+      tower,
+      TOWER_DEFS[tower.type]?.tiers?.[tower.tier - 1]?.tint ?? 0x39ff8f
+    );
     this.scene.playSfx("upgrade");
     return true;
   }
@@ -251,6 +257,7 @@ class TowerSystem {
     sprite.setTint(tier0.tint).setScale(tier0.scale ?? 1);
     this.towers.push(tower);
     this.selectTower(tower);
+    showTowerPulse(this.scene, tower, tier0.tint);
     this.scene.playSfx("place");
     return tower;
   }

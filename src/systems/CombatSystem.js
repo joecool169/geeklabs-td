@@ -182,6 +182,7 @@ class CombatSystem {
     Telemetry.recordTowerKill(telemetry, tower?.type);
     const reward = enemy.reward ?? 8;
     const scoreWeight = enemy.scoreWeight ?? 1;
+    this.scene.playSfx?.("death");
     enemy.destroy();
     this.runController.recordKill({
       reward,
