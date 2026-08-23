@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Release v0.7.0 unified command interface
+
+**Decision:** Replace the incremental browser/mobile presentation with one compact command-HUD system across desktop, iPhone, and iPad while preserving the accepted balance and architecture.
+
+**Interaction model:** Expose tower roles, unlocks, affordability, placement status, and selected-tower actions directly in the command deck. Keep touch selection forgiving, confirm it visually, and exit placement after each successful build.
+
+**Presentation model:** Use shared tactical panels for start, pause, help, and game over; keep all supported landscape layouts inside the viewport; and limit motion to short confirmation transitions with a reduced-motion fallback.
+
+**Next gate:** Complete measured battery/thermal endurance, force-quit restoration, and a late-wave v0.7.0 session before App Store preparation.
+
 ## 2026-08-23 — Adopt landscape-only mobile interaction polish
 
 **Decision:** Support landscape left and right on iPhone and iPad, with the iOS full-screen compatibility preference enabled. Keep the shared web layout responsive, but treat portrait as unsupported in the native app.

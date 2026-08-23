@@ -6,7 +6,7 @@ A live version is hosted at <https://td.geekstreet.tv>.
 
 ## Current direction
 
-The project has completed its touch-ready browser interface after validating the v0.4.0 balance and completing the v0.4.1 architecture refactor. The next product phase is an early iOS wrapper proof of concept.
+The project now has an accepted Capacitor iOS foundation and a unified v0.7.0 command interface across desktop, iPhone, and iPad. The next product phase is release-candidate endurance testing, followed by onboarding or new content informed by playtest evidence.
 
 Design priorities:
 
@@ -15,7 +15,7 @@ Design priorities:
 - gradually increasing strategic pressure
 - readable tower/enemy roles
 - meaningful choices among placement, buying, upgrading, and saving
-- one Phaser/Vite core for web and a future native wrapper
+- one Phaser/Vite core shared by web and the Capacitor iOS app
 
 ## Current features
 
@@ -36,7 +36,7 @@ Design priorities:
 - final game-over telemetry snapshots, including partial failure waves
 - explicit wave, tower, enemy, combat, projectile, run-state, input, UI, and platform-service boundaries
 - touch controls with drag-to-aim placement, explicit confirmation, contextual tower actions, and guarded selling
-- portrait and short-landscape layouts with safe-area support
+- landscape iPhone/iPad and short-landscape browser layouts with safe-area support
 - static deployment through Nginx
 
 ## Progression milestones

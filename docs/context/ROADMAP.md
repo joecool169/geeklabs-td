@@ -51,6 +51,15 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - ship the native app in landscape-left/right orientation only
 - complete web, Simulator, and physical-device validation before release
 
+## Phase 7 — Unified command interface — completed
+
+- establish one visual system for the HUD, command deck, tower cards, and overlays
+- show tower role, unlock, affordability, placement validity, and selected-tower context at a glance
+- make touch selection forgiving and confirm it in both the world and action deck
+- keep phone, tablet, and desktop layouts inside their viewports without scrolling
+- add restrained transitions, pressed states, keyboard focus, and reduced-motion support
+- preserve the accepted balance and gameplay model
+
 ## Later product work
 
 - onboarding/tutorial refinement

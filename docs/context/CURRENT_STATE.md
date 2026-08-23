@@ -5,19 +5,18 @@ Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
 
-Current reviewed release: **v0.6.0 presentation polish and accepted iOS foundation**, preserving the accepted v0.4.0 balance and v0.4.1 architecture
+Current reviewed release: **v0.7.0 unified command interface and accepted iOS foundation**, preserving the accepted v0.4.0 balance and v0.4.1 architecture
 
 ## Repository and validation
 
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **66/66 tests**.
+- `npm test` passes with **67/67 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- The v0.6.0 deployment is built from a clean committed revision and verified by checksum dry run.
-- The live page reports v0.6.0.
+- The v0.7.0 release candidate is built from independently tested UI slices.
 
 ## Current gameplay baseline
 
@@ -93,7 +92,7 @@ The five-wave preparation windows and preferred targeting established a meaningf
 ## iOS proof-of-concept state
 
 - The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro Max.
-- The touch-polish build is installed on both the iPhone 17 Pro Max and a 12.9-inch iPad Pro; automated launch passed on the iPad, while the updated iPhone build awaits an unlocked manual launch.
+- The v0.7.0 build is installed on both the iPhone 17 Pro Max and a 12.9-inch iPad Pro; automated launch passed on the iPhone, while iPad launch was correctly blocked because the device was locked.
 - Safe areas, landscape-left/right orientation, edge-row touch placement, contextual stats/actions, and lifecycle pause behavior pass Simulator validation.
 - A physical-device Easy run reached Wave 54 with 37 towers and 40 active enemies without a reported touch or frame-pacing blocker.
 - Audio now unlocks from DOM or canvas gestures, uses clearer levels, respects Silent Mode, and has a persistent Sound On/Off control.
@@ -107,11 +106,16 @@ The five-wave preparation windows and preferred targeting established a meaningf
 - Short-landscape pause actions fit without scrolling, and the large-touch layout uses more of the iPad width without overflowing vertically.
 - Placement and upgrades receive restrained visual pulses; unlocks coordinate animation, toast, and sound.
 - Kill audio uses the existing rate limiter, while light-enemy health bars stay hidden until meaningful damage reduces dense-wave clutter.
+- Desktop, iPhone, and iPad now share a compact command-HUD visual language with clear credits, integrity, wave, tower, and status hierarchy.
+- Tower cards expose role and unlock context; placement reports validity and cost directly in the command deck.
+- Start, pause, help, and game-over overlays use one responsive protocol-panel system.
+- Touch tower selection receives forgiving hit detection plus visible world and action-panel confirmation.
+- Restrained transitions include a reduced-motion fallback.
 
 ## Next step
 
-1. Run the measured battery/thermal and force-quit restoration checks on the v0.6.0 release candidate.
-2. Accept the landscape-only touch-polish build on the installed iPhone and iPad before choosing the next content or progression feature.
+1. Run the measured battery/thermal and force-quit restoration checks on the v0.7.0 release candidate.
+2. Confirm the unified command interface in a late-wave session on both the installed iPhone and iPad.
 3. Leave accepted balance values unchanged until new evidence identifies a specific problem.
 
 ## Source-of-truth workflow
