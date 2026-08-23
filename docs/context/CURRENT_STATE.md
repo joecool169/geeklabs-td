@@ -16,7 +16,8 @@ Current reviewed release: **v0.4.0 specialist progression**
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- v0.4.0 is approved for production from a clean committed revision.
+- Production serves tag `v0.4.0` from commit `86dfc0b`; deployment checksum parity was verified.
+- The live page reports v0.4.0 and loads `assets/index-CtGVMpA2.js`.
 
 ## Current gameplay baseline
 
