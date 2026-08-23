@@ -287,6 +287,8 @@ function updateUI(scene) {
   }
 
   if (!scene.selectedTower || !scene.towers.includes(scene.selectedTower)) {
+    scene.domView?.setTouchSelectedTower(null);
+    if (scene.touchTowerActionsEl) scene.touchTowerActionsEl.hidden = true;
     const selectedGroup = scene.controlsSelectedEl;
     if (selectedGroup) selectedGroup.classList.add("is-inactive");
     if (scene.selectedTowerPanelEl) scene.selectedTowerPanelEl.style.display = "none";
@@ -308,6 +310,14 @@ function updateUI(scene) {
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
   const targetLabel = getTargetModeLabel(t);
+  scene.domView?.setTouchSelectedTower(t);
+  if (scene.touchTowerActionsEl) scene.touchTowerActionsEl.hidden = false;
+  if (scene.touchTowerNameEl) {
+    scene.touchTowerNameEl.textContent = `${def.name} T${t.tier}`;
+  }
+  if (scene.touchTargetValueEl) scene.touchTargetValueEl.textContent = targetLabel;
+  if (scene.touchUpgradeValueEl) scene.touchUpgradeValueEl.textContent = nextText;
+  if (scene.touchSellValueEl) scene.touchSellValueEl.textContent = `$${refund}`;
   if (scene.selectedTowerNameEl) scene.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
   if (scene.selectedTowerTargetEl) scene.selectedTowerTargetEl.textContent = targetLabel;
   if (scene.selectedTowerDmgEl) scene.selectedTowerDmgEl.textContent = `${t.damage}`;
@@ -320,6 +330,9 @@ function updateUI(scene) {
   if (scene.selectedTowerUpgradeBtnEl) scene.selectedTowerUpgradeBtnEl.disabled = !canUpgrade;
   if (scene.selectedTowerSellBtnEl) scene.selectedTowerSellBtnEl.disabled = false;
   if (scene.selectedTowerTargetBtnEl) scene.selectedTowerTargetBtnEl.disabled = false;
+  if (scene.touchUpgradeBtnEl) scene.touchUpgradeBtnEl.disabled = !canUpgrade;
+  if (scene.touchTargetBtnEl) scene.touchTargetBtnEl.disabled = false;
+  if (scene.touchSellBtnEl) scene.touchSellBtnEl.disabled = false;
 }
 
 class HudController {

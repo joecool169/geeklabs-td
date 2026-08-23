@@ -1,8 +1,12 @@
+import { TouchSellGuard } from "./TouchSellGuard.js";
+
 class GameDomView {
   constructor(root = document) {
     this.root = root;
     this.listeners = [];
     this.emphasisTimer = null;
+    this.touchSelectedTower = null;
+    this.touchSellGuard = null;
     this.refs = {
       controlsSelectedEl: root.getElementById("controls-selected"),
       controlsPlacementEl: root.getElementById("controls-placement"),
@@ -29,6 +33,15 @@ class GameDomView {
       touchPlaceBtnEl: root.getElementById("touch-place"),
       touchCancelBtnEl: root.getElementById("touch-cancel"),
       touchPauseBtnEl: root.getElementById("touch-pause"),
+      touchTowerActionsEl: root.getElementById("touch-tower-actions"),
+      touchTowerNameEl: root.getElementById("touch-tower-name"),
+      touchTargetBtnEl: root.getElementById("touch-target"),
+      touchTargetValueEl: root.getElementById("touch-target-value"),
+      touchUpgradeBtnEl: root.getElementById("touch-upgrade"),
+      touchUpgradeValueEl: root.getElementById("touch-upgrade-value"),
+      touchSellBtnEl: root.getElementById("touch-sell"),
+      touchSellLabelEl: root.getElementById("touch-sell-label"),
+      touchSellValueEl: root.getElementById("touch-sell-value"),
     };
     this.towerStripSlots = [];
   }
@@ -89,6 +102,22 @@ class GameDomView {
     this.listen(this.refs.touchPlaceBtnEl, "click", onPlace);
     this.listen(this.refs.touchCancelBtnEl, "click", onCancel);
     this.listen(this.refs.touchPauseBtnEl, "click", onPause);
+    this.listen(this.refs.touchTargetBtnEl, "click", onTarget);
+    this.listen(this.refs.touchUpgradeBtnEl, "click", onUpgrade);
+    this.touchSellGuard = new TouchSellGuard({
+      button: this.refs.touchSellBtnEl,
+      label: this.refs.touchSellLabelEl,
+      onConfirm: onSell,
+    });
+    this.listen(this.refs.touchSellBtnEl, "click", () =>
+      this.touchSellGuard.handle()
+    );
+  }
+
+  setTouchSelectedTower(tower) {
+    if (tower === this.touchSelectedTower) return;
+    this.touchSelectedTower = tower;
+    this.touchSellGuard?.reset();
   }
 
   emphasizeControls(duration = 1600) {
@@ -108,6 +137,9 @@ class GameDomView {
     this.listeners.splice(0).forEach((remove) => remove());
     if (this.emphasisTimer) clearTimeout(this.emphasisTimer);
     this.emphasisTimer = null;
+    this.touchSellGuard?.destroy();
+    this.touchSellGuard = null;
+    this.touchSelectedTower = null;
     this.towerStripSlots = [];
   }
 }
