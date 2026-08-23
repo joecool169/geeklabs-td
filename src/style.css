@@ -1071,4 +1071,34 @@ html.touch-ui .game-overlay-input {
     overflow: visible;
     touch-action: manipulation;
   }
+  html.touch-ui .game-overlay-panel.is-start {
+    max-height: calc(100dvh - 12px);
+    padding: 14px 18px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-brand {
+    margin-bottom: 7px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-brand img {
+    display: none;
+  }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-brand-title {
+    font-size: 18px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-brand-tagline {
+    font-size: 11px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-input {
+    min-height: 44px;
+    margin-top: 4px;
+    margin-bottom: 9px;
+    padding: 9px 12px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .difficulty-options {
+    margin-bottom: 9px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .difficulty-option,
+  html.touch-ui .game-overlay-panel.is-start > .game-overlay-button {
+    min-height: 44px;
+    padding-block: 8px;
+  }
 }
