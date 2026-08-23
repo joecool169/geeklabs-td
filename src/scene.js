@@ -33,18 +33,13 @@ import { GAME_ACTIONS } from "./input/actions.js";
 import { InputController } from "./input/InputController.js";
 import { RunController } from "./core/RunController.js";
 import { RunState, attachRunState } from "./core/RunState.js";
+import {
+  WorldRenderer,
+  getTowerTextureKey,
+  pointToSegmentDistance,
+} from "./presentation/WorldRenderer.js";
 
 const storage = createStorageGateway();
-const RANGE_FILL_ALPHA = {
-  selected: 0.035,
-  valid: 0.04,
-  blocked: 0.045,
-};
-const RANGE_LINE_ALPHA = {
-  selected: 0.55,
-  valid: 0.55,
-  blocked: 0.6,
-};
 const SFX_CONFIG = {
   place: { url: "/sfx/place.wav", volume: 0.26 },
   upgrade: { url: "/sfx/upgrade.wav", volume: 0.26 },
@@ -144,32 +139,15 @@ export class GameScene extends Phaser.Scene {
     this.swarmPackSpacingMs = WAVE_CADENCE.packSpacingMs;
     this.swarmNextPackSpawnAt = 0;
 
-    this.path = [
-      { x: -120, y: 120 + TOP_UI - GRID / 2 },
-      { x: 980, y: 120 + TOP_UI - GRID / 2 },
-      { x: 980, y: 520 + TOP_UI - GRID / 2 },
-      { x: 140, y: 520 + TOP_UI - GRID / 2 },
-      { x: 140, y: 320 + TOP_UI - GRID / 2 },
-      { x: 860, y: 320 + TOP_UI - GRID / 2 },
-    ];
-
-    this.makeTextures();
-    this.g = this.add.graphics();
-    this.drawGrid();
-    this.drawPath();
+    this.worldRenderer = new WorldRenderer(this);
+    this.worldRenderer.create();
+    this.path = this.worldRenderer.path;
 
     this.towers = [];
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
 
     this.selectedTower = null;
-
-    this.rangeFill = this.add.graphics();
-    this.rangeFill.setDepth(-1);
-    this.rangeFill.setVisible(false);
-    this.rangeRing = this.add.graphics();
-    this.rangeRing.setDepth(10);
-    this.rangeRing.setVisible(false);
 
     this.ui = this.add.text(14, 12, "", {
       fontFamily: "monospace",
@@ -318,6 +296,8 @@ export class GameScene extends Phaser.Scene {
       this.domView = null;
       this.inputController?.destroy();
       this.inputController = null;
+      this.worldRenderer?.destroy();
+      this.worldRenderer = null;
     });
     if (this.isStartScreenActive) {
       this.showStartScreen();
@@ -945,226 +925,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   showGhostRing(x, y, range, color) {
-    const isBlocked = color === 0xff4d6d;
-    this.rangeFill.clear();
-    this.rangeFill.fillStyle(
-      color,
-      isBlocked ? RANGE_FILL_ALPHA.blocked : RANGE_FILL_ALPHA.valid
-    );
-    this.rangeFill.fillCircle(x, y, range);
-    this.rangeFill.setVisible(true);
-    this.rangeRing.clear();
-    this.rangeRing.lineStyle(
-      1,
-      color,
-      isBlocked ? RANGE_LINE_ALPHA.blocked : RANGE_LINE_ALPHA.valid
-    );
-    this.rangeRing.strokeCircle(x, y, range);
-    this.rangeRing.setVisible(true);
+    this.worldRenderer.showGhostRing(x, y, range, color);
   }
 
   showRangeRing(tower, color) {
-    this.rangeFill.clear();
-    this.rangeFill.fillStyle(color, RANGE_FILL_ALPHA.selected);
-    this.rangeFill.fillCircle(tower.x, tower.y, tower.range);
-    this.rangeFill.setVisible(true);
-    this.rangeRing.clear();
-    this.rangeRing.lineStyle(1, color, RANGE_LINE_ALPHA.selected);
-    this.rangeRing.strokeCircle(tower.x, tower.y, tower.range);
-    this.drawSelectionAccent(tower.x, tower.y, color);
-    this.rangeRing.setVisible(true);
-  }
-
-  drawSelectionAccent(x, y, color) {
-    const outer = 18;
-    const inner = 12;
-    this.rangeRing.lineStyle(2, color, 0.95);
-    this.rangeRing.lineBetween(x - outer, y - outer, x - inner, y - outer);
-    this.rangeRing.lineBetween(x - outer, y - outer, x - outer, y - inner);
-    this.rangeRing.lineBetween(x + inner, y - outer, x + outer, y - outer);
-    this.rangeRing.lineBetween(x + outer, y - outer, x + outer, y - inner);
-    this.rangeRing.lineBetween(x - outer, y + outer, x - inner, y + outer);
-    this.rangeRing.lineBetween(x - outer, y + inner, x - outer, y + outer);
-    this.rangeRing.lineBetween(x + inner, y + outer, x + outer, y + outer);
-    this.rangeRing.lineBetween(x + outer, y + inner, x + outer, y + outer);
+    this.worldRenderer.showTowerRange(tower, color);
   }
 
   hideRangeRing() {
-    this.rangeFill.setVisible(false);
-    this.rangeFill.clear();
-    this.rangeRing.setVisible(false);
-    this.rangeRing.clear();
-  }
-
-  drawTowerTexture(g, type) {
-    const dark = 0x0b0f14;
-    g.clear();
-    g.fillStyle(0xffffff, 1);
-    g.lineStyle(2, dark, 1);
-
-    if (type === "rapid") {
-      g.fillRect(9, 3, 6, 13);
-      g.strokeRect(9, 3, 6, 13);
-      g.fillRect(19, 3, 6, 13);
-      g.strokeRect(19, 3, 6, 13);
-      g.fillCircle(17, 20, 11);
-      g.strokeCircle(17, 20, 11);
-      g.fillStyle(dark, 1);
-      g.fillRect(11, 5, 2, 8);
-      g.fillRect(21, 5, 2, 8);
-      g.fillCircle(17, 20, 3);
-      return;
-    }
-
-    if (type === "sniper") {
-      g.fillRect(15, 1, 4, 19);
-      g.strokeRect(15, 1, 4, 19);
-      g.fillRect(10, 5, 14, 4);
-      g.strokeRect(10, 5, 14, 4);
-      g.fillCircle(17, 22, 9);
-      g.strokeCircle(17, 22, 9);
-      g.fillStyle(dark, 1);
-      g.fillCircle(17, 22, 3);
-      return;
-    }
-
-    if (type === "laser") {
-      g.fillTriangle(17, 2, 5, 17, 17, 32);
-      g.fillTriangle(17, 2, 29, 17, 17, 32);
-      g.lineBetween(17, 2, 5, 17);
-      g.lineBetween(5, 17, 17, 32);
-      g.lineBetween(17, 32, 29, 17);
-      g.lineBetween(29, 17, 17, 2);
-      g.fillStyle(dark, 1);
-      g.fillTriangle(17, 8, 11, 17, 17, 26);
-      g.fillTriangle(17, 8, 23, 17, 17, 26);
-      g.fillStyle(0xffffff, 1);
-      g.fillCircle(17, 17, 3);
-      return;
-    }
-
-    g.fillRect(12, 3, 10, 8);
-    g.strokeRect(12, 3, 10, 8);
-    g.fillRect(5, 9, 24, 22);
-    g.strokeRect(5, 9, 24, 22);
-    g.fillStyle(dark, 1);
-    g.fillRect(10, 14, 14, 12);
-    g.fillStyle(0xffffff, 1);
-    g.fillCircle(17, 20, 4);
-  }
-
-  makeTextures() {
-    const g = this.add.graphics();
-    for (const type of Object.keys(TOWER_DEFS)) {
-      const key = this.getTowerTextureKey(type);
-      if (this.textures.exists(key)) continue;
-      this.drawTowerTexture(g, type);
-      g.generateTexture(key, 34, 34);
-    }
-
-    for (const type of Object.keys(ENEMY_DEFS)) {
-      const key = Enemies.getEnemyTextureKey(type);
-      if (this.textures.exists(key)) continue;
-      Enemies.drawEnemyTexture(g, type);
-      g.generateTexture(key, 24, 24);
-    }
-
-    if (!this.textures.exists("projectile_basic")) {
-      g.clear();
-      g.fillStyle(0xffffff, 1);
-      g.fillRoundedRect(0, 1, 10, 4, 2);
-      g.generateTexture("projectile_basic", 10, 6);
-    }
-    if (!this.textures.exists("projectile_rapid")) {
-      g.clear();
-      g.fillStyle(0xffffff, 1);
-      g.fillRect(0, 1, 6, 2);
-      g.generateTexture("projectile_rapid", 6, 4);
-    }
-    if (!this.textures.exists("impact_basic")) {
-      g.clear();
-      g.lineStyle(2, 0xffffff, 0.9);
-      g.strokeCircle(6, 6, 4);
-      g.generateTexture("impact_basic", 12, 12);
-    }
-    if (!this.textures.exists("impact_rapid")) {
-      g.clear();
-      g.fillStyle(0xffffff, 1);
-      g.fillRect(2, 0, 2, 6);
-      g.generateTexture("impact_rapid", 6, 6);
-    }
-    if (!this.textures.exists("impact_sniper")) {
-      g.clear();
-      g.lineStyle(1, 0xffffff, 1);
-      g.lineBetween(1, 7, 13, 7);
-      g.lineBetween(7, 1, 7, 13);
-      g.strokeCircle(7, 7, 3);
-      g.generateTexture("impact_sniper", 14, 14);
-    }
-    if (!this.textures.exists("impact_laser")) {
-      g.clear();
-      g.lineStyle(1, 0xffffff, 1);
-      g.lineBetween(5, 1, 9, 5);
-      g.lineBetween(9, 5, 5, 9);
-      g.lineBetween(5, 9, 1, 5);
-      g.lineBetween(1, 5, 5, 1);
-      g.fillStyle(0xffffff, 1);
-      g.fillCircle(5, 5, 1);
-      g.generateTexture("impact_laser", 10, 10);
-    }
-    g.destroy();
-  }
-
-  drawGrid() {
-    const w = this.scale.width;
-    const h = this.scale.height;
-    const gw = Math.floor(w / GRID) * GRID;
-    const gx = Math.floor((w - gw) / 2);
-    const gridRight = gx + gw - 1;
-    this.g.lineStyle(1, 0x142033, 1);
-    for (let x = 0; x < gw; x += GRID) this.g.lineBetween(gx + x + 0.5, TOP_UI, gx + x + 0.5, h);
-    this.g.lineStyle(2, 0x142033, 1);
-    this.g.lineBetween(gridRight + 0.5, TOP_UI, gridRight + 0.5, h);
-    this.g.lineStyle(1, 0x142033, 1);
-    for (let y = TOP_UI; y <= h; y += GRID) this.g.lineBetween(gx, y + 0.5, gridRight, y + 0.5);
-    this.g.lineStyle(2, 0x294a6a, 1);
-    this.g.lineBetween(0, TOP_UI, w, TOP_UI);
-  }
-
-  drawPath() {
-    this.g.lineStyle(10, 0x1b2a43, 1);
-    for (let i = 0; i < this.path.length - 1; i++) {
-      const a = this.path[i];
-      const b = this.path[i + 1];
-      this.g.lineBetween(a.x, a.y, b.x, b.y);
-    }
-    this.g.fillStyle(0x2a3f63, 1);
-    for (const p of this.path) this.g.fillCircle(p.x, p.y, 6);
+    this.worldRenderer.hideRange();
   }
 
   isOnPath(x, y) {
-    const r = 24;
-    for (let i = 0; i < this.path.length - 1; i++) {
-      const a = this.path[i];
-      const b = this.path[i + 1];
-      const d = this.pointToSegmentDistance(x, y, a.x, a.y, b.x, b.y);
-      if (d <= r) return true;
-    }
-    return false;
+    return this.worldRenderer.isOnPath(x, y);
   }
 
   pointToSegmentDistance(px, py, ax, ay, bx, by) {
-    const abx = bx - ax;
-    const aby = by - ay;
-    const apx = px - ax;
-    const apy = py - ay;
-    const ab2 = abx * abx + aby * aby;
-    const t = ab2 === 0 ? 0 : Math.max(0, Math.min(1, (apx * abx + apy * aby) / ab2));
-    const cx = ax + t * abx;
-    const cy = ay + t * aby;
-    const dx = px - cx;
-    const dy = py - cy;
-    return Math.sqrt(dx * dx + dy * dy);
+    return pointToSegmentDistance(px, py, ax, ay, bx, by);
   }
 
   getTowerAt(wx, wy) {
@@ -1174,7 +951,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   getTowerTextureKey(type) {
-    return `tower_${type}`;
+    return getTowerTextureKey(type);
   }
 
   canPlaceTowerAt(x, y) {
