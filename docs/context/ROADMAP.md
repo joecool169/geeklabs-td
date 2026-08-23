@@ -4,22 +4,22 @@
 
 The responsive desktop/laptop layout, contextual sidebar, bottom tower strip, primitive-rendered game silhouettes, and improved wave-state presentation are established. Additional layout work should now be driven by mobile and touch requirements.
 
-## Phase 2 — Balance calibration — current
+## Phase 2 — Specialist progression validation — current
 
-The coordinated balance pass established explicit specialist roles and smoothed the modeled Wave 20-40 pressure curve, but the final Hard playtest likely showed an overshoot: Wave 35 was reached with 16 lives and $2,250 remaining.
+The first seeded comparison reached Wave 45 with Basic-only and Wave 46 with a Basic/Sniper-heavy build. The product goal is longer endurance play, while the one-wave specialist advantage was too small to justify the counter system.
 
 Immediate work:
 
-- preserve the current implementation as the `v0.3.0-balance-checkpoint` baseline
-- use the implemented checkpoint telemetry and seedable wave composition described in `BALANCE_TESTING.md`
+- preserve `v0.3.0-balance-checkpoint` as the pre-progression baseline
+- validate the implemented 10/15/20/25/30/35 specialist/threat cadence
+- validate Sprinter, Brute, and Armored preferred targeting plus manual cycling
 - run one mixed-specialist build and one Basic-heavy control
-- record lives, cash, tower composition, tiers, first leak, and peak active enemies at Waves 20, 25, 30, 35, and 40
-- isolate whether the main excess comes from spawn duration, specialist strength, reward smoothing, or enemy-growth reduction
-- make one coordinated correction after analysis
-- deploy only the reviewed balance revision and verify asset parity
-- avoid returning to repeated isolated number tweaks
+- compare damage, kills, investment, lives, cash, and peak enemies through Wave 50
+- expect a meaningful endurance advantage from correct specialist use
+- adjust Rapid range or projectile behavior only if the new role still underperforms
+- deploy only the reviewed progression revision and verify asset parity
 
-Do not assume that tower roles need another redesign. The present unresolved issue is aggregate Hard-mode calibration.
+Do not reduce economy merely to shorten runs. The intended direction is a higher survival ceiling through meaningful specialist use.
 
 ## Phase 3 — Architecture inventory and staged refactor
 

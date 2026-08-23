@@ -1,6 +1,6 @@
 import { TOWER_DEFS } from "../constants.js";
 import { round1 } from "./utils.js";
-import { getNextUpgradeCost } from "./towers.js";
+import { getNextUpgradeCost, getTargetModeLabel } from "./towers.js";
 
 function showToast(msg, ms = 2400) {
   this.toast.setText(msg);
@@ -287,14 +287,7 @@ function updateUI() {
   const nextCost = getNextUpgradeCost(t);
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
-  const targetLabel =
-    t.targetMode === "close"
-      ? "Close"
-      : t.targetMode === "strong"
-        ? "Strong"
-        : t.targetMode === "armored"
-          ? "Armored"
-          : "First";
+  const targetLabel = getTargetModeLabel(t);
   if (this.selectedTowerNameEl) this.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
   if (this.selectedTowerTargetEl) this.selectedTowerTargetEl.textContent = targetLabel;
   if (this.selectedTowerDmgEl) this.selectedTowerDmgEl.textContent = `${t.damage}`;

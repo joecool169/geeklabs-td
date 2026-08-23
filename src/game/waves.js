@@ -37,13 +37,21 @@ function computeWaveConfig(wave) {
   const w = Math.max(1, wave);
   const rawTotal = Math.floor(8 + w * 2.6 + Math.min(16, w * 1.2));
   const weights = [{ key: "runner", w: 1.6 }];
+  const sprinterUnlockWave = ENEMY_DEFS.sprinter.unlockWave;
+  if (w >= sprinterUnlockWave) {
+    const sprinterW =
+      0.3 + clamp01((w - sprinterUnlockWave) / 8) * 0.9;
+    weights.push({ key: "sprinter", w: sprinterW });
+  }
   const bruteUnlockWave = ENEMY_DEFS.brute.unlockWave;
   if (w >= bruteUnlockWave) {
     const bruteW = 0.35 + clamp01((w - bruteUnlockWave) / 10) * 0.85;
     weights.push({ key: "brute", w: bruteW });
   }
-  if (w >= 30) {
-    const armoredW = 0.25 + clamp01((w - 30) / 12) * 0.75;
+  const armoredUnlockWave = ENEMY_DEFS.armored.unlockWave;
+  if (w >= armoredUnlockWave) {
+    const armoredW =
+      0.25 + clamp01((w - armoredUnlockWave) / 12) * 0.75;
     weights.push({ key: "armored", w: armoredW });
   }
   const basePackEvery = Math.max(10, 16 - Math.floor(w / 2));

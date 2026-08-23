@@ -21,7 +21,7 @@ const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
 const DIFFICULTY_STORAGE_KEY = "defense_protocol_difficulty_v1";
 const LEADERBOARD_STORAGE_KEY = "defense_protocol_leaderboard_v1";
 const HELP_OVERLAY_STORAGE_KEY = "defense_protocol_help_overlay_v1";
-const BALANCE_TELEMETRY_STORAGE_KEY = "defense_protocol_balance_telemetry_v1";
+const BALANCE_TELEMETRY_STORAGE_KEY = "defense_protocol_balance_telemetry_v2";
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
@@ -2275,12 +2275,21 @@ export class GameScene extends Phaser.Scene {
         enemy.y,
         tower.sprite?.tintTopLeft ?? 0xff6bff
       );
+      this.recordTowerDamage(tower, enemy, dmg);
       enemy.hp -= dmg;
-      if (enemy.hp <= 0) this.handleEnemyKilled(enemy);
+      if (enemy.hp <= 0) this.handleEnemyKilled(enemy, tower);
     }
   }
 
-  handleEnemyKilled(enemy) {
+  recordTowerDamage(tower, enemy, damage) {
+    const actualDamage = Math.min(
+      Math.max(0, Number(enemy?.hp) || 0),
+      Math.max(0, Number(damage) || 0)
+    );
+    Telemetry.recordTowerDamage(this.runTelemetry, tower?.type, actualDamage);
+  }
+
+  handleEnemyKilled(enemy, tower) {
     const reward = enemy.reward ?? 8;
     const weight = enemy.scoreWeight ?? 1;
     if (enemy.flashTween) {
@@ -2288,6 +2297,7 @@ export class GameScene extends Phaser.Scene {
       enemy.flashTween = null;
     }
     Telemetry.recordEnemyKill(this.runTelemetry, enemy.typeKey);
+    Telemetry.recordTowerKill(this.runTelemetry, tower?.type);
     enemy.destroy();
     this.money += reward;
     this.killCount += 1;

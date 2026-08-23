@@ -26,7 +26,7 @@ Design priorities:
 - Easy, Medium, and Hard modes
 - Basic, Rapid, Sniper, and Laser towers
 - tower upgrades, selling, and targeting modes
-- Runner, Brute, and Armored enemy progression
+- Runner, Sprinter, Brute, and Armored enemy progression
 - distinct tower, enemy, projectile, impact, health, and range visuals
 - contextual placement and selected-tower sidebar panels
 - local and optional global leaderboards
@@ -39,10 +39,11 @@ Design priorities:
 
 - Basic: wave 1
 - Rapid: wave 10
+- Sprinters begin: wave 15
 - Sniper: wave 20
-- Laser: wave 28
-- Brutes begin: wave 22
-- Armored enemies begin: wave 30
+- Brutes begin: wave 25
+- Laser: wave 30
+- Armored enemies begin: wave 35
 
 ## Controls
 

@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-22 — Establish five-wave specialist preparation windows
+
+**Decision:** Use Rapid 10 / Sprinter 15 / Sniper 20 / Brute 25 / Laser 30 / Armored 35.
+
+**Decision:** Rapid, Sniper, and Laser default to Sprinter, Brute, and Armored priority respectively. Preferred modes target the intended class furthest along the path, fall back to First, and remain part of manual targeting cycles.
+
+**Reasoning:** Seeded Hard comparisons showed only a one-wave advantage for specialist investment, while the intended product goal is to support longer endurance runs. Explicit threats and automatic-but-overridable priorities make each counter teachable and practically usable without nerfing Basic or reducing the economy.
+
+**Supersedes:** Earlier progression decisions placing Brutes at Waves 20 or 22, Laser at Wave 28, and Armored at Wave 30.
+
 ## 2026-08-22 — Make Forgejo authoritative and retire mandatory ZIP handoffs
 
 **Decision:** Forgejo is the authoritative repository. GitHub remains a secondary mirror and receives the same reviewed commits and tags for now.

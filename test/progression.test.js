@@ -7,7 +7,13 @@ import {
   computeEnemyHp,
   computeEnemyReward,
   createEnemyRewardCarry,
+  findTarget,
 } from "../src/game/enemies.js";
+import {
+  cycleTargetMode,
+  getTargetModeLabel,
+  getTargetModes,
+} from "../src/game/towers.js";
 import {
   computeWaveConfig,
   startWave,
@@ -21,6 +27,8 @@ import {
   recordEnemyKill,
   recordEnemyLeak,
   recordEnemySpawn,
+  recordTowerDamage,
+  recordTowerKill,
   snapshotRunTelemetry,
   updateTelemetryArchive,
 } from "../src/game/telemetry.js";
@@ -55,31 +63,45 @@ test("specialist towers unlock at their progression milestones", () => {
   assert.equal(TOWER_DEFS.basic.unlockWave, 1);
   assert.equal(TOWER_DEFS.rapid.unlockWave, 10);
   assert.equal(TOWER_DEFS.sniper.unlockWave, 20);
-  assert.equal(TOWER_DEFS.laser.unlockWave, 28);
+  assert.equal(TOWER_DEFS.laser.unlockWave, 30);
 });
 
-test("waves before the Brute unlock remain Runner-only", () => {
-  for (let wave = 1; wave < ENEMY_DEFS.brute.unlockWave; wave += 1) {
+test("waves before the Sprinter unlock remain Runner-only", () => {
+  for (let wave = 1; wave < ENEMY_DEFS.sprinter.unlockWave; wave += 1) {
     assert.deepEqual(weightMap(wave), { runner: 1.6 });
   }
 });
 
-test("Brutes first appear on wave 22 and ramp gradually", () => {
-  assert.equal(ENEMY_DEFS.brute.unlockWave, 22);
-  assert.deepEqual(weightMap(20), { runner: 1.6 });
-  assert.deepEqual(weightMap(21), { runner: 1.6 });
-  assert.deepEqual(weightMap(22), { runner: 1.6, brute: 0.35 });
-  assert.ok(Math.abs(weightMap(27).brute - 0.775) < Number.EPSILON);
-  assert.equal(weightMap(32).brute, 1.2);
+test("Sprinters first appear on wave 15 and ramp gradually", () => {
+  assert.equal(ENEMY_DEFS.sprinter.unlockWave, 15);
+  assert.deepEqual(weightMap(14), { runner: 1.6 });
+  assert.deepEqual(weightMap(15), { runner: 1.6, sprinter: 0.3 });
+  assert.ok(Math.abs(weightMap(19).sprinter - 0.75) < Number.EPSILON);
+  assert.equal(weightMap(23).sprinter, 1.2);
+});
+
+test("Brutes first appear on wave 25 and ramp gradually", () => {
+  assert.equal(ENEMY_DEFS.brute.unlockWave, 25);
+  assert.equal(weightMap(24).brute, undefined);
+  assert.equal(weightMap(25).brute, 0.35);
+  assert.ok(Math.abs(weightMap(30).brute - 0.775) < Number.EPSILON);
+  assert.equal(weightMap(35).brute, 1.2);
   assert.equal(weightMap(50).brute, 1.2);
-  assert.equal(weightMap(29).armored, undefined);
+  assert.equal(weightMap(34).armored, undefined);
 });
 
 test("Armored enemies ramp gradually after their unlock", () => {
-  assert.equal(weightMap(30).armored, 0.25);
-  assert.equal(weightMap(36).armored, 0.625);
-  assert.equal(weightMap(42).armored, 1);
+  assert.equal(ENEMY_DEFS.armored.unlockWave, 35);
+  assert.equal(weightMap(35).armored, 0.25);
+  assert.equal(weightMap(41).armored, 0.625);
+  assert.equal(weightMap(47).armored, 1);
   assert.equal(weightMap(60).armored, 1);
+});
+
+test("each specialist unlocks five waves before its intended threat", () => {
+  assert.equal(ENEMY_DEFS.sprinter.unlockWave - TOWER_DEFS.rapid.unlockWave, 5);
+  assert.equal(ENEMY_DEFS.brute.unlockWave - TOWER_DEFS.sniper.unlockWave, 5);
+  assert.equal(ENEMY_DEFS.armored.unlockWave - TOWER_DEFS.laser.unlockWave, 5);
 });
 
 test("Basic tower stats remain unchanged", () => {
@@ -138,6 +160,15 @@ test("Rapid has a 20–30% equal-dollar advantage against Runners", () => {
   }
 });
 
+test("Rapid has a 45–55% equal-dollar advantage against Sprinters", () => {
+  const basicEfficiency =
+    computeTowerDps("basic", 0, "sprinter") / TOWER_DEFS.basic.tiers[0].cost;
+  for (const tier of cumulativeTierMetrics("rapid", "sprinter")) {
+    const advantage = tier.efficiency / basicEfficiency - 1;
+    assert.ok(advantage >= 0.45 && advantage <= 0.55);
+  }
+});
+
 test("Rapid remains less armor-efficient than high-damage Basic tiers", () => {
   const rapid = cumulativeTierMetrics("rapid", "armored");
   const basic = cumulativeTierMetrics("basic", "armored");
@@ -157,14 +188,14 @@ test("Laser has a 20–30% full-lock equal-dollar advantage against Armored", ()
 });
 
 test("Laser unlocks before Armored enemies", () => {
-  assert.equal(TOWER_DEFS.laser.unlockWave, 28);
-  assert.equal(ENEMY_DEFS.armored.unlockWave, 30);
+  assert.equal(TOWER_DEFS.laser.unlockWave, 30);
+  assert.equal(ENEMY_DEFS.armored.unlockWave, 35);
   assert.ok(TOWER_DEFS.laser.unlockWave < ENEMY_DEFS.armored.unlockWave);
 });
 
 test("specialist upgrades meet intended-match incremental efficiency", () => {
   const cases = [
-    ["rapid", "runner", 1],
+    ["rapid", "sprinter", 1],
     ["sniper", "brute", 1],
     ["laser", "armored", 2.5],
   ];
@@ -204,20 +235,20 @@ test("Runner pack pressure ramps gently from waves 10 through 15", () => {
   ]);
 });
 
-test("Brute HP class scaling starts at zero on its unlock wave", () => {
+test("Brute HP class scaling starts at zero on its Wave-25 unlock", () => {
   const def = ENEMY_DEFS.brute;
   const expected = Math.floor(
     def.baseHp *
       DIFFICULTY_CONFIG.hard.enemyHpMul *
       2 *
       1.225 *
-      Math.pow(1.03, 10)
+      Math.pow(1.03, 13)
   );
 
-  assert.equal(computeEnemyHp(def, 22, DIFFICULTY_CONFIG.hard), expected);
+  assert.equal(computeEnemyHp(def, 25, DIFFICULTY_CONFIG.hard), expected);
 });
 
-test("Brute HP receives one wave of class scaling at wave 23", () => {
+test("Brute HP receives one wave of class scaling at wave 26", () => {
   const def = ENEMY_DEFS.brute;
   const expected = Math.floor(
     def.baseHp *
@@ -225,10 +256,10 @@ test("Brute HP receives one wave of class scaling at wave 23", () => {
       DIFFICULTY_CONFIG.hard.enemyHpMul *
       2 *
       1.225 *
-      Math.pow(1.03, 11)
+      Math.pow(1.03, 14)
   );
 
-  assert.equal(computeEnemyHp(def, 23, DIFFICULTY_CONFIG.hard), expected);
+  assert.equal(computeEnemyHp(def, 26, DIFFICULTY_CONFIG.hard), expected);
 });
 
 test("wave-1 Runner HP behavior remains unchanged", () => {
@@ -251,15 +282,15 @@ test("Armored HP class scaling is relative to its later unlock wave", () => {
     Math.pow(1.03, wave - 12);
 
   assert.equal(
-    computeEnemyHp(def, 30, DIFFICULTY_CONFIG.hard),
-    Math.floor(def.baseHp * globalHpMulAt(30))
+    computeEnemyHp(def, 35, DIFFICULTY_CONFIG.hard),
+    Math.floor(def.baseHp * globalHpMulAt(35))
   );
   assert.equal(
-    computeEnemyHp(def, 32, DIFFICULTY_CONFIG.hard),
+    computeEnemyHp(def, 37, DIFFICULTY_CONFIG.hard),
     Math.floor(
       def.baseHp *
         (1 + 2 * def.scaleHpPerWave) *
-        globalHpMulAt(32)
+        globalHpMulAt(37)
     )
   );
 });
@@ -271,7 +302,7 @@ test("Armored HP class scaling starts at zero on its unlock wave", () => {
       DIFFICULTY_CONFIG.hard.enemyHpMul *
       2 *
       1.225 *
-      Math.pow(1.03, 18)
+      Math.pow(1.03, 23)
   );
   assert.equal(
     computeEnemyHp(def, def.unlockWave, DIFFICULTY_CONFIG.hard),
@@ -372,7 +403,7 @@ test("required-DPS growth meets target bands after specialist unlocks", () => {
   for (let wave = 20; wave <= 40; wave += 1) {
     assert.ok(growthAt(wave) <= 0.11, `Wave ${wave} growth exceeded 11%`);
   }
-  assert.ok(growthAt(22) >= 0.08 && growthAt(22) <= 0.11);
+  assert.ok(growthAt(25) >= 0.08 && growthAt(25) <= 0.11);
 
   const average = (waves) =>
     waves.reduce((sum, wave) => sum + growthAt(wave), 0) / waves.length;
@@ -398,9 +429,10 @@ test("pack topology stays within the smooth target deployment window", () => {
   }
 });
 
-test("income progression funds 70–90% of late-wave ideal sustained DPS", () => {
+test("preparation windows preserve declining late-wave purchasing pressure", () => {
   const idealEfficiency = {
     runner: computeTowerDps("rapid", 0, "runner") / 65,
+    sprinter: computeTowerDps("rapid", 0, "sprinter") / 65,
     brute: computeTowerDps("sniper", 0, "brute") / 90,
     armored: computeTowerDps("laser", 0, "armored", 2.5) / 220,
   };
@@ -408,8 +440,9 @@ test("income progression funds 70–90% of late-wave ideal sustained DPS", () =>
   // 40% of theoretical map-wide DPS a conservative late-game budget model.
   const realisticEngagement = 0.4;
   let cumulativeMoney = DIFFICULTY_CONFIG.hard.startingMoney;
+  const supportedByWave = {};
 
-  for (let wave = 1; wave <= 35; wave += 1) {
+  for (let wave = 1; wave <= 40; wave += 1) {
     const row = computeWaveBalance(wave, DIFFICULTY_CONFIG.hard);
     cumulativeMoney += row.income;
     if (wave < 30) continue;
@@ -422,10 +455,16 @@ test("income progression funds 70–90% of late-wave ideal sustained DPS", () =>
           idealEfficiency[key],
       0
     );
-    const supportedFraction =
+    supportedByWave[wave] =
       cumulativeMoney * realisticEngagement / idealSpend;
-    assert.ok(supportedFraction >= 0.7 && supportedFraction <= 0.9);
+    if (wave > 30) {
+      assert.ok(supportedByWave[wave] < supportedByWave[wave - 1]);
+    }
   }
+
+  assert.ok(supportedByWave[30] >= 1 && supportedByWave[30] <= 1.1);
+  assert.ok(supportedByWave[35] >= 0.8 && supportedByWave[35] <= 0.9);
+  assert.ok(supportedByWave[40] >= 0.65 && supportedByWave[40] <= 0.75);
 });
 
 test("shared damage rules apply matchup and armor data deterministically", () => {
@@ -457,7 +496,7 @@ test("wave composition random streams repeat for the same seed and wave", () => 
   assert.deepEqual(sample("comparison-a", 30), sample("comparison-a", 30));
   assert.notDeepEqual(sample("comparison-a", 30), sample("comparison-b", 30));
   assert.notDeepEqual(sample("comparison-a", 30), sample("comparison-a", 31));
-  assert.equal(normalizeRunSeed("  "), "balance-v0.3.0");
+  assert.equal(normalizeRunSeed("  "), "specialists-v0.4.0");
 });
 
 test("runtime wave spawning repeats the same enemy sequence", () => {
@@ -499,6 +538,8 @@ test("balance telemetry records reproducible checkpoint summaries", () => {
   recordEnemySpawn(telemetry, "runner");
   recordEnemySpawn(telemetry, "brute");
   recordEnemyKill(telemetry, "runner");
+  recordTowerDamage(telemetry, "rapid", 8.25);
+  recordTowerKill(telemetry, "rapid");
   recordEnemyLeak(telemetry, 18);
   observeActiveEnemies(telemetry, 14);
   observeActiveEnemies(telemetry, 9);
@@ -510,17 +551,18 @@ test("balance telemetry records reproducible checkpoint summaries", () => {
     kills: 40,
     activeEnemies: 0,
     towers: [
-      { type: "basic", tier: 2 },
-      { type: "rapid", tier: 1 },
+      { type: "basic", tier: 2, spent: 125 },
+      { type: "rapid", tier: 1, spent: 65 },
     ],
   });
 
   assert.deepEqual(checkpoint.towers, {
     total: 2,
     upgrades: 1,
+    invested: 190,
     byType: {
-      basic: { total: 1, tiers: { 2: 1 } },
-      rapid: { total: 1, tiers: { 1: 1 } },
+      basic: { total: 1, invested: 125, tiers: { 2: 1 } },
+      rapid: { total: 1, invested: 65, tiers: { 1: 1 } },
     },
   });
   assert.equal(checkpoint.firstLeakWave, 18);
@@ -529,12 +571,63 @@ test("balance telemetry records reproducible checkpoint summaries", () => {
   assert.equal(checkpoint.peakActiveEnemiesSinceLastCheckpoint, 14);
   assert.deepEqual(checkpoint.spawnedByType, { runner: 1, brute: 1 });
   assert.deepEqual(checkpoint.killedByType, { runner: 1 });
+  assert.deepEqual(checkpoint.damageByTowerType, { rapid: 8.3 });
+  assert.deepEqual(checkpoint.killsByTowerType, { rapid: 1 });
   assert.equal(recordCheckpoint(telemetry, 20, {}), null);
   assert.equal(recordCheckpoint(telemetry, 21, {}), null);
   assert.equal(telemetry.runId, "hard:mixed-specialist:comparison-a");
   assert.equal(telemetry.peakActiveEnemiesSinceCheckpoint, 0);
   assert.deepEqual(snapshotRunTelemetry(telemetry), telemetry);
   assert.notEqual(snapshotRunTelemetry(telemetry), telemetry);
+});
+
+test("specialists default to preferred targets and retain manual modes", () => {
+  const rapid = { type: "rapid", targetMode: "preferred" };
+  const sniper = { type: "sniper", targetMode: "preferred" };
+  const laser = { type: "laser", targetMode: "preferred" };
+  const basic = { type: "basic", targetMode: "first" };
+
+  assert.deepEqual(getTargetModes(rapid), [
+    "preferred",
+    "first",
+    "close",
+    "strong",
+    "armored",
+  ]);
+  assert.deepEqual(getTargetModes(laser), [
+    "preferred",
+    "first",
+    "close",
+    "strong",
+  ]);
+  assert.deepEqual(getTargetModes(basic), ["first", "close", "strong", "armored"]);
+  assert.equal(getTargetModeLabel(rapid), "Sprinter Priority");
+  assert.equal(getTargetModeLabel(sniper), "Brute Priority");
+  assert.equal(getTargetModeLabel(laser), "Armored Priority");
+  cycleTargetMode(rapid);
+  assert.equal(rapid.targetMode, "first");
+  cycleTargetMode(rapid);
+  assert.equal(rapid.targetMode, "close");
+});
+
+test("preferred targeting falls back to First when its enemy is absent", () => {
+  const runner = { typeKey: "runner", x: 80, y: 0, pathIndex: 0, hp: 10, armor: 0 };
+  const sprinter = { typeKey: "sprinter", x: 20, y: 0, pathIndex: 0, hp: 10, armor: 0 };
+  const scene = {
+    path: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+    enemies: {
+      children: {
+        iterate(callback) {
+          [runner, sprinter].forEach(callback);
+        },
+      },
+    },
+  };
+  const tower = { type: "rapid", x: 0, y: 0, range: 200 };
+
+  assert.equal(findTarget.call(scene, tower, "preferred"), sprinter);
+  scene.enemies.children.iterate = (callback) => [runner].forEach(callback);
+  assert.equal(findTarget.call(scene, tower, "preferred"), runner);
 });
 
 test("telemetry archive keeps separately labeled comparison runs", () => {
@@ -560,6 +653,6 @@ test("telemetry archive keeps separately labeled comparison runs", () => {
   ]);
   assert.deepEqual(
     updateTelemetryArchive("not valid json", mixed),
-    { version: 1, runs: { [mixed.runId]: mixed } }
+    { version: 2, runs: { [mixed.runId]: mixed } }
   );
 });

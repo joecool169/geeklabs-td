@@ -71,7 +71,9 @@ function computeExpectedEnemyCounts(waveNumber) {
     (sum, entry) => sum + entry.w,
     0
   );
-  const counts = { runner: forcedRunners, brute: 0, armored: 0 };
+  const counts = Object.fromEntries(
+    Object.keys(ENEMY_DEFS).map((key) => [key, key === "runner" ? forcedRunners : 0])
+  );
   for (const entry of config.weights) {
     counts[entry.key] += randomSpawns * (entry.w / weightTotal);
   }

@@ -1,5 +1,7 @@
-const BALANCE_CHECKPOINT_WAVES = Object.freeze([20, 25, 30, 35, 40]);
-const TELEMETRY_VERSION = 1;
+const BALANCE_CHECKPOINT_WAVES = Object.freeze([
+  10, 15, 20, 25, 30, 35, 40, 45, 50,
+]);
+const TELEMETRY_VERSION = 2;
 
 const incrementCount = (counts, key) => {
   if (!counts || !key) return;
@@ -26,6 +28,8 @@ function createRunTelemetry({
     peakActiveEnemiesSinceCheckpoint: 0,
     spawnedByType: {},
     killedByType: {},
+    damageByTowerType: {},
+    killsByTowerType: {},
     checkpoints: [],
   };
 }
@@ -48,6 +52,18 @@ function recordEnemyLeak(telemetry, waveNumber) {
   }
 }
 
+function recordTowerDamage(telemetry, towerType, damage) {
+  if (!telemetry || !towerType) return;
+  const amount = Math.max(0, Number(damage) || 0);
+  telemetry.damageByTowerType[towerType] =
+    (telemetry.damageByTowerType[towerType] ?? 0) + amount;
+}
+
+function recordTowerKill(telemetry, towerType) {
+  if (!telemetry) return;
+  incrementCount(telemetry.killsByTowerType, towerType);
+}
+
 function observeActiveEnemies(telemetry, activeEnemies) {
   if (!telemetry) return;
   telemetry.peakActiveEnemies = Math.max(
@@ -63,17 +79,29 @@ function observeActiveEnemies(telemetry, activeEnemies) {
 function summarizeTowers(towers = []) {
   const byType = {};
   let upgrades = 0;
+  let invested = 0;
   for (const tower of towers) {
     if (!tower?.type) continue;
     const tier = Math.max(1, Number(tower.tier) || 1);
     const type = tower.type;
-    byType[type] ??= { total: 0, tiers: {} };
+    const towerSpend = Math.max(0, Number(tower.spent) || 0);
+    byType[type] ??= { total: 0, invested: 0, tiers: {} };
     byType[type].total += 1;
+    byType[type].invested += towerSpend;
     byType[type].tiers[tier] = (byType[type].tiers[tier] ?? 0) + 1;
     upgrades += tier - 1;
+    invested += towerSpend;
   }
-  return { total: towers.length, upgrades, byType };
+  return { total: towers.length, upgrades, invested, byType };
 }
+
+const roundedCounts = (counts) =>
+  Object.fromEntries(
+    Object.entries(counts).map(([key, value]) => [
+      key,
+      Math.round((Number(value) || 0) * 10) / 10,
+    ])
+  );
 
 function recordCheckpoint(telemetry, waveNumber, state) {
   const wave = Number(waveNumber);
@@ -95,6 +123,8 @@ function recordCheckpoint(telemetry, waveNumber, state) {
     towers: summarizeTowers(state.towers),
     spawnedByType: { ...telemetry.spawnedByType },
     killedByType: { ...telemetry.killedByType },
+    damageByTowerType: roundedCounts(telemetry.damageByTowerType),
+    killsByTowerType: { ...telemetry.killsByTowerType },
   };
   telemetry.checkpoints.push(checkpoint);
   telemetry.peakActiveEnemiesSinceCheckpoint = 0;
@@ -131,6 +161,8 @@ export {
   recordEnemyKill,
   recordEnemyLeak,
   recordEnemySpawn,
+  recordTowerDamage,
+  recordTowerKill,
   snapshotRunTelemetry,
   summarizeTowers,
   updateTelemetryArchive,

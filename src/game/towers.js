@@ -1,4 +1,9 @@
-import { TOWER_DEFS, TARGET_MODES, nextInCycle } from "../constants.js";
+import {
+  ENEMY_DEFS,
+  TOWER_DEFS,
+  TARGET_MODES,
+  nextInCycle,
+} from "../constants.js";
 
 function getNextUpgradeCost(t) {
   const def = TOWER_DEFS[t.type];
@@ -43,8 +48,41 @@ function trySellTower(t) {
   if (this.selectedTower === t) this.clearSelection();
 }
 
-function cycleTargetMode(t) {
-  t.targetMode = nextInCycle(TARGET_MODES, t.targetMode);
+function getTargetModes(t) {
+  const def = TOWER_DEFS[t?.type];
+  if (!def?.preferredTargetType) return TARGET_MODES;
+  const genericModes =
+    def.preferredTargetType === "armored"
+      ? TARGET_MODES.filter((mode) => mode !== "armored")
+      : TARGET_MODES;
+  return ["preferred", ...genericModes];
 }
 
-export { getNextUpgradeCost, applyTowerTier, tryUpgradeTower, trySellTower, cycleTargetMode };
+function getTargetModeLabel(t) {
+  if (t?.targetMode === "preferred") {
+    const preferredType = TOWER_DEFS[t.type]?.preferredTargetType;
+    const enemyName = ENEMY_DEFS[preferredType]?.name ?? "Preferred";
+    return `${enemyName} Priority`;
+  }
+  const labels = {
+    first: "First",
+    close: "Close",
+    strong: "Strong",
+    armored: "Armored",
+  };
+  return labels[t?.targetMode] ?? "First";
+}
+
+function cycleTargetMode(t) {
+  t.targetMode = nextInCycle(getTargetModes(t), t.targetMode);
+}
+
+export {
+  getNextUpgradeCost,
+  applyTowerTier,
+  tryUpgradeTower,
+  trySellTower,
+  getTargetModes,
+  getTargetModeLabel,
+  cycleTargetMode,
+};

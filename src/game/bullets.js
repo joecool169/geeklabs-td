@@ -71,9 +71,10 @@ function fireBullet(t, target) {
     const dmg = computeDamageAgainstEnemy(t, t.damage, target);
     showHitEffect(this, "sniper", x2, y2, tracerColor);
     flashEnemy(this, target);
+    if (this.recordTowerDamage) this.recordTowerDamage(t, target, dmg);
     target.hp -= dmg;
 
-    if (target.hp <= 0) this.handleEnemyKilled(target);
+    if (target.hp <= 0) this.handleEnemyKilled(target, t);
 
     this.time.delayedCall(50, () => {
       tracer.destroy();
@@ -114,8 +115,9 @@ function fireBullet(t, target) {
       const dmg = computeDamageAgainstEnemy(t, t.damage, target);
       showHitEffect(this, projectileType, target.x, target.y, projectileColor);
       flashEnemy(this, target);
+      if (this.recordTowerDamage) this.recordTowerDamage(t, target, dmg);
       target.hp -= dmg;
-      if (target.hp <= 0) this.handleEnemyKilled(target);
+      if (target.hp <= 0) this.handleEnemyKilled(target, t);
       b.destroy();
     }
   };

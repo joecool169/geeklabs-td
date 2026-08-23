@@ -1,4 +1,4 @@
-const DEFAULT_RUN_SEED = "balance-v0.3.0";
+const DEFAULT_RUN_SEED = "specialists-v0.4.0";
 
 function normalizeRunSeed(value) {
   const seed = String(value ?? "").trim();

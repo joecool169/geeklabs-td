@@ -52,8 +52,8 @@ Documentation-only changes do not require npm validation unless they also modify
 
 - Preserve the current coordinated pass as `v0.3.0-balance-checkpoint`.
 - Add checkpoint telemetry and seedable wave composition before further tuning.
-- Compare mixed-specialist and Basic-heavy Hard runs at Waves 20, 25, 30, 35, and 40.
-- Record lives, cash, tower composition and tiers, first leak, and peak active enemies.
+- Compare mixed-specialist and Basic-heavy Hard runs at Waves 10, 15, 20, 25, 30, 35, 40, 45, and 50.
+- Record lives, cash, tower composition and tiers, first leak, peak active enemies, and damage/kills/investment by tower type.
 - Make one coordinated evidence-based correction.
 - Keep balance changes separate from structural refactors.
 

@@ -14,10 +14,12 @@ const TOWER_DEFS = {
   rapid: {
     key: "rapid",
     name: "Rapid",
-    desc: "Shreds Runner packs; weak against armor.",
+    desc: "Intercepts Sprinters and Runner packs.",
     hotkey: "2",
     unlockWave: 10,
-    matchupDamage: { runner: 1.25 },
+    defaultTargetMode: "preferred",
+    preferredTargetType: "sprinter",
+    matchupDamage: { runner: 1.25, sprinter: 1.5 },
     armorMultiplier: 2,
     tiers: [
       { cost: 65, damage: 6, range: 85, fireMs: 120, tint: 0x39ff8f, scale: 0.95 },
@@ -28,10 +30,11 @@ const TOWER_DEFS = {
   sniper: {
     key: "sniper",
     name: "Sniper",
-    desc: "Long-range Brute killer (prefers Strong).",
+    desc: "Long-range Brute killer with Brute priority.",
     hotkey: "3",
     unlockWave: 20,
-    defaultTargetMode: "strong",
+    defaultTargetMode: "preferred",
+    preferredTargetType: "brute",
     matchupDamage: { brute: 1.6 },
     tiers: [
       { cost: 90, damage: 28, range: 165, fireMs: 520, tint: 0xffc857, scale: 1.05 },
@@ -44,8 +47,9 @@ const TOWER_DEFS = {
     name: "Laser",
     desc: "Armor-piercing beam with line pierce.",
     hotkey: "4",
-    unlockWave: 28,
-    defaultTargetMode: "armored",
+    unlockWave: 30,
+    defaultTargetMode: "preferred",
+    preferredTargetType: "armored",
     armorPenetration: 3,
     maxPierce: 5,
     pierceFalloff: 0.7,
@@ -59,7 +63,7 @@ const TOWER_DEFS = {
   },
 };
 
-const TARGET_MODES = ["close", "strong", "armored", "first"];
+const TARGET_MODES = ["first", "close", "strong", "armored"];
 
 function nextInCycle(arr, v) {
   const i = arr.indexOf(v);
@@ -80,10 +84,23 @@ const ENEMY_DEFS = {
     scaleSpeedPerWave: 0.01,
     scoreWeight: 0.7,
   },
+  sprinter: {
+    key: "sprinter",
+    name: "Sprinter",
+    unlockWave: 15,
+    tint: 0xff9f43,
+    baseHp: 12,
+    baseSpeed: 175,
+    reward: 7,
+    armor: 0,
+    scaleHpPerWave: 0.075,
+    scaleSpeedPerWave: 0.012,
+    scoreWeight: 0.9,
+  },
   brute: {
     key: "brute",
     name: "Brute",
-    unlockWave: 22,
+    unlockWave: 25,
     tint: 0xb54dff,
     baseHp: 70,
     baseSpeed: 52,
@@ -96,7 +113,7 @@ const ENEMY_DEFS = {
   armored: {
     key: "armored",
     name: "Armored",
-    unlockWave: 30,
+    unlockWave: 35,
     tint: 0x8fb3c9,
     baseHp: 40,
     baseSpeed: 72,

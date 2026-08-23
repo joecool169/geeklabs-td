@@ -14,7 +14,7 @@ Forgejo is the authoritative remote. GitHub is maintained as a secondary mirror.
 
 Validation on this baseline:
 
-- `npm test`: 31/31 tests pass
+- `npm test`: 36/36 tests pass
 - `npm run build`: passes with Vite 7.3.6
 - `npm audit`: zero known vulnerabilities
 - `git diff --check`: passes
@@ -27,41 +27,37 @@ Seeded per-wave composition and automatic balance checkpoints are implemented fo
 
 - Basic: Wave 1
 - Rapid: Wave 10
+- Sprinter: Wave 15
 - Sniper: Wave 20
-- Brute: Wave 22
-- Laser: Wave 28
-- Armored: Wave 30
+- Brute: Wave 25
+- Laser: Wave 30
+- Armored: Wave 35
 
 ## Current tower roles
 
 - Basic: flexible general-purpose tower; stats unchanged
-- Rapid: `1.25×` Runner damage, doubled armor effect, short-range swarm specialist
-- Sniper: `1.60×` Brute damage, Strong targeting, long-range anti-Brute specialist
-- Laser: 3 armor penetration, line pierce, target-lock ramp, three tiers, anti-Armored specialist
+- Rapid: `1.25×` Runner and `1.50×` Sprinter damage; defaults to Sprinter Priority
+- Sniper: `1.60×` Brute damage; defaults to Brute Priority
+- Laser: 3 armor penetration, line pierce, target-lock ramp, three tiers; defaults to Armored Priority
+
+Preferred targeting attacks the intended class furthest along the path, falls back to First when that class is absent, and remains part of each tower's manually cycled targeting modes.
 
 Shared damage logic applies matchup multipliers, armor multipliers, and armor penetration.
 
 ## Current enemy/economy model
 
 - Class-specific HP growth begins from each enemy class's unlock wave.
-- Brute growth is 8%; Armored growth is 10%; Runner remains 8.5%.
+- Runner growth is 8.5%; Sprinter growth is 7.5%; Brute growth is 8%; Armored growth is 10%.
 - Global 3% endurance compounding remains active after Wave 12.
 - Rewards preserve fractional value through deterministic per-class carry while paying integer currency.
 - Runner packs retain 60 ms internal spacing.
 - Cadence compensation targets about 330 ms average spacing through Wave 30 and ramps toward 260 ms by Wave 40.
 
-## Latest playtest and unresolved balance state
+## Latest playtest and current balance state
 
-Earlier strong Hard runs failed around Waves 24-25. Reward smoothing improved progression to Wave 30. The coordinated pass then reached Wave 35 with 16 lives, $2,250 remaining, 20 towers, 1,636 kills, and score 27,553.
+A seeded Hard Basic-only run reached Wave 45. A Basic/Sniper-heavy specialist run reached Wave 46. Both were perfect through Wave 35, and specialist investment yielded only a marginal survival advantage. The product goal is to support runs beyond these waves, so economy was preserved and specialist progression was clarified instead of tightening Hard mode.
 
-This likely means the combined pass overshot. The tower-role structure is improved, but Hard is presently too forgiving or provides too much purchasing power/time.
-
-Do not immediately alter another single stat. Preserve the checkpoint and first compare:
-
-- mixed specialist run
-- Basic-heavy control run
-
-Record Waves 20/25/30/35/40 and isolate whether excess strength comes mostly from economy, specialist upgrades/matchups, reduced Brute growth, or longer wave duration. Make one coordinated correction only after that analysis.
+The current 10/15/20/25/30/35 progression and preferred targeting pass is implemented but not yet playtested. Compare a new Basic-only control with a true mixed-specialist run. Telemetry now records checkpoints through Wave 50 plus damage, kills, and invested capital by tower type.
 
 ## Operating rules
 

@@ -1,4 +1,9 @@
-import { clamp01, ENEMY_DEFS, ENEMY_HP_SCALING } from "../constants.js";
+import {
+  clamp01,
+  ENEMY_DEFS,
+  ENEMY_HP_SCALING,
+  TOWER_DEFS,
+} from "../constants.js";
 import { DIFFICULTY_CONFIG } from "./config.js";
 import { dist2 } from "./utils.js";
 
@@ -56,6 +61,29 @@ function drawEnemyTexture(graphics, typeKey) {
     graphics.fillStyle(dark, 1);
     graphics.fillRect(4, 9, 16, 2);
     graphics.fillRect(5, 15, 14, 2);
+    return;
+  }
+
+  if (typeKey === "sprinter") {
+    graphics.fillPoints(
+      [
+        { x: 2, y: 12 },
+        { x: 12, y: 3 },
+        { x: 22, y: 12 },
+        { x: 12, y: 21 },
+      ],
+      true
+    );
+    graphics.fillStyle(dark, 1);
+    graphics.fillPoints(
+      [
+        { x: 7, y: 12 },
+        { x: 12, y: 8 },
+        { x: 17, y: 12 },
+        { x: 12, y: 16 },
+      ],
+      true
+    );
     return;
   }
 
@@ -247,6 +275,25 @@ function enemyProgressScore(e) {
 }
 
 function findTarget(tower, mode) {
+  if (mode === "preferred") {
+    const preferredType = TOWER_DEFS[tower?.type]?.preferredTargetType;
+    if (preferredType) {
+      const r2 = tower.range * tower.range;
+      let preferred = null;
+      let preferredProgress = -Infinity;
+      this.enemies.children.iterate((enemy) => {
+        if (!enemy || enemy.typeKey !== preferredType) return;
+        if (dist2(tower.x, tower.y, enemy.x, enemy.y) > r2) return;
+        const progress = enemyProgressScore.call(this, enemy);
+        if (progress > preferredProgress) {
+          preferredProgress = progress;
+          preferred = enemy;
+        }
+      });
+      if (preferred) return preferred;
+    }
+    return findTarget.call(this, tower, "first");
+  }
   const r2 = tower.range * tower.range;
   let best = null;
   let bestMetric = -Infinity;
