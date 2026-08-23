@@ -18,6 +18,7 @@ import {
   normalizePlayerName,
 } from "./services/preferences.js";
 import { readRunOptions } from "./services/runOptions.js";
+import { publishTelemetryArchive } from "./services/telemetryArchive.js";
 import { OverlayManager } from "./ui/OverlayManager.js";
 import { GameDomView } from "./ui/GameDomView.js";
 import { GAME_ACTIONS } from "./input/actions.js";
@@ -26,8 +27,6 @@ import { RunController } from "./core/RunController.js";
 import { RunState, attachRunState } from "./core/RunState.js";
 import {
   WorldRenderer,
-  getTowerTextureKey,
-  pointToSegmentDistance,
 } from "./presentation/WorldRenderer.js";
 import { TowerSystem, attachTowerSystem } from "./systems/TowerSystem.js";
 import { EnemySystem, attachEnemySystem } from "./systems/EnemySystem.js";
@@ -237,19 +236,19 @@ export class GameScene extends Phaser.Scene {
       towerDefs: this.buildTowerDefs,
       onSelectTowerType: (type) => {
         if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-        this.trySetPlaceType(type);
+        this.towerSystem.trySetPlaceType(type);
       },
       onUpgrade: () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
-        this.tryUpgradeTower(this.selectedTower);
+        this.towerSystem.tryUpgradeTower(this.selectedTower);
       },
       onSell: () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
-        this.trySellTower(this.selectedTower);
+        this.towerSystem.trySellTower(this.selectedTower);
       },
       onTarget: () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
-        this.cycleTargetMode(this.selectedTower);
+        this.towerSystem.cycleTargetMode(this.selectedTower);
       },
     });
     Object.assign(this, this.domView.refs);
@@ -277,7 +276,7 @@ export class GameScene extends Phaser.Scene {
       this.runController.setPaused(p);
       this.physics.world.isPaused = this.isPaused;
       if (this.autoStartTimer) this.autoStartTimer.paused = this.isPaused;
-      if (this.isPaused && this.isPlacing) this.setPlacement(false);
+      if (this.isPaused && this.isPlacing) this.towerSystem.setPlacement(false);
       this.pauseText.setText(this.isPaused ? "PAUSED — P / ESC to resume" : "");
       this.pauseText.setVisible(this.isPaused);
       if (this.isPaused) {
@@ -297,7 +296,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.updateUI();
-    this.enterIntermission(true);
+    this.waveSystem.enterIntermission(true);
     this.events.once("shutdown", () => {
       this.hudController?.destroy();
       this.hudController = null;
@@ -338,9 +337,9 @@ export class GameScene extends Phaser.Scene {
         this.hidePauseMenu();
         this.setPaused(false);
       } else if (this.isPlacing) {
-        this.setPlacement(false);
+        this.towerSystem.setPlacement(false);
       } else if (this.selectedTower) {
-        this.clearSelection();
+        this.towerSystem.clearSelection();
       }
       return;
     }
@@ -354,24 +353,24 @@ export class GameScene extends Phaser.Scene {
 
     switch (action.type) {
       case GAME_ACTIONS.TOGGLE_PLACEMENT:
-        this.togglePlacement();
+        this.towerSystem.togglePlacement();
         break;
       case GAME_ACTIONS.SELECT_TOWER_TYPE:
-        this.trySetPlaceType(action.towerType);
+        this.towerSystem.trySetPlaceType(action.towerType);
         break;
       case GAME_ACTIONS.UPGRADE_SELECTED:
         if (this.selectedTower && this.towers.includes(this.selectedTower)) {
-          this.tryUpgradeTower(this.selectedTower);
+          this.towerSystem.tryUpgradeTower(this.selectedTower);
         }
         break;
       case GAME_ACTIONS.SELL_SELECTED:
         if (this.selectedTower && this.towers.includes(this.selectedTower)) {
-          this.trySellTower(this.selectedTower);
+          this.towerSystem.trySellTower(this.selectedTower);
         }
         break;
       case GAME_ACTIONS.CYCLE_TARGETING:
         if (this.selectedTower && this.towers.includes(this.selectedTower)) {
-          this.cycleTargetMode(this.selectedTower);
+          this.towerSystem.cycleTargetMode(this.selectedTower);
         }
         break;
       case GAME_ACTIONS.START_WAVE:
@@ -384,7 +383,7 @@ export class GameScene extends Phaser.Scene {
         this.handlePrimaryPointer(action.x, action.y, action.modified);
         break;
       case GAME_ACTIONS.POINTER_MOVED:
-        if (this.isPlacing) this.updateGhost(action.x, action.y);
+        if (this.isPlacing) this.towerSystem.updateGhost(action.x, action.y);
         break;
       default:
         break;
@@ -396,29 +395,29 @@ export class GameScene extends Phaser.Scene {
   }
 
   handleSecondaryPointer(x, y) {
-    const tower = this.getTowerAt(x, y);
+    const tower = this.towerSystem.getTowerAt(x, y);
     if (tower) {
-      this.trySellTower(tower);
+      this.towerSystem.trySellTower(tower);
     } else if (this.isPlacing) {
-      this.setPlacement(false);
+      this.towerSystem.setPlacement(false);
     }
   }
 
   handlePrimaryPointer(x, y, modified = false) {
     if (this.isPlacing) {
       if (this.ghostValid) {
-        this.tryPlaceTowerAt(this.ghostX, this.ghostY);
-        this.refreshGhostVisual();
+        this.towerSystem.tryPlaceTowerAt(this.ghostX, this.ghostY);
+        this.towerSystem.refreshGhostVisual();
       }
       return;
     }
-    const tower = this.getTowerAt(x, y);
+    const tower = this.towerSystem.getTowerAt(x, y);
     if (tower) {
-      if (modified) this.tryUpgradeTower(tower);
-      this.selectTower(tower);
+      if (modified) this.towerSystem.tryUpgradeTower(tower);
+      this.towerSystem.selectTower(tower);
       return;
     }
-    this.clearSelection();
+    this.towerSystem.clearSelection();
   }
 
   showToast(msg, ms = 2400) {
@@ -602,9 +601,8 @@ export class GameScene extends Phaser.Scene {
     if (this.autoStartTimer) {
       this.waveSystem.cancelAutoStart();
     }
-    if (this.isPlacing) this.setPlacement(false);
-    this.clearSelection();
-    this.hideRangeRing();
+    if (this.isPlacing) this.towerSystem.setPlacement(false);
+    this.towerSystem.clearSelection();
     this.lastLeaderboardEntry = {
       name: this.playerName,
       score: this.score,
@@ -617,10 +615,6 @@ export class GameScene extends Phaser.Scene {
     recordLocalScore(storage, this.lastLeaderboardEntry, this.difficultyKey);
     submitGlobalScore(this.lastLeaderboardEntry);
     this.showGameOverScreen();
-  }
-
-  computeWaveConfig(wave) {
-    return this.waveSystem.computeConfig(wave);
   }
 
   setHelpOverlay(show) {
@@ -668,18 +662,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  enterIntermission(isInitial = false) {
-    this.waveSystem.enterIntermission(isInitial);
-  }
-
-  tryStartWave() {
-    return this.waveSystem.tryStartWave();
-  }
-
-  startWave(wave) {
-    this.waveSystem.startWave(wave);
-  }
-
   update(time, dt) {
     if (this.isGameOver || this.isPaused || this.isStartScreenActive) return;
 
@@ -693,147 +675,28 @@ export class GameScene extends Phaser.Scene {
     );
 
     if (this.isPlacing) {
-      const nowValid = this.canPlaceTowerAt(this.ghostX, this.ghostY);
+      const nowValid = this.towerSystem.canPlaceTowerAt(this.ghostX, this.ghostY);
       if (nowValid !== this.ghostValid) {
         this.ghostValid = nowValid;
-        this.refreshGhostVisual();
+        this.towerSystem.refreshGhostVisual();
       }
       const col = this.ghostValid ? 0x39ff8f : 0xff4d6d;
-      const def = this.getPlaceDef();
-      this.showGhostRing(this.ghostX, this.ghostY, def.tiers[0].range, col);
-      this.updatePlaceHint();
+      const def = this.towerSystem.getPlaceDef();
+      this.worldRenderer.showGhostRing(
+        this.ghostX,
+        this.ghostY,
+        def.tiers[0].range,
+        col
+      );
+      this.towerSystem.updatePlaceHint();
     } else if (this.selectedTower && this.towers.includes(this.selectedTower)) {
-      this.showRangeRing(this.selectedTower, 0x00ffff);
+      this.worldRenderer.showTowerRange(this.selectedTower, 0x00ffff);
     } else if (this.selectedTower && !this.towers.includes(this.selectedTower)) {
       this.selectedTower = null;
-      this.hideRangeRing();
+      this.worldRenderer.hideRange();
     }
 
     this.updateUI();
-  }
-
-  updateWaveSpawning(time) {
-    this.waveSystem.updateSpawning(time);
-  }
-
-  enterPlacementModeIfNeeded() {
-    this.towerSystem.enterPlacementModeIfNeeded();
-  }
-
-  getTowerUnlockWave(type) {
-    return this.towerSystem.getTowerUnlockWave(type);
-  }
-
-  isTowerUnlocked(type) {
-    return this.towerSystem.isTowerUnlocked(type);
-  }
-
-  getPlacementKeyHint() {
-    return this.towerSystem.getPlacementKeyHint();
-  }
-
-  trySetPlaceType(type) {
-    this.towerSystem.trySetPlaceType(type);
-  }
-
-  getPlaceDef() {
-    return this.towerSystem.getPlaceDef();
-  }
-
-  setPlaceType(type) {
-    this.towerSystem.setPlaceType(type);
-  }
-
-  syncTowerStripSelection() {
-    this.towerSystem.syncTowerStripSelection();
-  }
-
-  togglePlacement() {
-    this.towerSystem.togglePlacement();
-  }
-
-  setPlacement(on) {
-    this.towerSystem.setPlacement(on);
-  }
-
-  selectTower(tower) {
-    this.towerSystem.selectTower(tower);
-  }
-
-  clearSelection() {
-    this.towerSystem.clearSelection();
-  }
-
-  updateGhost(worldX, worldY) {
-    this.towerSystem.updateGhost(worldX, worldY);
-  }
-
-  refreshGhostVisual() {
-    this.towerSystem.refreshGhostVisual();
-  }
-
-  updatePlaceHint() {
-    this.towerSystem.updatePlaceHint();
-  }
-
-  showGhostRing(x, y, range, color) {
-    this.worldRenderer.showGhostRing(x, y, range, color);
-  }
-
-  showRangeRing(tower, color) {
-    this.worldRenderer.showTowerRange(tower, color);
-  }
-
-  hideRangeRing() {
-    this.worldRenderer.hideRange();
-  }
-
-  isOnPath(x, y) {
-    return this.worldRenderer.isOnPath(x, y);
-  }
-
-  pointToSegmentDistance(px, py, ax, ay, bx, by) {
-    return pointToSegmentDistance(px, py, ax, ay, bx, by);
-  }
-
-  getTowerAt(worldX, worldY) {
-    return this.towerSystem.getTowerAt(worldX, worldY);
-  }
-
-  getTowerTextureKey(type) {
-    return getTowerTextureKey(type);
-  }
-
-  canPlaceTowerAt(x, y) {
-    return this.towerSystem.canPlaceTowerAt(x, y);
-  }
-
-  getNextUpgradeCost(tower) {
-    return this.towerSystem.getNextUpgradeCost(tower);
-  }
-
-  applyTowerTier(tower, tierIndex) {
-    this.towerSystem.applyTowerTier(tower, tierIndex);
-  }
-
-  tryUpgradeTower(tower) {
-    return this.towerSystem.tryUpgradeTower(tower);
-  }
-
-  tryPlaceTowerAt(x, y) {
-    return this.towerSystem.tryPlaceTowerAt(x, y);
-  }
-
-  trySellTower(tower) {
-    return this.towerSystem.trySellTower(tower);
-  }
-
-  cycleTargetMode(tower) {
-    this.towerSystem.cycleTargetMode(tower);
-  }
-
-  spawnEnemyOfType(typeKey, opts = {}) {
-    return this.enemySystem.spawn(typeKey, opts);
   }
 
   recordEnemyLeak(enemy) {
@@ -841,15 +704,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   publishRunTelemetry() {
-    const snapshot = Telemetry.snapshotRunTelemetry(this.runTelemetry);
-    if (!snapshot) return;
-    const archive = Telemetry.updateTelemetryArchive(
-      storage.read(STORAGE_KEYS.balanceTelemetry),
-      snapshot
-    );
-    storage.write(STORAGE_KEYS.balanceTelemetry, JSON.stringify(archive));
-    window.defenseProtocolTelemetry = snapshot;
-    window.defenseProtocolTelemetryRuns = archive.runs;
+    publishTelemetryArchive({ storage, telemetry: this.runTelemetry });
   }
 
   recordBalanceCheckpoints(firstWave, lastWave) {
