@@ -44,11 +44,16 @@ test("preferences preserve public storage keys and normalize inputs", () => {
   assert.equal(normalizeDifficultyKey("impossible"), "easy");
 });
 
-test("storage gateway isolates unavailable or throwing browser storage", () => {
+test("storage gateway isolates unavailable storage and mirrors successful writes", async () => {
   const memory = createMemoryStorage();
-  const storage = createStorageGateway(memory);
+  const mirrored = [];
+  const storage = createStorageGateway(memory, {
+    writeThrough: async (key, value) => mirrored.push([key, value]),
+  });
   assert.equal(storage.write("key", "value"), true);
   assert.equal(storage.read("key"), "value");
+  await Promise.resolve();
+  assert.deepEqual(mirrored, [["key", "value"]]);
 
   const unavailable = createStorageGateway({
     getItem() {

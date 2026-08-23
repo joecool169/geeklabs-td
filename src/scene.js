@@ -32,8 +32,11 @@ import { TowerSystem, attachTowerSystem } from "./systems/TowerSystem.js";
 import { EnemySystem, attachEnemySystem } from "./systems/EnemySystem.js";
 import { CombatSystem } from "./systems/CombatSystem.js";
 import { WaveSystem, attachWaveSystem } from "./systems/WaveSystem.js";
+import { persistNativePreference } from "./platform/nativeRuntime.js";
 
-const storage = createStorageGateway();
+const storage = createStorageGateway(globalThis.localStorage, {
+  writeThrough: persistNativePreference,
+});
 const SFX_CONFIG = {
   place: { url: "/sfx/place.wav", volume: 0.26 },
   upgrade: { url: "/sfx/upgrade.wav", volume: 0.26 },
@@ -546,6 +549,18 @@ export class GameScene extends Phaser.Scene {
 
   hidePauseMenu() {
     this.overlays?.hidePause();
+  }
+
+  handleAppInactive() {
+    if (this.isStartScreenActive || this.isGameOver || this.isPaused) {
+      return false;
+    }
+    this.setPaused(true);
+    return true;
+  }
+
+  handleAppActive() {
+    this.scale?.refresh();
   }
 
   triggerLifeLossFeedback() {

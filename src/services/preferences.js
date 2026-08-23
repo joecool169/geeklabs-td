@@ -10,7 +10,10 @@ const STORAGE_KEYS = Object.freeze({
   balanceTelemetry: "defense_protocol_balance_telemetry_v2",
 });
 
-function createStorageGateway(storage = globalThis.localStorage) {
+function createStorageGateway(
+  storage = globalThis.localStorage,
+  { writeThrough } = {}
+) {
   return {
     read(key) {
       try {
@@ -24,6 +27,9 @@ function createStorageGateway(storage = globalThis.localStorage) {
         storage?.setItem(key, value);
       } catch {
         return false;
+      }
+      if (typeof writeThrough === "function") {
+        Promise.resolve(writeThrough(key, String(value))).catch(() => {});
       }
       return true;
     },

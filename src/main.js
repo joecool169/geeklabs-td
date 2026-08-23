@@ -1,6 +1,10 @@
 import "./style.css";
 import Phaser from "phaser";
 import { GameScene } from "./scene.js";
+import {
+  bindNativeAppLifecycle,
+  hydrateNativePreferences,
+} from "./platform/nativeRuntime.js";
 
 const forceTouchUi = new URLSearchParams(window.location.search).get("touch") === "1";
 const prefersTouchUi =
@@ -28,4 +32,14 @@ const config = {
   scene: [GameScene],
 };
 
-new Phaser.Game(config);
+async function startGame() {
+  await hydrateNativePreferences();
+  const game = new Phaser.Game(config);
+  const unbindLifecycle = await bindNativeAppLifecycle({
+    onInactive: () => game.scene.getScene("GameScene")?.handleAppInactive?.(),
+    onActive: () => game.scene.getScene("GameScene")?.handleAppActive?.(),
+  });
+  window.addEventListener("beforeunload", unbindLifecycle, { once: true });
+}
+
+void startGame();
