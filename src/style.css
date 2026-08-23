@@ -900,6 +900,17 @@ html.touch-ui .is-gameover .game-overlay-panel {
   overflow-y: auto;
   padding: 22px;
 }
+html.touch-ui .game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  box-sizing: border-box;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    max(8px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom))
+    max(8px, env(safe-area-inset-left));
+}
 html.touch-ui .game-overlay-button,
 html.touch-ui .difficulty-option,
 html.touch-ui .game-overlay-input {

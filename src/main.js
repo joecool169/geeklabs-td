@@ -3,7 +3,9 @@ import Phaser from "phaser";
 import { GameScene } from "./scene.js";
 
 const forceTouchUi = new URLSearchParams(window.location.search).get("touch") === "1";
-const prefersTouchUi = window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
+const prefersTouchUi =
+  window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches ||
+  window.matchMedia?.("(any-pointer: coarse)")?.matches;
 document.documentElement.classList.toggle(
   "touch-ui",
   forceTouchUi || !!prefersTouchUi
