@@ -358,12 +358,13 @@ class OverlayManager {
     if (!this.host) return false;
     const { panel } = this.mount(
       "defense-protocol-pause-overlay",
-      "pause"
+      "pause",
+      "is-pause"
     );
     const title = element("div", "game-overlay-title", "PAUSED");
     const detail = element(
       "div",
-      "game-overlay-detail",
+      "game-overlay-detail desktop-instruction",
       "P / ESC TO RESUME"
     );
     const buttons = element("div", "game-overlay-actions");
@@ -373,6 +374,8 @@ class OverlayManager {
     const restart = makeButton("Restart", "primary");
     const change = makeButton("Change name / difficulty", "neutral");
     const sound = makeButton("", "neutral");
+    resume.classList.add("is-resume");
+    controls.classList.add("is-keyboard-controls");
     let isSoundEnabled = soundEnabled !== false;
     const renderSoundButton = () => {
       sound.textContent = `Sound: ${isSoundEnabled ? "On" : "Off"}`;

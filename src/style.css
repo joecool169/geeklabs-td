@@ -1116,4 +1116,29 @@ html.touch-ui .game-overlay-input {
     min-height: 44px;
     padding-block: 8px;
   }
+  html.touch-ui .game-overlay-panel.is-pause {
+    width: min(82vw, 540px);
+    max-height: calc(100dvh - 12px);
+    padding: 14px 18px;
+  }
+  html.touch-ui .game-overlay-panel.is-pause .game-overlay-brand,
+  html.touch-ui .game-overlay-panel.is-pause .is-keyboard-controls {
+    display: none;
+  }
+  html.touch-ui .game-overlay-panel.is-pause .game-overlay-title {
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  html.touch-ui .game-overlay-panel.is-pause .game-overlay-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 0;
+  }
+  html.touch-ui .game-overlay-panel.is-pause .game-overlay-button {
+    min-height: 44px;
+    padding: 8px 10px;
+  }
+  html.touch-ui .game-overlay-panel.is-pause .is-resume {
+    grid-column: 1 / -1;
+  }
 }
