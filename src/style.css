@@ -879,7 +879,7 @@ html.touch-ui #touch-controls {
 }
 html.touch-ui #touch-tower-actions:not([hidden]) {
   display: grid;
-  grid-template-columns: minmax(90px, 1.2fr) repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(190px, 1.4fr) repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 7px;
   border: 1px solid #263a54;
@@ -952,12 +952,27 @@ html.touch-ui .tower-card-meta {
 html.touch-ui .tower-card .keycap {
   display: none !important;
 }
+html.touch-ui #touch-tower-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 10px;
+}
 html.touch-ui #touch-tower-name {
   display: flex;
   align-items: center;
-  padding: 0 10px;
   color: #f1f6ff;
   font: 700 13px/1.2 "Trebuchet MS", "Segoe UI", sans-serif;
+}
+html.touch-ui #touch-tower-stats {
+  overflow: hidden;
+  color: rgba(219, 231, 255, 0.7);
+  font: 700 9px/1.2 monospace;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 html.touch-ui #touch-tower-actions .touch-control {
   display: grid;
@@ -1009,10 +1024,10 @@ html.touch-ui .game-overlay-input {
   html.touch-ui #touch-tower-actions:not([hidden]) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  html.touch-ui #touch-tower-name {
+  html.touch-ui #touch-tower-summary {
     grid-column: 1 / -1;
     min-height: 30px;
-    justify-content: center;
+    align-items: center;
   }
 }
 @media (orientation: landscape) and (max-height: 600px) {
@@ -1052,10 +1067,10 @@ html.touch-ui .game-overlay-input {
     gap: 7px;
     padding: 7px;
   }
-  html.touch-ui #touch-tower-name {
+  html.touch-ui #touch-tower-summary {
     grid-column: 1 / -1;
     min-height: 28px;
-    justify-content: center;
+    align-items: center;
   }
   html.touch-ui #bottom-bar {
     grid-column: 2;

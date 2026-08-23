@@ -18,6 +18,12 @@ function formatHudText(snapshot) {
   ].join("   •   ");
 }
 
+function formatTouchTowerStats(tower) {
+  const shotsPerSecond = 1000 / tower.fireMs;
+  const dps = tower.damage * shotsPerSecond;
+  return `DMG ${tower.damage}  •  RNG ${tower.range}  •  RATE ${round1(shotsPerSecond)}/s  •  DPS ${round1(dps)}`;
+}
+
 function showToast(scene, msg, ms = 2400) {
   scene.toast.setText(msg);
   scene.toast.setVisible(true);
@@ -355,6 +361,9 @@ function updateUI(scene) {
   if (scene.touchTowerNameEl) {
     scene.touchTowerNameEl.textContent = `${def.name} T${t.tier}`;
   }
+  if (scene.touchTowerStatsEl) {
+    scene.touchTowerStatsEl.textContent = formatTouchTowerStats(t);
+  }
   if (scene.touchTargetValueEl) scene.touchTargetValueEl.textContent = targetLabel;
   if (scene.touchUpgradeValueEl) scene.touchUpgradeValueEl.textContent = nextText;
   if (scene.touchSellValueEl) scene.touchSellValueEl.textContent = `$${refund}`;
@@ -414,4 +423,4 @@ class HudController {
   }
 }
 
-export { HudController, formatHudText };
+export { HudController, formatHudText, formatTouchTowerStats };

@@ -35,6 +35,7 @@ class GameDomView {
       touchPauseBtnEl: root.getElementById("touch-pause"),
       touchTowerActionsEl: root.getElementById("touch-tower-actions"),
       touchTowerNameEl: root.getElementById("touch-tower-name"),
+      touchTowerStatsEl: root.getElementById("touch-tower-stats"),
       touchTargetBtnEl: root.getElementById("touch-target"),
       touchTargetValueEl: root.getElementById("touch-target-value"),
       touchUpgradeBtnEl: root.getElementById("touch-upgrade"),
