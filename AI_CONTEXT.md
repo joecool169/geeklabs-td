@@ -12,14 +12,14 @@ The repository contains the committed coordinated balance pass. Basic remains un
 
 Forgejo is the authoritative remote. GitHub is maintained as a secondary mirror. Git is the sole source of truth; optional ZIP exports are disposable transport artifacts.
 
-Validation on this baseline:
+Validation on the v0.4.1 refactor release:
 
-- `npm test`: 36/36 tests pass
+- `npm test`: 54/54 tests pass
 - `npm run build`: passes with Vite 7.3.6
 - `npm audit`: zero known vulnerabilities
 - `git diff --check`: passes
 
-The v0.4.0 specialist progression passed its controlled comparison and is the reviewed production release.
+The v0.4.0 specialist progression passed its controlled comparison. v0.4.1 preserves those balance values while completing final telemetry persistence and the staged architecture refactor.
 
 Seeded per-wave composition and automatic balance checkpoints are implemented for the controlled Hard-mode comparisons. Use the same `seed` and distinct `run` query parameters as documented in `docs/context/BALANCE_TESTING.md`.
 
@@ -59,7 +59,16 @@ The controlled Hard comparison used the same `specialists-v0.4.0` seed. Basic-he
 
 Rapid led specialist contribution through Wave 45 with 492,150 damage and 1,216 kills. The eight-wave survival improvement validates the current progression, so v0.4.0 is accepted without further balance adjustment.
 
-Telemetry v2 records checkpoints through Wave 50 plus damage, kills, and invested capital by tower type. It does not yet persist the final partial-wave state at game over; adding that snapshot is the immediate telemetry follow-up.
+Telemetry v2 records checkpoints through Wave 50 plus damage, kills, invested capital by tower type, and the final partial-wave state at game over.
+
+## Current architecture
+
+- `RunState` and `RunController` own run transitions and economy/score mutations.
+- `WaveSystem`, `TowerSystem`, `EnemySystem`, `CombatSystem`, and `ProjectileSystem` own gameplay runtime behavior.
+- `WorldRenderer`, `HudController`, `GameDomView`, and `OverlayManager` own presentation concerns.
+- `InputController` maps keyboard and pointer devices into semantic game actions suitable for a future touch adapter.
+- Preferences, query options, leaderboard access, and telemetry publication are isolated browser-facing services.
+- `GameScene` coordinates Phaser lifecycle and the systems; runtime helpers no longer use scene-bound `.call(this)` dispatch.
 
 ## Operating rules
 

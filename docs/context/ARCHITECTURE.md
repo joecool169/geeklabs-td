@@ -9,30 +9,33 @@
 - `src/main.js` imports `src/style.css` and creates one Phaser game using a `1080 × 730` logical canvas with `Phaser.Scale.FIT`.
 - `src/scene.js` defines the primary `GameScene` and remains the orchestration center.
 
-### Extracted modules
+### Runtime boundaries
 
-- `src/constants.js` — tower and enemy definitions, unlocks, target modes, shared helpers
-- `src/game/config.js` — grid, UI reservation, wave concurrency, and difficulty configuration
-- `src/game/utils.js` — geometry and placement utilities
-- `src/game/bullets.js` — deterministic projectile behavior and projectile visual signatures
-- `src/game/enemies.js` — spawn, scaling, movement, targeting, enemy visuals, and health indicators
-- `src/game/towers.js` — tier, upgrade, sell, and targeting-cycle helpers
-- `src/game/waves.js` — wave calculation, progression composition, intermission, spawn, and completion state
-- `src/game/ui.js` — DOM UI helper behavior and contextual state rendering
-- `src/game/random.js` — stable seed normalization and independent per-wave random streams
-- `src/game/telemetry.js` — controlled-run checkpoint collection and tower summaries
+- `src/core/RunState.js` and `RunController.js` — run state, economy, scoring, pause, lives, and terminal transitions
+- `src/systems/WaveSystem.js` — intermissions, concurrent spawners, seeded composition, wave input, and clear rewards
+- `src/systems/TowerSystem.js` — placement, selection, upgrades, selling, unlocks, and target-mode cycling
+- `src/systems/EnemySystem.js` — spawning, movement, rewards, targeting queries, health visuals, and leaks
+- `src/systems/CombatSystem.js` and `ProjectileSystem.js` — firing, projectile lifecycle, laser locks/piercing, damage, kills, and combat telemetry
+- `src/presentation/WorldRenderer.js` — map/path rendering, procedural textures, range overlays, and placement geometry
+- `src/input/InputController.js` and `actions.js` — keyboard/pointer events mapped to semantic game actions
+- `src/ui/GameDomView.js` and `OverlayManager.js` — persistent DOM panels and start/pause/results overlays
+- `src/game/ui.js` (`HudController`) — Phaser HUD, wave hints, transitions, and sidebar projection
+- `src/services/` — preferences/storage, run query options, leaderboard I/O, and telemetry archive publication
+
+Pure definitions and calculations remain under `src/constants.js` and `src/game/`. `src/scene.js` coordinates Phaser lifecycle and the explicit systems.
 
 ### Tests
 
-- `npm test` runs Node's built-in test runner.
-- `test/progression.test.js` protects unlock milestones, enemy introduction waves, composition ramps, Runner pack progression, seeded runtime spawning, and telemetry summaries.
+- `npm test` runs Node's built-in test runner; the current suite has 54 tests.
+- Focused system/service tests cover run state, input, world presentation, towers, enemies, combat, waves, preferences, leaderboard access, and telemetry publication.
+- `test/progression.test.js` continues to protect all accepted balance and deterministic-composition invariants.
 
 ### Current strengths
 
 - Core definitions are data-driven.
 - Responsive page CSS is separated from HTML and uses centralized custom properties.
 - Phaser FIT scaling and the compact stage rule preserve pointer mapping.
-- Gameplay helpers have begun moving out of the scene.
+- Gameplay runtime responsibilities have explicit owners and dependencies.
 - Projectiles are manually resolved rather than depending on unstable physics overlap behavior.
 - Difficulty multipliers are centralized.
 - The sidebar is contextual rather than duplicating tower selection.
@@ -41,12 +44,9 @@
 
 ### Current weaknesses
 
-- `src/scene.js` is still a large multi-responsibility file.
-- DOM overlay creation and styling remain partly embedded in JavaScript.
-- Input handling is tied directly to keys and pointer events instead of semantic game commands.
+- `src/scene.js` still creates Phaser HUD/effect objects and coordinates menus; further reduction should be driven by touch/mobile needs, not code movement alone.
 - The desktop control legend is not yet a reusable touch-control surface.
-- Web API calls and leaderboard presentation are coupled to the scene.
-- There is no explicit platform abstraction for browser versus native lifecycle/storage/services.
+- Browser services are isolated, but a native adapter and application lifecycle bridge do not exist yet.
 - Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
 
 ## Current layout behavior
@@ -70,52 +70,41 @@
 - portrait phone: compact HUD, scaled playfield, horizontal tower carousel, contextual action bar
 - mobile must not depend on hover, right-click, or keyboard shortcuts
 
-## Approved target direction
-
-The refactor should prepare one shared codebase for web and mobile. It should not become a full rewrite.
-
-A reasonable target organization remains:
+## Implemented organization
 
 ```text
 src/
 ├── main.js
-├── scenes/
-│   ├── BootScene.js
-│   ├── MenuScene.js
-│   ├── GameScene.js
-│   └── ResultsScene.js
+├── scene.js
+├── core/
+│   ├── RunState.js
+│   └── RunController.js
 ├── systems/
 │   ├── WaveSystem.js
 │   ├── TowerSystem.js
 │   ├── EnemySystem.js
 │   ├── ProjectileSystem.js
-│   ├── EconomySystem.js
-│   └── ScoreSystem.js
+│   └── CombatSystem.js
+├── presentation/
+│   └── WorldRenderer.js
 ├── ui/
-│   ├── Hud.js
-│   ├── TowerBar.js
-│   ├── TowerActions.js
-│   ├── PauseMenu.js
-│   └── ResultsPanel.js
+│   ├── GameDomView.js
+│   └── OverlayManager.js
 ├── input/
 │   ├── InputController.js
-│   ├── KeyboardInput.js
-│   └── PointerInput.js
-├── platform/
-│   ├── PlatformService.js
-│   ├── WebPlatform.js
-│   └── NativePlatform.js
-└── data/
-    ├── towers.js
-    ├── enemies.js
-    └── difficulties.js
+│   └── actions.js
+├── services/
+│   ├── preferences.js
+│   ├── runOptions.js
+│   ├── leaderboard.js
+│   └── telemetryArchive.js
+└── game/
+    └── pure calculations and HUD projection
 ```
 
-This is a direction, not an instruction to move every file at once.
+## Input architecture
 
-## Input architecture goal
-
-Game code should consume semantic commands rather than raw device events:
+Game code consumes semantic commands rather than raw device events:
 
 - `SELECT_TOWER`
 - `ENTER_PLACEMENT`

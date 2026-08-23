@@ -60,4 +60,4 @@ At Wave 45 the two builds had nearly identical investment: $8,975 Basic-heavy ve
 
 The eight-wave survival gain validates the specialist progression. Rapid led specialist contribution through Wave 45 with 492,150 damage and 1,216 kills. No additional balance adjustment was selected.
 
-The archive currently persists completed checkpoints rather than the final partial wave. The game-over results above are therefore authoritative for the final Wave 46 and Wave 54 outcomes; final-snapshot persistence is the next telemetry improvement.
+The archive now persists a `final` snapshot at game over in addition to completed checkpoints. The accepted Wave 46 and Wave 54 results above predate that addition and remain the authoritative comparison record.

@@ -5,19 +5,19 @@ Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
 
-Current reviewed release: **v0.4.0 specialist progression**
+Current reviewed release: **v0.4.1 architecture refactor**, preserving the accepted v0.4.0 balance
 
 ## Repository and validation
 
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
-- Forgejo and GitHub contain the v0.4.0 specialist-progression implementation.
-- `npm test` passes with **36/36 tests**.
+- Forgejo is authoritative and GitHub mirrors the reviewed main revision.
+- `npm test` passes with **54/54 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- Production serves tag `v0.4.0` from commit `86dfc0b`; deployment checksum parity was verified.
-- The live page reports v0.4.0 and loads `assets/index-CtGVMpA2.js`.
+- The v0.4.1 deployment is built from a clean committed revision and verified by checksum dry run.
+- The live page reports v0.4.1.
 
 ## Current gameplay baseline
 
@@ -72,11 +72,20 @@ The two Hard runs used seed `specialists-v0.4.0` with no balance changes between
 
 The five-wave preparation windows and preferred targeting established a meaningful specialist advantage without nerfing Basic or reducing income. Rapid produced the most specialist damage and kills, resolving its prior lack of value. The v0.4.0 balance is accepted; no further tower-stat correction is currently justified.
 
+## Architecture state
+
+- GameScene is the Phaser lifecycle/orchestration boundary.
+- Run, wave, tower, enemy, combat, projectile, world presentation, input, HUD, DOM overlays, leaderboard, preferences, query options, and telemetry publication have explicit owners.
+- Runtime modules no longer depend on scene-bound `.call(this)` dispatch.
+- Final partial-wave telemetry is persisted at game over.
+- The staged refactor contains no balance changes.
+
 ## Next step
 
-1. Persist a final telemetry snapshot at game over; the current archive retains the last completed checkpoint but omits the final partial wave.
-2. Begin the staged architecture inventory and refactor described in `ROADMAP.md`.
-3. Leave v0.4.0 balance values unchanged until new playtest evidence identifies a specific problem.
+1. Add touch-friendly controls using the existing semantic action layer.
+2. Validate safe areas and touch target sizing across phone/tablet layouts.
+3. Build an early Capacitor iOS proof of concept after the touch surface works in the browser.
+4. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
 
 ## Source-of-truth workflow
 

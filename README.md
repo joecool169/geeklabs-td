@@ -6,7 +6,7 @@ A live version is hosted at <https://td.geekstreet.tv>.
 
 ## Current direction
 
-The project now has a coherent responsive desktop/laptop presentation and is moving through balance/progression validation before a staged mobile-readiness refactor.
+The project has completed its behavior-preserving architecture refactor after validating the v0.4.0 balance. The next product phase is touch-ready UI and an early iOS wrapper proof of concept.
 
 Design priorities:
 
@@ -33,6 +33,8 @@ Design priorities:
 - start, pause, wave-state, and game-over presentation
 - regression tests for progression milestones
 - seeded wave composition and automatic balance-run checkpoints
+- final game-over telemetry snapshots, including partial failure waves
+- explicit wave, tower, enemy, combat, projectile, run-state, input, UI, and platform-service boundaries
 - static deployment through Nginx
 
 ## Progression milestones

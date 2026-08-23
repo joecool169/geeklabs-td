@@ -1,12 +1,20 @@
 # Decision Log
 
+## 2026-08-22 — Complete the behavior-preserving architecture refactor
+
+**Decision:** Release the staged refactor as v0.4.1 without changing the accepted v0.4.0 balance.
+
+**Result:** Final partial-wave telemetry now persists at game over. Run state, semantic input, overlays, browser services, world rendering, towers, enemies, projectiles, combat, waves, and HUD presentation have explicit owners. Each slice was independently tested and committed.
+
+**Next phase:** Build touch controls on the semantic action layer, then use that browser-validated surface for an early Capacitor iOS proof of concept.
+
 ## 2026-08-22 — Accept v0.4.0 specialist progression
 
 **Decision:** Accept the five-wave specialist progression and preferred-targeting balance without another tower-stat adjustment, and release v0.4.0.
 
 **Evidence:** Under the same `specialists-v0.4.0` seed on Hard, Basic-heavy failed on Wave 46 while mixed specialists failed on Wave 54. First leak moved from Wave 40 to Wave 48. At Wave 45, mixed specialists retained 20 lives with $8,895 invested while Basic-heavy had 9 lives with $8,975 invested. Rapid led specialist contribution with 492,150 damage and 1,216 kills through that checkpoint.
 
-**Follow-up:** Persist the final partial-wave state at game over. The v2 archive currently retains the most recent completed checkpoint, so the final result screen remains the authority for failure-wave totals.
+**Follow-up completed in v0.4.1:** The v2 archive now retains the final partial-wave state at game over.
 
 ## 2026-08-22 — Establish five-wave specialist preparation windows
 

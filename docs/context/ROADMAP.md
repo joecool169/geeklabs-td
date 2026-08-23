@@ -10,21 +10,19 @@ The controlled v0.4.0 Hard comparison validated the 10/15/20/25/30/35 cadence an
 
 The v0.4.0 balance is accepted. Preserve `v0.3.0-balance-checkpoint` as the earlier baseline and do not change tower values without new evidence.
 
-## Phase 3 — Telemetry completion and staged refactor — current
+## Phase 3 — Telemetry completion and staged refactor — completed
 
-- persist a final run snapshot at game over, including the failure wave and final totals
-- document scene responsibilities and invariants
-- extract one responsibility at a time from `src/scene.js`
-- separate leaderboard networking/storage from scene rendering
-- move overlay creation toward reusable UI modules
-- centralize run state where practical
-- keep each refactor behavior-preserving and independently committed
-- do not mix code movement with balancing
+- final run snapshots now persist the failure wave and final totals
+- run transitions are centralized in `RunState` and `RunController`
+- wave, tower, enemy, projectile, combat, world-rendering, input, HUD, and overlay responsibilities have explicit owners
+- storage, query options, leaderboard access, and telemetry publication are isolated services
+- each behavior-preserving slice was tested, built, smoke-tested, and committed independently
+- v0.4.0 balance values were preserved
 
-## Phase 4 — Unified input and touch-ready UI
+## Phase 4 — Touch-ready UI — current
 
-- introduce semantic game actions
-- map keyboard and mouse into the action layer
+- semantic game actions are implemented
+- keyboard and mouse map through the action layer
 - add touch-friendly controls and contextual actions
 - remove dependence on right-click and hover
 - ensure useful touch target sizes and safe-area spacing
