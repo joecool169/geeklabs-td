@@ -8,7 +8,6 @@ import {
 import { dist2, segCircleHit } from "./game/utils.js";
 import * as Bullets from "./game/bullets.js";
 import * as Balance from "./game/balance.js";
-import * as Enemies from "./game/enemies.js";
 import * as UI from "./game/ui.js";
 import * as Waves from "./game/waves.js";
 import * as Telemetry from "./game/telemetry.js";
@@ -37,6 +36,7 @@ import {
   pointToSegmentDistance,
 } from "./presentation/WorldRenderer.js";
 import { TowerSystem, attachTowerSystem } from "./systems/TowerSystem.js";
+import { EnemySystem, attachEnemySystem } from "./systems/EnemySystem.js";
 
 const storage = createStorageGateway();
 const SFX_CONFIG = {
@@ -115,8 +115,6 @@ export class GameScene extends Phaser.Scene {
       })
     );
     this.runController = new RunController(this.runState);
-    this.enemyRewardRoundingCarry = Enemies.createEnemyRewardCarry();
-
     this.wave = 1;
     this.waveState = "intermission";
     this.waveEnemiesTotal = 0;
@@ -150,7 +148,24 @@ export class GameScene extends Phaser.Scene {
         runController: this.runController,
       })
     );
-    this.enemies = this.physics.add.group();
+    attachEnemySystem(
+      this,
+      new EnemySystem({
+        scene: this,
+        path: this.path,
+        runController: this.runController,
+        getWave: () => this.wave,
+        getDifficulty: () => this.difficulty,
+        onSpawn: (enemy) =>
+          Telemetry.recordEnemySpawn(this.runTelemetry, enemy?.typeKey),
+        onLeak: (enemy) => this.recordEnemyLeak(enemy),
+        onLifeLost: () => {
+          this.triggerLifeLossFeedback();
+          this.playSfx("life");
+        },
+        onGameOver: () => this.triggerGameOver(),
+      })
+    );
     this.bullets = this.physics.add.group();
 
     this.ui = this.add.text(14, 12, "", {
@@ -295,6 +310,8 @@ export class GameScene extends Phaser.Scene {
       this.inputController = null;
       this.towerSystem?.destroy();
       this.towerSystem = null;
+      this.enemySystem?.destroy();
+      this.enemySystem = null;
       this.worldRenderer?.destroy();
       this.worldRenderer = null;
     });
@@ -716,17 +733,13 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       if (time < t.nextShotAt) continue;
-      const target = Enemies.findTarget.call(this, t, t.targetMode);
+      const target = this.enemySystem.findTarget(t, t.targetMode);
       if (!target) continue;
       t.nextShotAt = time + t.fireMs;
       Bullets.fireBullet.call(this, t, target);
     }
 
-    this.enemies.children.iterate((e) => {
-      if (!e) return;
-      Enemies.advanceEnemy.call(this, e, dt);
-      Enemies.updateEnemyVisual(e);
-    });
+    this.enemySystem.update(dt);
 
     this.updateWaveSpawning(time);
     Telemetry.observeActiveEnemies(
@@ -899,9 +912,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnEnemyOfType(typeKey, opts = {}) {
-    const enemy = Enemies.spawnEnemyOfType.call(this, typeKey, opts);
-    Telemetry.recordEnemySpawn(this.runTelemetry, enemy?.typeKey);
-    return enemy;
+    return this.enemySystem.spawn(typeKey, opts);
   }
 
   recordEnemyLeak(enemy) {
@@ -950,7 +961,7 @@ export class GameScene extends Phaser.Scene {
       dist2(tower.x, tower.y, tower.lockTarget.x, tower.lockTarget.y) <= range2;
 
     if (!hasTarget) {
-      const nextTarget = Enemies.findTarget.call(this, tower, tower.targetMode);
+      const nextTarget = this.enemySystem.findTarget(tower, tower.targetMode);
       if (!nextTarget) {
         tower.lockTarget = null;
         tower.lockMs = 0;

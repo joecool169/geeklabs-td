@@ -677,9 +677,9 @@ test("preferred targeting falls back to First when its enemy is absent", () => {
   };
   const tower = { type: "rapid", x: 0, y: 0, range: 200 };
 
-  assert.equal(findTarget.call(scene, tower, "preferred"), sprinter);
+  assert.equal(findTarget(scene, tower, "preferred"), sprinter);
   scene.enemies.children.iterate = (callback) => [runner].forEach(callback);
-  assert.equal(findTarget.call(scene, tower, "preferred"), runner);
+  assert.equal(findTarget(scene, tower, "preferred"), runner);
 });
 
 test("telemetry archive keeps separately labeled comparison runs", () => {

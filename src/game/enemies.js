@@ -4,7 +4,6 @@ import {
   ENEMY_HP_SCALING,
   TOWER_DEFS,
 } from "../constants.js";
-import { DIFFICULTY_CONFIG } from "./config.js";
 import { dist2 } from "./utils.js";
 
 const ENEMY_DEPTH = 20;
@@ -198,95 +197,24 @@ function computeEnemyReward(def, waveNumber, difficulty, roundingCarry = 0) {
   };
 }
 
-function spawnEnemyOfType(typeKey, opts = {}) {
-  const def = ENEMY_DEFS[typeKey] || ENEMY_DEFS.runner;
-  const start = this.path[0];
-  const e = this.physics.add.image(start.x, start.y, getEnemyTextureKey(def.key));
-  e.setDepth(ENEMY_DEPTH);
-  e.setCollideWorldBounds(false);
-  e.body.setAllowGravity(false);
-  const w = Math.max(1, opts.waveNumber ?? this.wave);
-  const difficulty = this.difficulty || DIFFICULTY_CONFIG.easy;
-  const spMul = (1 + (w - 1) * (def.scaleSpeedPerWave ?? 0.02)) * difficulty.enemySpeedMul;
-  e.typeKey = def.key;
-  e.setTint(def.tint);
-  e.hp = computeEnemyHp(def, w, difficulty);
-  e.maxHp = e.hp;
-  e.speed = Math.floor(def.baseSpeed * spMul);
-  e.armor = def.armor || 0;
-  this.enemyRewardRoundingCarry ??= createEnemyRewardCarry();
-  const rewardResult = computeEnemyReward(
-    def,
-    w,
-    difficulty,
-    this.enemyRewardRoundingCarry[def.key] ?? 0
-  );
-  e.reward = rewardResult.reward;
-  this.enemyRewardRoundingCarry[def.key] = rewardResult.roundingCarry;
-  e.scoreWeight = def.scoreWeight ?? 1;
-  e.waveNumber = w;
-  e.pathIndex = 0;
-  e.isSwarm = !!opts.isSwarm;
-  e.healthIndicator = this.add.graphics();
-  e.healthIndicator.setDepth(ENEMY_HEALTH_DEPTH);
-  e.healthIndicator.setVisible(false);
-  e.once("destroy", () => {
-    if (e.healthIndicator?.active) e.healthIndicator.destroy();
-    e.healthIndicator = null;
-  });
-  updateEnemyVisual(e);
-  this.enemies.add(e);
-  return e;
-}
-
-function advanceEnemy(e, dt) {
+function enemyProgressScore(path, e) {
   const i = e.pathIndex;
-  if (i >= this.path.length - 1) {
-    if (this.recordEnemyLeak) this.recordEnemyLeak(e);
-    e.destroy();
-    const shouldEndRun = this.runController
-      ? this.runController.loseLife()
-      : ((this.lives -= 1), this.lives <= 0);
-    if (this.triggerLifeLossFeedback) this.triggerLifeLossFeedback();
-    if (this.playSfx) this.playSfx("life");
-    if (shouldEndRun) this.triggerGameOver();
-    return;
-  }
-  const a = this.path[i];
-  const b = this.path[i + 1];
-  const vx = b.x - a.x;
-  const vy = b.y - a.y;
-  const len = Math.sqrt(vx * vx + vy * vy) || 1;
-  const ux = vx / len;
-  const uy = vy / len;
-  const move = (e.speed * dt) / 1000;
-  e.x += ux * move;
-  e.y += uy * move;
-  if (dist2(e.x, e.y, b.x, b.y) < 14 * 14) {
-    e.pathIndex += 1;
-    e.x = b.x;
-    e.y = b.y;
-  }
-}
-
-function enemyProgressScore(e) {
-  const i = e.pathIndex;
-  const next = this.path[Math.min(i + 1, this.path.length - 1)];
+  const next = path[Math.min(i + 1, path.length - 1)];
   const d = Math.sqrt(dist2(e.x, e.y, next.x, next.y));
   return i * 100000 - d;
 }
 
-function findTarget(tower, mode) {
+function findTarget({ path, enemies }, tower, mode) {
   if (mode === "preferred") {
     const preferredType = TOWER_DEFS[tower?.type]?.preferredTargetType;
     if (preferredType) {
       const r2 = tower.range * tower.range;
       let preferred = null;
       let preferredProgress = -Infinity;
-      this.enemies.children.iterate((enemy) => {
+      enemies.children.iterate((enemy) => {
         if (!enemy || enemy.typeKey !== preferredType) return;
         if (dist2(tower.x, tower.y, enemy.x, enemy.y) > r2) return;
-        const progress = enemyProgressScore.call(this, enemy);
+        const progress = enemyProgressScore(path, enemy);
         if (progress > preferredProgress) {
           preferredProgress = progress;
           preferred = enemy;
@@ -294,13 +222,13 @@ function findTarget(tower, mode) {
       });
       if (preferred) return preferred;
     }
-    return findTarget.call(this, tower, "first");
+    return findTarget({ path, enemies }, tower, "first");
   }
   const r2 = tower.range * tower.range;
   let best = null;
   let bestMetric = -Infinity;
   let bestArmor = -Infinity;
-  this.enemies.children.iterate((e) => {
+  enemies.children.iterate((e) => {
     if (!e) return;
     const d = dist2(tower.x, tower.y, e.x, e.y);
     if (d > r2) return;
@@ -322,7 +250,7 @@ function findTarget(tower, mode) {
     }
     if (mode === "armored") {
       const armor = e.armor ?? 0;
-      const progress = enemyProgressScore.call(this, e);
+      const progress = enemyProgressScore(path, e);
       if (armor > bestArmor || (armor === bestArmor && progress > bestMetric)) {
         bestArmor = armor;
         bestMetric = progress;
@@ -331,7 +259,7 @@ function findTarget(tower, mode) {
       return;
     }
     if (mode === "first") {
-      const m = enemyProgressScore.call(this, e);
+      const m = enemyProgressScore(path, e);
       if (m > bestMetric) {
         bestMetric = m;
         best = e;
@@ -349,8 +277,6 @@ export {
   computeEnemyHp,
   computeEnemyReward,
   createEnemyRewardCarry,
-  spawnEnemyOfType,
-  advanceEnemy,
   enemyProgressScore,
   findTarget,
 };
