@@ -17,9 +17,6 @@ import * as Telemetry from "./game/telemetry.js";
 import { normalizeRunSeed } from "./game/random.js";
 import { ENEMY_DEFS, TOWER_DEFS, WAVE_CADENCE } from "./constants.js";
 import {
-  compareLeaderboardEntries,
-  fetchGlobalLeaderboard,
-  readLocalLeaderboard,
   recordLocalScore,
   submitGlobalScore,
 } from "./services/leaderboard.js";
@@ -30,11 +27,10 @@ import {
   normalizePlayerName,
 } from "./services/preferences.js";
 import { readRunOptions } from "./services/runOptions.js";
+import { OverlayManager } from "./ui/OverlayManager.js";
+import { GameDomView } from "./ui/GameDomView.js";
 
 const storage = createStorageGateway();
-const BRAND_LOGO_URL = "/brand/defense-protocol.png";
-const BRAND_TITLE = "Defense Protocol";
-const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
 const RANGE_FILL_ALPHA = {
   selected: 0.035,
   valid: 0.04,
@@ -54,153 +50,6 @@ const SFX_CONFIG = {
   life: { url: "/sfx/life.wav", volume: 0.35 },
   gameover: { url: "/sfx/gameover.wav", volume: 0.45 },
 };
-const CONTROLS = [
-  { key: "T", action: "Toggle placement mode" },
-  { key: "Click", action: "Place tower" },
-  { key: "1 / 2 / 3 / 4", action: "Select tower" },
-  { key: "Space", action: "Start wave" },
-  { key: "U", action: "Upgrade (selected tower)" },
-  { key: "X", action: "Sell (selected tower)" },
-  { key: "F", action: "Target mode (selected tower)" },
-  { key: "P", action: "Pause" },
-];
-
-const renderLeaderboardEntries = (container, entries, currentEntry) => {
-  const isCurrentRun = (entry) => {
-    if (!currentEntry) return false;
-    return (
-      entry.dateISO === currentEntry.dateISO &&
-      Number(entry.score) === Number(currentEntry.score) &&
-      Number(entry.wave) === Number(currentEntry.wave) &&
-      Number(entry.kills) === Number(currentEntry.kills) &&
-      entry.name === currentEntry.name
-    );
-  };
-
-  container.innerHTML = "";
-
-  if (!entries.length) {
-    const empty = document.createElement("div");
-    empty.textContent = "No entries yet.";
-    empty.style.color = "#9fb2cc";
-    container.appendChild(empty);
-    return;
-  }
-
-  const headerRow = document.createElement("div");
-  headerRow.style.display = "grid";
-  headerRow.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
-  headerRow.style.columnGap = "6px";
-  headerRow.style.fontSize = "11px";
-  headerRow.style.color = "#9fb2cc";
-  headerRow.style.textTransform = "uppercase";
-  headerRow.style.letterSpacing = "0.04em";
-  ["#", "Name", "Score", "Wave", "Kills", "Difficulty"].forEach((label) => {
-    const cell = document.createElement("div");
-    cell.textContent = label;
-    headerRow.appendChild(cell);
-  });
-  container.appendChild(headerRow);
-
-  entries.forEach((entry, index) => {
-    const row = document.createElement("div");
-    row.style.display = "grid";
-    row.style.gridTemplateColumns = "24px 1.6fr 1fr 1fr 1fr 1.4fr";
-    row.style.columnGap = "6px";
-    row.style.alignItems = "center";
-    row.style.padding = "4px 0";
-    row.style.borderBottom = "1px solid rgba(43, 63, 94, 0.6)";
-    if (isCurrentRun(entry)) {
-      row.style.background = "rgba(64, 118, 200, 0.2)";
-      row.style.borderRadius = "6px";
-      row.style.padding = "4px 6px";
-    }
-
-    const name = entry.name || "Player";
-    const score = Number(entry.score) || 0;
-    const wave = Number(entry.wave) || 0;
-    const kills = Number(entry.kills) || 0;
-    const difficulty = entry.difficultyLabel || entry.difficultyKey || "-";
-
-    [index + 1, name, score, wave, kills, difficulty].forEach((value) => {
-      const cell = document.createElement("div");
-      cell.textContent = value;
-      row.appendChild(cell);
-    });
-    container.appendChild(row);
-  });
-};
-
-const renderLeaderboardMessage = (container, message) => {
-  container.innerHTML = "";
-  const text = document.createElement("div");
-  text.textContent = message;
-  text.style.color = "#9fb2cc";
-  container.appendChild(text);
-};
-
-const renderControlsList = (container) => {
-  container.innerHTML = "";
-  CONTROLS.forEach((control) => {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.justifyContent = "space-between";
-    row.style.gap = "10px";
-
-    const key = document.createElement("span");
-    key.textContent = control.key;
-    key.style.color = "#f0d7c0";
-    key.style.whiteSpace = "nowrap";
-
-    const action = document.createElement("span");
-    action.textContent = control.action;
-
-    row.appendChild(key);
-    row.appendChild(action);
-    container.appendChild(row);
-  });
-};
-
-const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
-  const entries = readLocalLeaderboard(storage, difficultyKey).sort(
-    compareLeaderboardEntries
-  );
-  renderLeaderboardEntries(container, entries, currentEntry);
-};
-
-const makeBrandHeader = () => {
-  const wrap = document.createElement("div");
-  wrap.style.display = "flex";
-  wrap.style.flexDirection = "column";
-  wrap.style.alignItems = "center";
-  wrap.style.marginBottom = "12px";
-
-  const logo = document.createElement("img");
-  logo.src = BRAND_LOGO_URL;
-  logo.alt = "Defense Protocol logo";
-  logo.style.width = "160px";
-  logo.style.height = "auto";
-  logo.style.marginBottom = "8px";
-
-  const title = document.createElement("div");
-  title.textContent = BRAND_TITLE;
-  title.style.fontSize = "18px";
-  title.style.fontWeight = "700";
-  title.style.color = "#f0d7c0";
-  title.style.letterSpacing = "0.03em";
-
-  const tagline = document.createElement("div");
-  tagline.textContent = BRAND_TAGLINE;
-  tagline.style.fontSize = "11px";
-  tagline.style.color = "#9fb2cc";
-  tagline.style.marginTop = "4px";
-
-  wrap.appendChild(logo);
-  wrap.appendChild(title);
-  wrap.appendChild(tagline);
-  return wrap;
-};
-
 export class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -219,10 +68,7 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     const overlayHost = this.game?.canvas?.parentElement;
-    if (overlayHost) {
-      const oldOverlay = overlayHost.querySelector("#defense-protocol-gameover-overlay");
-      if (oldOverlay) oldOverlay.remove();
-    }
+    this.overlays = new OverlayManager({ host: overlayHost, storage });
 
     this.playerName = normalizePlayerName(storage.read(STORAGE_KEYS.playerName));
     this.difficultyKey = normalizeDifficultyKey(
@@ -384,77 +230,33 @@ export class GameScene extends Phaser.Scene {
       this.sfx[key] = this.sound.add(key, { volume });
     });
     this.showHelp = storage.read(STORAGE_KEYS.helpOverlay) === "true";
-    this.controlsSelectedEl = document.getElementById("controls-selected");
-    this.controlsPlacementEl = document.getElementById("controls-placement");
-    this.selectedTowerPanelEl = document.getElementById("selected-tower-panel");
-    this.selectedTowerNameEl = document.getElementById("tower-name");
-    this.selectedTowerTargetEl = document.getElementById("tower-target");
-    this.selectedTowerDmgEl = document.getElementById("tower-dmg");
-    this.selectedTowerFireEl = document.getElementById("tower-fire");
-    this.selectedTowerRangeEl = document.getElementById("tower-range");
-    this.selectedTowerDpsEl = document.getElementById("tower-dps");
-    this.selectedTowerUpgradeEl = document.getElementById("tower-upgrade");
-    this.selectedTowerSellEl = document.getElementById("tower-sell");
-    this.selectedTowerUpgradeBtnEl = document.getElementById("tower-upgrade-btn");
-    this.selectedTowerSellBtnEl = document.getElementById("tower-sell-btn");
-    this.selectedTowerTargetBtnEl = document.getElementById("tower-target-btn");
-    this.buildTowerDefs = Object.values(TOWER_DEFS).sort((a, b) => Number(a.hotkey) - Number(b.hotkey));
-    this.placementContextEl = document.getElementById("placement-context");
-    this.placementTowerNameEl = document.getElementById("placement-tower-name");
-    this.placementTowerCostEl = document.getElementById("placement-tower-cost");
-    this.placementTowerRangeEl = document.getElementById("placement-tower-range");
-    this.placementValidityEl = document.getElementById("placement-validity");
-    this.towerStripEl = document.getElementById("tower-strip");
-    this.towerStripSlots = [];
-    if (this.towerStripEl) {
-      this.towerStripEl.innerHTML = "";
-      for (const def of this.buildTowerDefs) {
-        const card = document.createElement("div");
-        card.className = "tower-card";
-        card.dataset.towerKey = def.key;
-        const title = document.createElement("div");
-        title.className = "tower-card-title";
-        title.textContent = def.name;
-        const desc = document.createElement("div");
-        desc.className = "tower-card-desc";
-        desc.textContent = def.desc || "";
-        const meta = document.createElement("div");
-        meta.className = "tower-card-meta";
-        const metaText = document.createElement("span");
-        const keycap = document.createElement("span");
-        keycap.className = "keycap";
-        keycap.textContent = def.hotkey;
-        meta.appendChild(metaText);
-        meta.appendChild(keycap);
-        card.appendChild(title);
-        card.appendChild(desc);
-        card.appendChild(meta);
-        card.addEventListener("click", () => {
-          if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-          this.trySetPlaceType(def.key);
-        });
-        this.towerStripEl.appendChild(card);
-        this.towerStripSlots.push({ def, el: card, metaEl: metaText, keyEl: keycap, wasLocked: null });
-      }
-    }
-    if (this.selectedTowerUpgradeBtnEl) {
-      this.selectedTowerUpgradeBtnEl.addEventListener("click", () => {
+    this.buildTowerDefs = Object.values(TOWER_DEFS).sort(
+      (a, b) => Number(a.hotkey) - Number(b.hotkey)
+    );
+    this.domView = new GameDomView();
+    this.domView.bind({
+      towerDefs: this.buildTowerDefs,
+      onSelectTowerType: (type) => {
+        if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+        this.trySetPlaceType(type);
+      },
+      onUpgrade: () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
         this.tryUpgradeTower(this.selectedTower);
-      });
-    }
-    if (this.selectedTowerSellBtnEl) {
-      this.selectedTowerSellBtnEl.addEventListener("click", () => {
+      },
+      onSell: () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
         this.trySellTower(this.selectedTower);
-      });
-    }
-    if (this.selectedTowerTargetBtnEl) {
-      this.selectedTowerTargetBtnEl.addEventListener("click", () => {
+      },
+      onTarget: () => {
         if (!this.selectedTower || !this.towers.includes(this.selectedTower)) return;
         this.cycleTargetMode(this.selectedTower);
-      });
-    }
+      },
+    });
+    Object.assign(this, this.domView.refs);
+    this.towerStripSlots = this.domView.towerStripSlots;
+    this._uiCache = null;
+    this._towerStripWave = null;
     this.pauseText = this.add
       .text(540, 14, "", {
         fontFamily: "monospace",
@@ -667,9 +469,10 @@ export class GameScene extends Phaser.Scene {
     this.enterIntermission(true);
     this.events.once("shutdown", () => {
       UI.clearTransitionBanner.call(this);
-      this.hidePauseMenu();
-      const host = this.game?.canvas?.parentElement;
-      host?.querySelector("#defense-protocol-gameover-overlay")?.remove();
+      this.overlays?.destroy();
+      this.overlays = null;
+      this.domView?.destroy();
+      this.domView = null;
     });
     if (this.isStartScreenActive) {
       this.showStartScreen();
@@ -712,636 +515,80 @@ export class GameScene extends Phaser.Scene {
   }
 
   showStartScreen() {
-    const host = this.game?.canvas?.parentElement;
-    if (!host) {
+    if (!this.overlays?.host) {
       this.isStartScreenActive = false;
       this.applyDifficulty(this.difficultyKey);
       return;
     }
-    host.style.position = host.style.position || "relative";
-
-    const overlay = document.createElement("div");
-    const overlayId = "defense-protocol-start-overlay";
-    const existingOverlay = host.querySelector(`#${overlayId}`);
-    if (existingOverlay) existingOverlay.remove();
-    overlay.id = overlayId;
-    overlay.style.position = "absolute";
-    overlay.style.inset = "0";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.background = "rgba(7, 12, 18, 0.88)";
-    overlay.style.zIndex = "5";
-
-    const panel = document.createElement("div");
-    panel.style.minWidth = "460px";
-    panel.style.padding = "34px 38px";
-    panel.style.background = "rgba(11, 15, 20, 0.95)";
-    panel.style.border = "1px solid #294a6a";
-    panel.style.borderRadius = "10px";
-    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.45)";
-    panel.style.color = "#dbe7ff";
-    panel.style.fontFamily = "monospace";
-
-    const brandHeader = makeBrandHeader();
-    const brandLogo = brandHeader.querySelector("img");
-    if (brandLogo) brandLogo.style.width = "192px";
-    const brandText = brandHeader.querySelectorAll("div");
-    const brandTitle = brandText[0];
-    const brandTagline = brandText[1];
-    if (brandTitle) {
-      brandTitle.style.fontSize = "20px";
-      brandTitle.style.lineHeight = "1.22";
-    }
-    if (brandTagline) brandTagline.style.fontSize = "13px";
-
-    const nameLabel = document.createElement("label");
-    nameLabel.textContent = "Player name";
-    nameLabel.style.display = "block";
-    nameLabel.style.fontSize = "14px";
-    nameLabel.style.color = "#9fb3d8";
-
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.value = this.playerName;
-    nameInput.placeholder = "Player";
-    nameInput.style.width = "100%";
-    nameInput.style.marginTop = "8px";
-    nameInput.style.marginBottom = "16px";
-    nameInput.style.padding = "12px 14px";
-    nameInput.style.fontSize = "14px";
-    nameInput.style.borderRadius = "6px";
-    nameInput.style.border = "1px solid #294a6a";
-    nameInput.style.background = "#0f1623";
-    nameInput.style.color = "#dbe7ff";
-
-    const diffLabel = document.createElement("div");
-    diffLabel.textContent = "Difficulty";
-    diffLabel.style.fontSize = "14px";
-    diffLabel.style.color = "#9fb3d8";
-    diffLabel.style.marginBottom = "6px";
-
-    const diffWrap = document.createElement("div");
-    diffWrap.style.display = "grid";
-    diffWrap.style.gridTemplateColumns = "1fr 1fr 1fr";
-    diffWrap.style.gap = "8px";
-    diffWrap.style.marginBottom = "16px";
-
-    let selectedKey = this.difficultyKey;
-
-    const syncAllDiffStyles = () => {
-      diffWrap.querySelectorAll("label").forEach((lbl) => {
-        const radio = lbl.querySelector('input[type="radio"]');
-        const active = !!radio?.checked;
-        lbl.style.borderColor = active ? "#39ff8f" : "#1a2a3d";
-        lbl.style.background = active ? "rgba(17, 36, 28, 0.8)" : "#0f1623";
-        lbl.style.color = active ? "#e4ffe8" : "#dbe7ff";
-      });
-    };
-
-    const makeDiffOption = (key, label) => {
-      const option = document.createElement("label");
-      option.style.display = "flex";
-      option.style.alignItems = "center";
-      option.style.justifyContent = "center";
-      option.style.padding = "8px 10px";
-      option.style.border = "1px solid #1a2a3d";
-      option.style.borderRadius = "6px";
-      option.style.background = "#0f1623";
-      option.style.cursor = "pointer";
-      option.style.fontSize = "14px";
-
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.name = "difficulty";
-      radio.value = key;
-      radio.checked = key === selectedKey;
-      radio.style.marginRight = "6px";
-
-      const text = document.createElement("span");
-      text.textContent = label;
-
-      option.appendChild(radio);
-      option.appendChild(text);
-
-      radio.addEventListener("change", () => {
-        if (!radio.checked) return;
-        selectedKey = key;
-        syncAllDiffStyles();
-      });
-
-      return option;
-    };
-
-    diffWrap.appendChild(makeDiffOption("easy", "Easy"));
-    diffWrap.appendChild(makeDiffOption("medium", "Medium"));
-    diffWrap.appendChild(makeDiffOption("hard", "Hard"));
-    syncAllDiffStyles();
-
-    const startBtn = document.createElement("button");
-    startBtn.type = "button";
-    startBtn.textContent = "Start";
-    startBtn.style.width = "100%";
-    startBtn.style.padding = "12px 16px";
-    startBtn.style.borderRadius = "8px";
-    startBtn.style.border = "1px solid #39ff8f";
-    startBtn.style.background = "#10241c";
-    startBtn.style.color = "#e4ffe8";
-    startBtn.style.fontWeight = "700";
-    startBtn.style.fontSize = "14px";
-    startBtn.style.cursor = "pointer";
-
-    const onStart = () => {
-      const name = normalizePlayerName(nameInput.value);
-      this.playerName = name;
-      storage.write(STORAGE_KEYS.playerName, name);
-      this.applyDifficulty(selectedKey);
-      storage.write(STORAGE_KEYS.difficulty, selectedKey);
-      this.isStartScreenActive = false;
-      if (this.input?.keyboard) {
-        this.input.keyboard.enabled = true;
-        this.input.keyboard.enableGlobalCapture();
-      }
-      overlay.remove();
-    };
-
-    startBtn.addEventListener("click", onStart);
-    nameInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") onStart();
-    });
-
-    panel.appendChild(brandHeader);
-    panel.appendChild(nameLabel);
-    panel.appendChild(nameInput);
-    panel.appendChild(diffLabel);
-    panel.appendChild(diffWrap);
-    panel.appendChild(startBtn);
-    overlay.appendChild(panel);
-    host.appendChild(overlay);
     if (this.input?.keyboard) {
       this.input.keyboard.enabled = false;
       this.input.keyboard.disableGlobalCapture();
     }
-    nameInput.focus();
+    this.overlays.showStart({
+      playerName: this.playerName,
+      difficultyKey: this.difficultyKey,
+      onStart: ({ playerName, difficultyKey }) => {
+        const name = normalizePlayerName(playerName);
+        this.playerName = name;
+        storage.write(STORAGE_KEYS.playerName, name);
+        this.applyDifficulty(difficultyKey);
+        storage.write(STORAGE_KEYS.difficulty, difficultyKey);
+        this.isStartScreenActive = false;
+        if (this.input?.keyboard) {
+          this.input.keyboard.enabled = true;
+          this.input.keyboard.enableGlobalCapture();
+        }
+        this.overlays.remove("defense-protocol-start-overlay");
+      },
+    });
   }
 
   showGameOverScreen() {
-    const host = this.game?.canvas?.parentElement;
-    if (!host) return;
-    host.style.position = host.style.position || "relative";
-
-    const overlayId = "defense-protocol-gameover-overlay";
-    const existingOverlay = host.querySelector(`#${overlayId}`);
-    if (existingOverlay) existingOverlay.remove();
-
-    const overlay = document.createElement("div");
-    overlay.id = overlayId;
-    overlay.style.position = "absolute";
-    overlay.style.inset = "0";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.background = "rgba(6, 8, 12, 0.9)";
-    overlay.style.zIndex = "6";
-
-    const panel = document.createElement("div");
-    panel.style.minWidth = "360px";
-    panel.style.padding = "22px 26px";
-    panel.style.background = "rgba(11, 15, 20, 0.96)";
-    panel.style.border = "1px solid #6a294a";
-    panel.style.borderRadius = "10px";
-    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
-    panel.style.color = "#f5d6e6";
-    panel.style.fontFamily = "monospace";
-
-    const brandHeader = makeBrandHeader();
-
-    const title = document.createElement("div");
-    title.textContent = "GAME OVER";
-    title.style.fontSize = "22px";
-    title.style.fontWeight = "700";
-    title.style.letterSpacing = "0.08em";
-    title.style.color = "#ff8eaa";
-    title.style.marginBottom = "4px";
-
-    const stateDetail = document.createElement("div");
-    stateDetail.textContent = "DEFENSE LINE BREACHED";
-    stateDetail.style.fontSize = "11px";
-    stateDetail.style.letterSpacing = "0.12em";
-    stateDetail.style.color = "#b98298";
-    stateDetail.style.marginBottom = "14px";
-
-    const stats = document.createElement("div");
-    stats.style.display = "grid";
-    stats.style.gridTemplateColumns = "1fr";
-    stats.style.rowGap = "6px";
-    stats.style.marginBottom = "14px";
-    stats.style.color = "#dbe7ff";
-
-    const makeStat = (label, value) => {
-      const row = document.createElement("div");
-      row.textContent = `${label}: ${value}`;
-      return row;
-    };
-
-    stats.appendChild(makeStat("Player", this.playerName));
-    stats.appendChild(makeStat("Difficulty", this.difficultyLabel));
-    stats.appendChild(makeStat("Wave", this.wave));
-    stats.appendChild(makeStat("Total Kills", this.killCount));
-    stats.appendChild(makeStat("Final Score", this.score));
-
-    const btnWrap = document.createElement("div");
-    btnWrap.style.display = "grid";
-    btnWrap.style.gridTemplateColumns = "1fr";
-    btnWrap.style.gap = "8px";
-    btnWrap.style.marginBottom = "10px";
-
-    const makeButton = (label, border, bg, color) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = label;
-      btn.style.width = "100%";
-      btn.style.padding = "10px 12px";
-      btn.style.borderRadius = "8px";
-      btn.style.border = border;
-      btn.style.background = bg;
-      btn.style.color = color;
-      btn.style.fontWeight = "700";
-      btn.style.cursor = "pointer";
-      return btn;
-    };
-
-    const restartBtn = makeButton("Restart", "1px solid #39ff8f", "#10241c", "#e4ffe8");
-    const changeBtn = makeButton("Change name / difficulty", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
-    const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
-
-    const leaderboardPanel = document.createElement("div");
-    leaderboardPanel.style.display = "none";
-    leaderboardPanel.style.padding = "10px 12px";
-    leaderboardPanel.style.border = "1px solid #2b3f5e";
-    leaderboardPanel.style.borderRadius = "8px";
-    leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
-    leaderboardPanel.style.color = "#dbe7ff";
-    leaderboardPanel.style.fontSize = "13px";
-
-    const leaderboardHeader = document.createElement("div");
-    leaderboardHeader.style.display = "flex";
-    leaderboardHeader.style.alignItems = "center";
-    leaderboardHeader.style.justifyContent = "space-between";
-    leaderboardHeader.style.marginBottom = "8px";
-
-    const leaderboardTitle = document.createElement("div");
-    leaderboardTitle.textContent = "Top 10";
-    leaderboardTitle.style.fontWeight = "700";
-
-    const makeToggleButton = (label) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = label;
-      btn.style.border = "1px solid #2b3f5e";
-      btn.style.borderRadius = "6px";
-      btn.style.padding = "4px 8px";
-      btn.style.fontSize = "11px";
-      btn.style.background = "#0f1623";
-      btn.style.color = "#9fb2cc";
-      btn.style.cursor = "pointer";
-      return btn;
-    };
-
-    const setToggleActive = (btn, active) => {
-      btn.style.borderColor = active ? "#6a9ad8" : "#2b3f5e";
-      btn.style.background = active ? "#101a28" : "#0f1623";
-      btn.style.color = active ? "#dbe7ff" : "#9fb2cc";
-    };
-
-    const leaderboardToggle = document.createElement("div");
-    leaderboardToggle.style.display = "flex";
-    leaderboardToggle.style.gap = "6px";
-
-    const localBtn = makeToggleButton("Local");
-    const globalBtn = makeToggleButton("Global");
-    leaderboardToggle.appendChild(localBtn);
-    leaderboardToggle.appendChild(globalBtn);
-
-    const leaderboardList = document.createElement("div");
-    leaderboardList.style.display = "grid";
-    leaderboardList.style.rowGap = "6px";
-
-    let leaderboardMode = "local";
-    let globalRequestId = 0;
-    const renderLocal = () => {
-      renderLeaderboardList(leaderboardList, this.lastLeaderboardEntry, this.difficultyKey);
-    };
-    const renderGlobal = () => {
-      const requestId = (globalRequestId += 1);
-      renderLeaderboardMessage(leaderboardList, "Loading...");
-      fetchGlobalLeaderboard(this.difficultyKey, 10)
-        .then((entries) => {
-          if (requestId !== globalRequestId) return;
-          const sorted = entries.slice().sort(compareLeaderboardEntries);
-          renderLeaderboardEntries(leaderboardList, sorted, null);
-        })
-        .catch(() => {
-          if (requestId !== globalRequestId) return;
-          renderLeaderboardMessage(leaderboardList, "Global leaderboard unavailable.");
-        });
-    };
-    const renderLeaderboard = () => {
-      if (leaderboardMode === "global") {
-        renderGlobal();
-      } else {
-        renderLocal();
-      }
-      setToggleActive(localBtn, leaderboardMode === "local");
-      setToggleActive(globalBtn, leaderboardMode === "global");
-    };
-
-    leaderboardHeader.appendChild(leaderboardTitle);
-    leaderboardHeader.appendChild(leaderboardToggle);
-    leaderboardPanel.appendChild(leaderboardHeader);
-    leaderboardPanel.appendChild(leaderboardList);
-
-    restartBtn.addEventListener("click", () => {
-      overlay.remove();
-      this.scene.restart({
-        skipStartScreen: true,
+    this.overlays?.showGameOver({
+      result: {
         playerName: this.playerName,
         difficultyKey: this.difficultyKey,
-      });
+        difficultyLabel: this.difficultyLabel,
+        wave: this.wave,
+        kills: this.killCount,
+        score: this.score,
+      },
+      currentEntry: this.lastLeaderboardEntry,
+      onRestart: () => {
+        this.scene.restart({
+          skipStartScreen: true,
+          playerName: this.playerName,
+          difficultyKey: this.difficultyKey,
+        });
+      },
+      onChange: () => this.scene.restart(),
     });
-
-    changeBtn.addEventListener("click", () => {
-      overlay.remove();
-      this.scene.restart();
-    });
-
-    leaderboardBtn.addEventListener("click", () => {
-      const shouldShow = leaderboardPanel.style.display === "none";
-      leaderboardPanel.style.display = shouldShow ? "block" : "none";
-      if (shouldShow) renderLeaderboard();
-    });
-
-    localBtn.addEventListener("click", () => {
-      leaderboardMode = "local";
-      renderLeaderboard();
-    });
-    globalBtn.addEventListener("click", () => {
-      leaderboardMode = "global";
-      renderLeaderboard();
-    });
-
-    btnWrap.appendChild(restartBtn);
-    btnWrap.appendChild(changeBtn);
-    btnWrap.appendChild(leaderboardBtn);
-
-    panel.appendChild(brandHeader);
-    panel.appendChild(title);
-    panel.appendChild(stateDetail);
-    panel.appendChild(stats);
-    panel.appendChild(btnWrap);
-    panel.appendChild(leaderboardPanel);
-    overlay.appendChild(panel);
-    host.appendChild(overlay);
   }
 
   showPauseMenu() {
     if (this.isStartScreenActive || this.isGameOver) return;
-    const host = this.game?.canvas?.parentElement;
-    if (!host) return;
-    host.style.position = host.style.position || "relative";
-
-    const overlayId = "defense-protocol-pause-overlay";
-    const existingOverlay = host.querySelector(`#${overlayId}`);
-    if (existingOverlay) existingOverlay.remove();
-
-    const overlay = document.createElement("div");
-    overlay.id = overlayId;
-    overlay.style.position = "absolute";
-    overlay.style.inset = "0";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.background = "rgba(6, 8, 12, 0.85)";
-    overlay.style.zIndex = "6";
-
-    const panel = document.createElement("div");
-    panel.style.minWidth = "340px";
-    panel.style.padding = "22px 26px";
-    panel.style.background = "rgba(11, 15, 20, 0.96)";
-    panel.style.border = "1px solid #3d4f6a";
-    panel.style.borderRadius = "10px";
-    panel.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.5)";
-    panel.style.color = "#dbe7ff";
-    panel.style.fontFamily = "monospace";
-
-    const brandHeader = makeBrandHeader();
-
-    const title = document.createElement("div");
-    title.textContent = "PAUSED";
-    title.style.fontSize = "22px";
-    title.style.fontWeight = "700";
-    title.style.letterSpacing = "0.1em";
-    title.style.color = "#dbe7ff";
-    title.style.marginBottom = "4px";
-
-    const stateDetail = document.createElement("div");
-    stateDetail.textContent = "P / ESC TO RESUME";
-    stateDetail.style.fontSize = "11px";
-    stateDetail.style.letterSpacing = "0.1em";
-    stateDetail.style.color = "#9fb2cc";
-    stateDetail.style.marginBottom = "14px";
-
-    const btnWrap = document.createElement("div");
-    btnWrap.style.display = "grid";
-    btnWrap.style.gridTemplateColumns = "1fr";
-    btnWrap.style.gap = "8px";
-    btnWrap.style.marginBottom = "10px";
-
-    const makeButton = (label, border, bg, color) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = label;
-      btn.style.width = "100%";
-      btn.style.padding = "10px 12px";
-      btn.style.borderRadius = "8px";
-      btn.style.border = border;
-      btn.style.background = bg;
-      btn.style.color = color;
-      btn.style.fontWeight = "700";
-      btn.style.cursor = "pointer";
-      return btn;
-    };
-
-    const resumeBtn = makeButton("Resume", "1px solid #39ff8f", "#10241c", "#e4ffe8");
-    const controlsBtn = makeButton("Controls", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
-    const leaderboardBtn = makeButton("Leaderboard", "1px solid #d8a96a", "#241c10", "#ffe7c8");
-    const restartBtn = makeButton("Restart", "1px solid #39ff8f", "#10241c", "#e4ffe8");
-    const changeBtn = makeButton("Change name / difficulty", "1px solid #6a9ad8", "#101a28", "#dbe7ff");
-
-    const controlsPanel = document.createElement("div");
-    controlsPanel.style.display = "none";
-    controlsPanel.style.padding = "10px 12px";
-    controlsPanel.style.border = "1px solid #2b3f5e";
-    controlsPanel.style.borderRadius = "8px";
-    controlsPanel.style.background = "rgba(15, 22, 35, 0.95)";
-    controlsPanel.style.color = "#dbe7ff";
-    controlsPanel.style.fontSize = "13px";
-
-    const controlsList = document.createElement("div");
-    controlsList.style.display = "grid";
-    controlsList.style.rowGap = "6px";
-    renderControlsList(controlsList);
-    controlsPanel.appendChild(controlsList);
-
-    const leaderboardPanel = document.createElement("div");
-    leaderboardPanel.style.display = "none";
-    leaderboardPanel.style.padding = "10px 12px";
-    leaderboardPanel.style.border = "1px solid #2b3f5e";
-    leaderboardPanel.style.borderRadius = "8px";
-    leaderboardPanel.style.background = "rgba(15, 22, 35, 0.95)";
-    leaderboardPanel.style.color = "#dbe7ff";
-    leaderboardPanel.style.fontSize = "13px";
-
-    const makeToggleButton = (label) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = label;
-      btn.style.border = "1px solid #2b3f5e";
-      btn.style.borderRadius = "6px";
-      btn.style.padding = "4px 8px";
-      btn.style.fontSize = "11px";
-      btn.style.background = "#0f1623";
-      btn.style.color = "#9fb2cc";
-      btn.style.cursor = "pointer";
-      return btn;
-    };
-
-    const setToggleActive = (btn, active) => {
-      btn.style.borderColor = active ? "#6a9ad8" : "#2b3f5e";
-      btn.style.background = active ? "#101a28" : "#0f1623";
-      btn.style.color = active ? "#dbe7ff" : "#9fb2cc";
-    };
-
-    const leaderboardHeader = document.createElement("div");
-    leaderboardHeader.style.display = "flex";
-    leaderboardHeader.style.alignItems = "center";
-    leaderboardHeader.style.justifyContent = "space-between";
-    leaderboardHeader.style.marginBottom = "8px";
-
-    const leaderboardTitle = document.createElement("div");
-    leaderboardTitle.textContent = "Top 10";
-    leaderboardTitle.style.fontWeight = "700";
-
-    const leaderboardToggle = document.createElement("div");
-    leaderboardToggle.style.display = "flex";
-    leaderboardToggle.style.gap = "6px";
-
-    const localBtn = makeToggleButton("Local");
-    const globalBtn = makeToggleButton("Global");
-    leaderboardToggle.appendChild(localBtn);
-    leaderboardToggle.appendChild(globalBtn);
-
-    const leaderboardList = document.createElement("div");
-    leaderboardList.style.display = "grid";
-    leaderboardList.style.rowGap = "6px";
-
-    leaderboardHeader.appendChild(leaderboardTitle);
-    leaderboardHeader.appendChild(leaderboardToggle);
-    leaderboardPanel.appendChild(leaderboardHeader);
-    leaderboardPanel.appendChild(leaderboardList);
-
-    let leaderboardMode = "local";
-    let globalRequestId = 0;
-    const renderLocal = () => {
-      renderLeaderboardList(leaderboardList, null, this.difficultyKey);
-    };
-    const renderGlobal = () => {
-      const requestId = (globalRequestId += 1);
-      renderLeaderboardMessage(leaderboardList, "Loading...");
-      fetchGlobalLeaderboard(this.difficultyKey, 10)
-        .then((entries) => {
-          if (requestId !== globalRequestId) return;
-          const sorted = entries.slice().sort(compareLeaderboardEntries);
-          renderLeaderboardEntries(leaderboardList, sorted, null);
-        })
-        .catch(() => {
-          if (requestId !== globalRequestId) return;
-          renderLeaderboardMessage(leaderboardList, "Global leaderboard unavailable.");
+    this.overlays?.showPause({
+      difficultyKey: this.difficultyKey,
+      onResume: () => this.setPaused(false),
+      onRestart: () => {
+        this.setPaused(false);
+        this.hidePauseMenu();
+        this.scene.restart({
+          skipStartScreen: true,
+          playerName: this.playerName,
+          difficultyKey: this.difficultyKey,
         });
-    };
-    const renderLeaderboard = () => {
-      if (leaderboardMode === "global") {
-        renderGlobal();
-      } else {
-        renderLocal();
-      }
-      setToggleActive(localBtn, leaderboardMode === "local");
-      setToggleActive(globalBtn, leaderboardMode === "global");
-    };
-
-    resumeBtn.addEventListener("click", () => {
-      this.setPaused(false);
+      },
+      onChange: () => {
+        this.setPaused(false);
+        this.hidePauseMenu();
+        this.scene.restart();
+      },
     });
-
-    controlsBtn.addEventListener("click", () => {
-      const shouldShow = controlsPanel.style.display === "none";
-      controlsPanel.style.display = shouldShow ? "block" : "none";
-      if (shouldShow) leaderboardPanel.style.display = "none";
-    });
-
-    leaderboardBtn.addEventListener("click", () => {
-      const shouldShow = leaderboardPanel.style.display === "none";
-      leaderboardPanel.style.display = shouldShow ? "block" : "none";
-      if (shouldShow) controlsPanel.style.display = "none";
-      if (shouldShow) renderLeaderboard();
-    });
-
-    localBtn.addEventListener("click", () => {
-      leaderboardMode = "local";
-      renderLeaderboard();
-    });
-    globalBtn.addEventListener("click", () => {
-      leaderboardMode = "global";
-      renderLeaderboard();
-    });
-
-    restartBtn.addEventListener("click", () => {
-      this.setPaused(false);
-      this.hidePauseMenu();
-      this.scene.restart({
-        skipStartScreen: true,
-        playerName: this.playerName,
-        difficultyKey: this.difficultyKey,
-      });
-    });
-
-    changeBtn.addEventListener("click", () => {
-      this.setPaused(false);
-      this.hidePauseMenu();
-      this.scene.restart();
-    });
-
-    btnWrap.appendChild(resumeBtn);
-    btnWrap.appendChild(controlsBtn);
-    btnWrap.appendChild(leaderboardBtn);
-    btnWrap.appendChild(restartBtn);
-    btnWrap.appendChild(changeBtn);
-
-    panel.appendChild(brandHeader);
-    panel.appendChild(title);
-    panel.appendChild(stateDetail);
-    panel.appendChild(btnWrap);
-    panel.appendChild(controlsPanel);
-    panel.appendChild(leaderboardPanel);
-    overlay.appendChild(panel);
-    host.appendChild(overlay);
   }
 
   hidePauseMenu() {
-    const host = this.game?.canvas?.parentElement;
-    if (!host) return;
-    const existingOverlay = host.querySelector("#defense-protocol-pause-overlay");
-    if (existingOverlay) existingOverlay.remove();
+    this.overlays?.hidePause();
   }
 
   triggerLifeLossFeedback() {
@@ -1387,15 +634,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   emphasizeControlsPanel() {
-    const controls = document.getElementById("controls");
-    if (!controls) return;
-    controls.classList.remove("controls-emphasis");
-    void controls.offsetWidth;
-    controls.classList.add("controls-emphasis");
-    if (this.controlsEmphasisTimer) window.clearTimeout(this.controlsEmphasisTimer);
-    this.controlsEmphasisTimer = window.setTimeout(() => {
-      controls.classList.remove("controls-emphasis");
-    }, 1600);
+    this.domView?.emphasizeControls();
   }
 
   triggerGameOver() {
