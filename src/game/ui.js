@@ -180,14 +180,23 @@ function updateUI(scene) {
     scene.touchPauseBtnEl.textContent = scene.isPaused ? "Resume" : "Pause";
     scene.touchPauseBtnEl.disabled =
       scene.isStartScreenActive || scene.isGameOver;
+    scene.touchPauseBtnEl.classList.toggle("is-paused", scene.isPaused);
   }
   if (scene.touchPlaceBtnEl) {
     scene.touchPlaceBtnEl.disabled =
       !scene.isPlacing || !scene.ghostValid || scene.isPaused || scene.isGameOver;
+    scene.touchPlaceBtnEl.classList.toggle(
+      "is-confirm-ready",
+      scene.isPlacing && scene.ghostValid && !scene.isPaused && !scene.isGameOver
+    );
   }
   if (scene.touchCancelBtnEl) {
     scene.touchCancelBtnEl.disabled =
       !scene.isPaused && !scene.isPlacing && !scene.selectedTower;
+    scene.touchCancelBtnEl.classList.toggle(
+      "has-context",
+      scene.isPaused || scene.isPlacing || !!scene.selectedTower
+    );
   }
 
   if (scene.waveState === "intermission") {
@@ -371,6 +380,8 @@ function updateUI(scene) {
   if (scene.selectedTowerSellBtnEl) scene.selectedTowerSellBtnEl.disabled = false;
   if (scene.selectedTowerTargetBtnEl) scene.selectedTowerTargetBtnEl.disabled = false;
   if (scene.touchUpgradeBtnEl) scene.touchUpgradeBtnEl.disabled = !canUpgrade;
+  scene.touchUpgradeBtnEl?.classList.toggle("is-affordable", canUpgrade);
+  scene.touchUpgradeBtnEl?.classList.toggle("is-maxed", nextCost === null);
   if (scene.touchTargetBtnEl) scene.touchTargetBtnEl.disabled = false;
   if (scene.touchSellBtnEl) scene.touchSellBtnEl.disabled = false;
 }

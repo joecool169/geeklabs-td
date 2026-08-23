@@ -14,13 +14,13 @@
     <div id="layout">
       <div id="stage">
         <div id="app"></div>
-        <nav id="touch-controls" aria-label="Game controls">
+        <nav id="touch-controls" aria-label="Game controls" aria-live="polite">
           <button id="touch-start-wave" class="touch-control is-primary" type="button">Start Wave</button>
           <button id="touch-place" class="touch-control is-primary" type="button">Place</button>
           <button id="touch-cancel" class="touch-control" type="button">Cancel</button>
           <button id="touch-pause" class="touch-control" type="button">Pause</button>
         </nav>
-        <section id="touch-tower-actions" aria-label="Selected tower actions" hidden>
+        <section id="touch-tower-actions" aria-label="Selected tower actions" aria-live="polite" hidden>
           <div id="touch-tower-name">Selected Tower</div>
           <button id="touch-target" class="touch-control" type="button">
             <span>Target</span><span id="touch-target-value"></span>

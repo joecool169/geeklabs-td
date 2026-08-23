@@ -306,6 +306,21 @@ body {
   color: #dbe7ff;
   font: 700 14px/1 "Trebuchet MS", "Segoe UI", sans-serif;
   touch-action: manipulation;
+  cursor: pointer;
+  transition:
+    transform 90ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+.touch-control:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+  background: #16243a;
+}
+.touch-control:focus-visible {
+  outline: 2px solid #8baed3;
+  outline-offset: 2px;
 }
 .touch-control.is-primary {
   border-color: rgba(57, 255, 143, 0.72);
@@ -329,8 +344,29 @@ body {
   border-color: #ff6b82;
   background: #4a1622;
 }
+.touch-control.is-confirm-ready:not(:disabled) {
+  border-color: #39ff8f;
+  background: #123426;
+  box-shadow: 0 0 0 1px rgba(57, 255, 143, 0.22);
+}
+.touch-control.has-context:not(:disabled) {
+  border-color: #55759e;
+}
+.touch-control.is-paused:not(:disabled) {
+  border-color: #d8a96a;
+  background: #241c10;
+  color: #ffe7c8;
+}
+.touch-control.is-affordable:not(:disabled) {
+  border-color: rgba(57, 255, 143, 0.62);
+}
+.touch-control.is-maxed:disabled {
+  border-color: rgba(121, 218, 169, 0.32);
+  color: rgba(219, 231, 255, 0.62);
+}
 .touch-control:disabled {
   opacity: 0.45;
+  cursor: default;
 }
 #bottom-bar {
   height: var(--bottom-bar-height);
@@ -818,11 +854,21 @@ html.touch-ui #touch-controls {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
   gap: 8px;
+  padding: 7px;
+  border: 1px solid #1a2a3d;
+  border-radius: 11px;
+  background: rgba(11, 15, 20, 0.92);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
 }
 html.touch-ui #touch-tower-actions:not([hidden]) {
   display: grid;
   grid-template-columns: minmax(90px, 1.2fr) repeat(3, minmax(0, 1fr));
   gap: 8px;
+  padding: 7px;
+  border: 1px solid #263a54;
+  border-radius: 11px;
+  background: rgba(12, 18, 28, 0.96);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 html.touch-ui {
   background: #0b0f14;
@@ -979,11 +1025,15 @@ html.touch-ui .game-overlay-input {
     grid-column: 2;
     grid-row: 1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 7px;
   }
   html.touch-ui #touch-tower-actions:not([hidden]) {
     grid-column: 2;
     grid-row: 2;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding: 7px;
   }
   html.touch-ui #touch-tower-name {
     grid-column: 1 / -1;
@@ -995,6 +1045,7 @@ html.touch-ui .game-overlay-input {
     grid-row: 3;
     height: auto;
     min-height: 132px;
+    padding: 7px;
   }
   html.touch-ui #tower-strip {
     grid-auto-flow: row;

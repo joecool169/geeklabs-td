@@ -293,6 +293,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.hidePauseMenu();
       }
+      this.updateUI();
     };
 
     this.togglePause = () => this.setPaused(!this.isPaused);
