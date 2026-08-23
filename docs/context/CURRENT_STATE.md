@@ -91,10 +91,9 @@ The five-wave preparation windows and preferred targeting established a meaningf
 
 ## Next step
 
-1. Install and select full Xcode 26 or newer, then run `npm run ios:validate`.
-2. Build and run the Capacitor proof of concept in the Simulator and on a real iPhone.
-3. Verify orientation changes, safe areas, audio activation, persistence, lifecycle pause/resume, heat, and dense-wave performance on-device using `IOS_POC.md`.
-4. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
+1. Configure Apple development signing and run the Capacitor proof of concept on a real iPhone.
+2. Verify audio activation, persistence, lifecycle pause/resume, heat, and dense-wave performance on-device using `IOS_POC.md`.
+3. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
 
 ## Source-of-truth workflow
 

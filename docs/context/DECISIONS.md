@@ -8,7 +8,7 @@
 
 **Persistence:** Keep the synchronous browser storage contract and mirror `defense_protocol_*` values to Capacitor Preferences. Browser values win when present; Preferences restores them when WebKit storage is missing.
 
-**Validation gate:** Project generation, native sync, tests, audit, and shared-web smoke checks pass. Simulator compilation and real-device testing require full Xcode 26+ and remain mandatory before accepting Capacitor for the mobile edition.
+**Validation status:** Project generation, native sync, tests, audit, shared-web smoke checks, Xcode compilation, Simulator launch, touch placement, orientation, safe areas, and background pause pass. Real-device signing, audio, persistence, heat, and dense-wave testing remain mandatory before accepting Capacitor for the mobile edition.
 
 ## 2026-08-23 — Ship the touch-ready browser surface
 

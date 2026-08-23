@@ -32,8 +32,8 @@ The v0.4.0 balance is accepted. Preserve `v0.3.0-balance-checkpoint` as the earl
 
 - add a minimal Capacitor project — completed
 - add native lifecycle pause and durable preference mirroring — completed
-- build and run in the iOS Simulator — pending full Xcode 26+
-- build and run on a real iPhone — pending Xcode, signing, and device access
+- build and run in the iOS Simulator — completed with Xcode 26.6 and iOS 26.5
+- build and run on a real iPhone — pending signing and device access
 - verify canvas sizing, touch coordinates, orientation, safe areas, audio activation, pause/resume, persistence, heat, and dense-wave performance
 
 See `IOS_POC.md` for the exact validation commands and device checklist.

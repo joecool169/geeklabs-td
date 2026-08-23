@@ -13,18 +13,32 @@ Implemented and locally verified:
 - existing `defense_protocol_*` browser values are mirrored to native Preferences
 - native Preferences can restore values if WebKit local storage is cleared
 - web behavior remains unchanged when Capacitor is not native
+- Xcode 26.6 compiles the unsigned Simulator application successfully
+- the app launches on an iPhone 17 Pro simulator running iOS 26.5
+- portrait and both landscape orientations respect safe areas
+- touch placement, wave start, and contextual tower controls work in the Simulator
+- backgrounding during an active wave returns to an explicit pause screen
 
 Not yet verified:
 
-- Xcode compilation or Simulator launch
 - signing and installation on a real iPhone
-- on-device orientation, safe areas, audio activation, persistence, heat, and dense-wave performance
+- real-device audio activation, persistence, heat, and dense-wave performance
 
-The current Mac developer path is `/Library/Developer/CommandLineTools`. Capacitor 8 requires full Xcode 26 or newer, so the remaining checks cannot run until Xcode is installed and selected.
+The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`. The remaining gate is signing and running on a real iPhone.
+
+## Simulator validation — 2026-08-23
+
+- unsigned native build passed with Capacitor 8.5.0 and iOS 26.5
+- initial launch rendered without a blank screen or application error
+- the start overlay clears the Dynamic Island and no longer opens the keyboard automatically
+- one tower was placed through touch controls and its contextual actions appeared
+- a wave launched and continued across portrait and both landscape orientations
+- backgrounding during the active wave paused the run; foregrounding did not resume it automatically
+- automated native preference and lifecycle coverage passes in the 59-test suite
 
 ## One-time Mac setup
 
-1. Install Xcode 26 or newer.
+1. Install Xcode 26 or newer. This Mac currently has Xcode 26.6.
 2. Select it:
 
    ```bash

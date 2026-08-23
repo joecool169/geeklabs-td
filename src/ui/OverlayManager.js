@@ -270,7 +270,9 @@ class OverlayManager {
       difficultyOptions,
       startButton
     );
-    nameInput.focus();
+    if (!document.documentElement.classList.contains("touch-ui")) {
+      nameInput.focus();
+    }
     return overlay;
   }
 
