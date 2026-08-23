@@ -5,19 +5,19 @@ Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
 
-Current reviewed release: **v0.4.1 architecture refactor**, preserving the accepted v0.4.0 balance
+Current reviewed release: **v0.5.0 touch controls**, preserving the accepted v0.4.0 balance and v0.4.1 architecture
 
 ## Repository and validation
 
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **54/54 tests**.
+- `npm test` passes with **55/55 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- The v0.4.1 deployment is built from a clean committed revision and verified by checksum dry run.
-- The live page reports v0.4.1.
+- The v0.5.0 deployment is built from a clean committed revision and verified by checksum dry run.
+- The live page reports v0.5.0.
 
 ## Current gameplay baseline
 
@@ -80,12 +80,20 @@ The five-wave preparation windows and preferred targeting established a meaningf
 - Final partial-wave telemetry is persisted at game over.
 - The staged refactor contains no balance changes.
 
+## Touch interaction state
+
+- Touch and hybrid devices receive a responsive control surface while desktop controls remain unchanged.
+- Tower cards enter placement; dragging over the playfield aims a ghost offset above the finger; Place confirms.
+- Selected towers expose Target, Upgrade, and Sell in a contextual action bar.
+- Touch selling requires two taps and disarms automatically.
+- Start Wave, Add Wave, Pause/Resume, Cancel, portrait/landscape layout, safe areas, and viewport-level overlays are implemented.
+- The canvas alone suppresses browser gestures; surrounding controls retain normal touch behavior.
+
 ## Next step
 
-1. Add touch-friendly controls using the existing semantic action layer.
-2. Validate safe areas and touch target sizing across phone/tablet layouts.
-3. Build an early Capacitor iOS proof of concept after the touch surface works in the browser.
-4. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
+1. Build and run an early Capacitor iOS proof of concept on a real iPhone.
+2. Verify orientation changes, safe areas, audio activation, persistence, lifecycle pause/resume, heat, and dense-wave performance on-device.
+3. Leave accepted balance values unchanged until new playtest evidence identifies a specific problem.
 
 ## Source-of-truth workflow
 

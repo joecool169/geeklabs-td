@@ -44,8 +44,7 @@ Pure definitions and calculations remain under `src/constants.js` and `src/game/
 
 ### Current weaknesses
 
-- `src/scene.js` still creates Phaser HUD/effect objects and coordinates menus; further reduction should be driven by touch/mobile needs, not code movement alone.
-- The desktop control legend is not yet a reusable touch-control surface.
+- `src/scene.js` still creates Phaser HUD/effect objects and coordinates menus; further reduction should be driven by native lifecycle needs, not code movement alone.
 - Browser services are isolated, but a native adapter and application lifecycle bridge do not exist yet.
 - Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
 
@@ -64,11 +63,12 @@ Pure definitions and calculations remain under `src/constants.js` and `src/game/
 - fixed sidebar height prevents document growth during placement and tower management
 - validated on a MacBook at 100% browser zoom
 
-### Future mobile layouts
+### Touch layouts
 
-- tablet / landscape phone: compact HUD, playfield, bottom tower bar, contextual tower actions
-- portrait phone: compact HUD, scaled playfield, horizontal tower carousel, contextual action bar
-- mobile must not depend on hover, right-click, or keyboard shortcuts
+- tablet / portrait phone: scaled playfield, persistent controls, horizontal tower carousel, and contextual action bar
+- short landscape phone: playfield beside a compact two-column control and tower dock
+- safe-area insets and viewport-level overlays are supported
+- touch interaction does not depend on hover, right-click, or keyboard shortcuts
 
 ## Implemented organization
 
@@ -89,7 +89,8 @@ src/
 │   └── WorldRenderer.js
 ├── ui/
 │   ├── GameDomView.js
-│   └── OverlayManager.js
+│   ├── OverlayManager.js
+│   └── TouchSellGuard.js
 ├── input/
 │   ├── InputController.js
 │   └── actions.js

@@ -1,3 +1,4 @@
+- 2026-08-23 Release v0.5.0 with touch-ready controls, responsive phone/tablet layouts, safe areas, explicit placement confirmation, and guarded selling
 - 2026-08-22 Release v0.4.1 with final telemetry persistence and the staged architecture refactor
 - 2026-08-22 Extract run state, semantic input, DOM overlays, world rendering, towers, enemies, projectiles, combat, waves, HUD, and browser services behind explicit interfaces
 - 2026-08-22 Accept v0.4.0 after the controlled Hard comparison extended specialist survival from Wave 46 to Wave 54

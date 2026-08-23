@@ -19,16 +19,16 @@ The v0.4.0 balance is accepted. Preserve `v0.3.0-balance-checkpoint` as the earl
 - each behavior-preserving slice was tested, built, smoke-tested, and committed independently
 - v0.4.0 balance values were preserved
 
-## Phase 4 — Touch-ready UI — current
+## Phase 4 — Touch-ready UI — completed
 
 - semantic game actions are implemented
 - keyboard and mouse map through the action layer
-- add touch-friendly controls and contextual actions
-- remove dependence on right-click and hover
-- ensure useful touch target sizes and safe-area spacing
-- preserve efficient desktop keyboard behavior
+- touch-friendly controls and contextual actions are implemented
+- touch play no longer depends on right-click or hover
+- action targets, portrait/landscape layouts, and safe-area spacing are implemented
+- desktop keyboard and mouse behavior is preserved
 
-## Phase 5 — Early iOS proof of concept
+## Phase 5 — Early iOS proof of concept — current
 
 - add a minimal Capacitor project
 - build and run on a real iPhone

@@ -6,7 +6,7 @@ A live version is hosted at <https://td.geekstreet.tv>.
 
 ## Current direction
 
-The project has completed its behavior-preserving architecture refactor after validating the v0.4.0 balance. The next product phase is touch-ready UI and an early iOS wrapper proof of concept.
+The project has completed its touch-ready browser interface after validating the v0.4.0 balance and completing the v0.4.1 architecture refactor. The next product phase is an early iOS wrapper proof of concept.
 
 Design priorities:
 
@@ -35,6 +35,8 @@ Design priorities:
 - seeded wave composition and automatic balance-run checkpoints
 - final game-over telemetry snapshots, including partial failure waves
 - explicit wave, tower, enemy, combat, projectile, run-state, input, UI, and platform-service boundaries
+- touch controls with drag-to-aim placement, explicit confirmation, contextual tower actions, and guarded selling
+- portrait and short-landscape layouts with safe-area support
 - static deployment through Nginx
 
 ## Progression milestones
@@ -59,6 +61,8 @@ Design priorities:
 - `Space`: start an available wave
 - `P`: pause or resume
 - `Esc`: cancel, deselect, or resume contextually
+
+Touch devices use persistent Start Wave, Place, Cancel, and Pause controls. Tap a tower card, drag on the playfield to aim above your finger, and tap Place to confirm. Selecting a placed tower reveals Target, Upgrade, and two-step Sell actions.
 
 ## Project context
 

@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Ship the touch-ready browser surface
+
+**Decision:** Release touch controls as v0.5.0 while preserving desktop controls and all accepted balance values.
+
+**Interaction model:** Tower cards enter placement, touch dragging aims a ghost above the finger, and a Place button confirms. Placed towers expose contextual Target, Upgrade, and two-step Sell actions. Start/Add Wave, Cancel, and Pause/Resume remain persistently available.
+
+**Layout model:** Portrait/tablet layouts use a horizontal tower strip; short landscape layouts place controls beside the playfield. Safe-area insets and viewport-level overlays are mandatory.
+
+**Next phase:** Use this browser-validated touch surface for an early Capacitor build on a real iPhone.
+
 ## 2026-08-22 — Complete the behavior-preserving architecture refactor
 
 **Decision:** Release the staged refactor as v0.4.1 without changing the accepted v0.4.0 balance.
