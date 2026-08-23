@@ -2,6 +2,22 @@ import { TOWER_DEFS } from "../constants.js";
 import { round1 } from "./utils.js";
 import { getNextUpgradeCost, getTargetModeLabel } from "./towers.js";
 
+function formatHudNumber(value) {
+  return Math.max(0, Number(value) || 0).toLocaleString("en-US");
+}
+
+function formatHudText(snapshot) {
+  return [
+    `MONEY $${formatHudNumber(snapshot.money)}`,
+    `LIVES ${formatHudNumber(snapshot.lives)}`,
+    `TOWERS ${formatHudNumber(snapshot.towers)}`,
+    `WAVE ${formatHudNumber(snapshot.wave)}`,
+    `KILLS ${formatHudNumber(snapshot.kills)}`,
+    `SCORE ${formatHudNumber(snapshot.score)}`,
+    String(snapshot.diff || "Easy").toUpperCase(),
+  ].join("   •   ");
+}
+
 function showToast(scene, msg, ms = 2400) {
   scene.toast.setText(msg);
   scene.toast.setVisible(true);
@@ -151,6 +167,14 @@ function updateUI(scene) {
       scene.waveState === "running" ? "Add Wave" : "Start Wave";
     scene.touchStartWaveBtnEl.disabled =
       scene.isPaused || scene.isStartScreenActive || scene.isGameOver;
+    scene.touchStartWaveBtnEl.classList.toggle(
+      "is-wave-live",
+      scene.waveState === "running"
+    );
+    scene.touchStartWaveBtnEl.classList.toggle(
+      "is-wave-ready",
+      scene.waveState === "intermission"
+    );
   }
   if (scene.touchPauseBtnEl) {
     scene.touchPauseBtnEl.textContent = scene.isPaused ? "Resume" : "Pause";
@@ -223,9 +247,8 @@ function updateUI(scene) {
     scene._uiCache.diff === uiSnapshot.diff;
   if (!hudUnchanged) {
     scene._uiCache = uiSnapshot;
-    scene.ui.setText(
-      `Money: $${uiSnapshot.money}    Lives: ${uiSnapshot.lives}    Towers: ${uiSnapshot.towers}    Wave: ${uiSnapshot.wave}    Kills: ${uiSnapshot.kills}    Score: ${uiSnapshot.score}    Diff: ${uiSnapshot.diff}`
-    );
+    scene.ui.setText(formatHudText(uiSnapshot));
+    scene.ui.setColor(uiSnapshot.lives <= 5 ? "#ff9bad" : "#e8f2ff");
   }
 
   if (scene.placementContextEl) {
@@ -254,18 +277,24 @@ function updateUI(scene) {
       scene.placementValidityEl.classList.toggle("is-blocked", !scene.ghostValid);
     }
   }
-  if (scene.towerStripSlots && scene._towerStripWave !== uiSnapshot.wave) {
-    scene._towerStripWave = uiSnapshot.wave;
+  const towerStripState = `${uiSnapshot.wave}:${uiSnapshot.money}`;
+  if (scene.towerStripSlots && scene._towerStripState !== towerStripState) {
+    scene._towerStripState = towerStripState;
     const updateSlots = (slots) => {
       if (!slots) return;
       for (const slot of slots) {
         const unlockWave = slot.def?.unlockWave ?? 1;
         const locked = uiSnapshot.wave < unlockWave;
+        const cost = slot.def?.tiers?.[0]?.cost ?? 0;
+        const affordable = !locked && uiSnapshot.money >= cost;
         slot.el.classList.toggle("is-locked", locked);
         slot.el.classList.toggle("locked", locked);
+        slot.el.classList.toggle("is-affordable", affordable);
+        slot.el.classList.toggle("is-unaffordable", !locked && !affordable);
         slot.el.dataset.locked = locked ? "true" : "false";
+        slot.el.setAttribute("aria-disabled", String(locked || !affordable));
         if (slot.metaEl) {
-          slot.metaEl.textContent = locked ? `W${unlockWave}` : `$${slot.def.tiers[0].cost}`;
+          slot.metaEl.textContent = locked ? `W${unlockWave}` : `$${cost}`;
         }
         if (slot.keyEl) {
           slot.keyEl.style.display = locked ? "none" : "inline-flex";
@@ -372,4 +401,4 @@ class HudController {
   }
 }
 
-export { HudController };
+export { HudController, formatHudText };

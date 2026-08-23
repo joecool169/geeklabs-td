@@ -162,8 +162,11 @@ export class GameScene extends Phaser.Scene {
 
     this.ui = this.add.text(14, 12, "", {
       fontFamily: "monospace",
-      fontSize: "16px",
-      color: "#dbe7ff",
+      fontSize: "15px",
+      fontStyle: "bold",
+      color: "#e8f2ff",
+      backgroundColor: "rgba(5, 10, 17, 0.78)",
+      padding: { x: 10, y: 7 },
     });
     this.uiBaseColor = "#dbe7ff";
 

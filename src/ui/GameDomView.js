@@ -67,9 +67,11 @@ class GameDomView {
     if (towerStrip) {
       towerStrip.replaceChildren();
       for (const def of towerDefs) {
-        const card = this.root.createElement("div");
+        const card = this.root.createElement("button");
+        card.type = "button";
         card.className = "tower-card";
         card.dataset.towerKey = def.key;
+        card.setAttribute("aria-label", `${def.name} tower`);
         const title = this.root.createElement("div");
         title.className = "tower-card-title";
         title.textContent = def.name;
