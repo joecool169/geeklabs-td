@@ -60,6 +60,12 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(state.money, 450);
   assert.equal(scene.towers.length, 1);
   assert.equal(scene.selectedTower, tower);
+  assert.equal(system.getTowerAt(331, 300), undefined);
+  assert.equal(system.getTowerAt(331, 300, { touch: true }), tower);
+  assert.deepEqual(system.getPlacementStatusAt(300, 300), {
+    valid: false,
+    reason: "Occupied",
+  });
 
   assert.equal(system.tryUpgradeTower(tower), true);
   assert.equal(tower.tier, 2);

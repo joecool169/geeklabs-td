@@ -414,7 +414,7 @@ export class GameScene extends Phaser.Scene {
 
   handleTouchPointer({ x, y, phase }) {
     if (!this.isPlacing) {
-      if (phase === "down") this.handlePrimaryPointer(x, y, false);
+      if (phase === "down") this.handlePrimaryPointer(x, y, false, true);
       return;
     }
     this.towerSystem.updateGhost(
@@ -439,7 +439,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  handlePrimaryPointer(x, y, modified = false) {
+  handlePrimaryPointer(x, y, modified = false, touch = false) {
     if (this.isPlacing) {
       if (this.ghostValid) {
         this.towerSystem.tryPlaceTowerAt(this.ghostX, this.ghostY);
@@ -447,13 +447,15 @@ export class GameScene extends Phaser.Scene {
       }
       return;
     }
-    const tower = this.towerSystem.getTowerAt(x, y);
+    const tower = this.towerSystem.getTowerAt(x, y, { touch });
     if (tower) {
       if (modified) this.towerSystem.tryUpgradeTower(tower);
       this.towerSystem.selectTower(tower);
+      this.updateUI();
       return;
     }
     this.towerSystem.clearSelection();
+    this.updateUI();
   }
 
   showToast(msg, ms = 2400) {

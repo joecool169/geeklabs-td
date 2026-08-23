@@ -1031,11 +1031,15 @@ html.touch-ui #touch-tower-actions:not([hidden]) {
   grid-template-columns: minmax(190px, 1.4fr) repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 7px;
-  border: 1px solid #263a54;
-  border-radius: 11px;
-  background: rgba(12, 18, 28, 0.96);
+  border: 1px solid var(--dp-line-bright);
+  border-radius: 4px;
+  background: linear-gradient(155deg, rgba(16, 27, 39, 0.98), rgba(8, 14, 22, 0.98));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
+html.touch-ui #touch-tower-actions[data-tower-type="basic"] { border-left: 3px solid #3bd3ff; }
+html.touch-ui #touch-tower-actions[data-tower-type="rapid"] { border-left: 3px solid #39ff8f; }
+html.touch-ui #touch-tower-actions[data-tower-type="sniper"] { border-left: 3px solid #ffc857; }
+html.touch-ui #touch-tower-actions[data-tower-type="laser"] { border-left: 3px solid #ff6bff; }
 html.touch-ui {
   background: #0b0f14;
 }
@@ -1135,8 +1139,9 @@ html.touch-ui #touch-tower-summary {
 html.touch-ui #touch-tower-name {
   display: flex;
   align-items: center;
-  color: #f1f6ff;
-  font: 700 13px/1.2 "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--dp-cream);
+  font: 800 13px/1.2 "Trebuchet MS", "Segoe UI", sans-serif;
+  letter-spacing: 0.04em;
 }
 html.touch-ui #touch-tower-stats {
   overflow: hidden;
@@ -1151,6 +1156,10 @@ html.touch-ui #touch-tower-actions .touch-control {
   gap: 3px;
   padding-inline: 8px;
   font-size: 12px;
+}
+html.touch-ui #touch-tower-actions .touch-control:not(.is-danger) {
+  border-color: rgba(62, 95, 125, 0.78);
+  background: rgba(12, 22, 33, 0.96);
 }
 html.touch-ui #touch-tower-actions .touch-control span:last-child {
   color: rgba(219, 231, 255, 0.7);

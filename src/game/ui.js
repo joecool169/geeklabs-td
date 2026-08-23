@@ -226,6 +226,15 @@ function updateUI(scene) {
     scene.touchPauseBtnEl.classList.toggle("is-paused", scene.isPaused);
   }
   if (scene.touchPlaceBtnEl) {
+    const placeDef = TOWER_DEFS[scene.placeType] || TOWER_DEFS.basic;
+    const placeCost = placeDef.tiers[0].cost;
+    const placementStatus = scene.isPlacing
+      ? scene.towerSystem.getPlacementStatusAt(scene.ghostX, scene.ghostY)
+      : null;
+    scene.touchPlaceLabelEl.textContent = scene.isPlacing
+      ? `Place $${placeCost}`
+      : "Place";
+    scene.touchPlaceStatusEl.textContent = placementStatus?.reason ?? "Deployment";
     scene.touchPlaceBtnEl.disabled =
       !scene.isPlacing || !scene.ghostValid || scene.isPaused || scene.isGameOver;
     scene.touchPlaceBtnEl.classList.toggle(
@@ -385,6 +394,7 @@ function updateUI(scene) {
   const targetLabel = getTargetModeLabel(t);
   scene.domView?.setTouchSelectedTower(t);
   if (scene.touchTowerActionsEl) scene.touchTowerActionsEl.hidden = false;
+  scene.touchTowerActionsEl?.setAttribute("data-tower-type", t.type);
   if (scene.touchTowerNameEl) {
     scene.touchTowerNameEl.textContent = `${def.name} T${t.tier}`;
   }

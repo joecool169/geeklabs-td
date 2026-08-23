@@ -19,6 +19,7 @@ const TOWER_SYSTEM_FIELDS = Object.freeze([
   "ghostX",
   "ghostY",
 ]);
+const TOUCH_TOWER_SELECT_RADIUS = 34;
 
 class TowerSystem {
   constructor({ scene, world, runController }) {
@@ -101,8 +102,11 @@ class TowerSystem {
       this.clearSelection();
       if (!this.didShowPlaceToast) {
         this.didShowPlaceToast = true;
+        const touchUi = globalThis.document?.documentElement?.classList.contains("touch-ui") ?? false;
         this.scene.showToast(
-          `Placement: press ${this.getPlacementKeyHint()} to switch tower type.`,
+          touchUi
+            ? "Placement active. Drag to aim, then tap Place."
+            : `Placement: press ${this.getPlacementKeyHint()} to switch tower type.`,
           2600
         );
       }
@@ -167,6 +171,11 @@ class TowerSystem {
 
   updatePlaceHint() {
     if (!this.isPlacing) return;
+    const touchUi = globalThis.document?.documentElement?.classList.contains("touch-ui") ?? false;
+    if (touchUi) {
+      this.scene.placeHint.setText("");
+      return;
+    }
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
     const validity = this.ghostValid ? "OK" : "BLOCKED";
@@ -176,25 +185,47 @@ class TowerSystem {
     );
   }
 
-  getTowerAt(worldX, worldY) {
+  getTowerAt(worldX, worldY, { touch = false } = {}) {
     const x = snapX(worldX);
     const y = snapY(worldY);
-    return this.towers.find((tower) => tower.x === x && tower.y === y);
+    const exact = this.towers.find((tower) => tower.x === x && tower.y === y);
+    if (exact || !touch) return exact;
+    let nearest = null;
+    let nearestDistanceSq = TOUCH_TOWER_SELECT_RADIUS ** 2;
+    for (const tower of this.towers) {
+      const distanceSq = (tower.x - worldX) ** 2 + (tower.y - worldY) ** 2;
+      if (distanceSq > nearestDistanceSq) continue;
+      nearest = tower;
+      nearestDistanceSq = distanceSq;
+    }
+    return nearest;
   }
 
-  canPlaceTowerAt(x, y) {
+  getPlacementStatusAt(x, y) {
     const tier0 = this.getPlaceDef().tiers[0];
-    if (this.scene.money < tier0.cost) return false;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return { valid: false, reason: "Aim on grid" };
+    }
+    if (this.scene.money < tier0.cost) {
+      return { valid: false, reason: `Need $${tier0.cost}` };
+    }
     if (
       x < GRID / 2 ||
       y < TOP_UI + GRID / 2 ||
       x > this.scene.scale.width - GRID / 2 ||
       y > this.scene.scale.height - GRID / 2
     ) {
-      return false;
+      return { valid: false, reason: "Outside grid" };
     }
-    if (this.world.isOnPath(x, y)) return false;
-    return !this.towers.some((tower) => tower.x === x && tower.y === y);
+    if (this.world.isOnPath(x, y)) return { valid: false, reason: "Path blocked" };
+    if (this.towers.some((tower) => tower.x === x && tower.y === y)) {
+      return { valid: false, reason: "Occupied" };
+    }
+    return { valid: true, reason: "Ready" };
+  }
+
+  canPlaceTowerAt(x, y) {
+    return this.getPlacementStatusAt(x, y).valid;
   }
 
   getNextUpgradeCost(tower) {

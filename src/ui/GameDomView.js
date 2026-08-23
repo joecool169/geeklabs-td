@@ -42,6 +42,7 @@ class GameDomView {
       touchStartWaveLabelEl: root.getElementById("touch-start-wave-label"),
       touchPlaceBtnEl: root.getElementById("touch-place"),
       touchPlaceLabelEl: root.getElementById("touch-place-label"),
+      touchPlaceStatusEl: root.getElementById("touch-place-status"),
       touchCancelBtnEl: root.getElementById("touch-cancel"),
       touchPauseBtnEl: root.getElementById("touch-pause"),
       touchPauseLabelEl: root.getElementById("touch-pause-label"),
