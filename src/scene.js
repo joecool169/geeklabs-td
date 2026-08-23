@@ -16,16 +16,25 @@ import * as Waves from "./game/waves.js";
 import * as Telemetry from "./game/telemetry.js";
 import { normalizeRunSeed } from "./game/random.js";
 import { ENEMY_DEFS, TOWER_DEFS, WAVE_CADENCE } from "./constants.js";
+import {
+  compareLeaderboardEntries,
+  fetchGlobalLeaderboard,
+  readLocalLeaderboard,
+  recordLocalScore,
+  submitGlobalScore,
+} from "./services/leaderboard.js";
+import {
+  STORAGE_KEYS,
+  createStorageGateway,
+  normalizeDifficultyKey,
+  normalizePlayerName,
+} from "./services/preferences.js";
+import { readRunOptions } from "./services/runOptions.js";
 
-const PLAYER_NAME_STORAGE_KEY = "defense_protocol_player_name_v1";
-const DIFFICULTY_STORAGE_KEY = "defense_protocol_difficulty_v1";
-const LEADERBOARD_STORAGE_KEY = "defense_protocol_leaderboard_v1";
-const HELP_OVERLAY_STORAGE_KEY = "defense_protocol_help_overlay_v1";
-const BALANCE_TELEMETRY_STORAGE_KEY = "defense_protocol_balance_telemetry_v2";
+const storage = createStorageGateway();
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const BRAND_TITLE = "Defense Protocol";
 const BRAND_TAGLINE = "Protocol engaged. Hold the line.";
-const DEFAULT_DIFFICULTY_KEY = "easy";
 const RANGE_FILL_ALPHA = {
   selected: 0.035,
   valid: 0.04,
@@ -55,79 +64,6 @@ const CONTROLS = [
   { key: "F", action: "Target mode (selected tower)" },
   { key: "P", action: "Pause" },
 ];
-
-const readStorage = (key) => {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-};
-
-const writeStorage = (key, value) => {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    return null;
-  }
-  return null;
-};
-
-const normalizePlayerName = (raw) => {
-  const name = (raw || "").trim();
-  return name.length ? name : "Player";
-};
-
-const normalizeDifficultyKey = (key) =>
-  DIFFICULTY_CONFIG[key] ? key : DEFAULT_DIFFICULTY_KEY;
-
-const getLeaderboardStorageKey = (difficultyKey) =>
-  `${LEADERBOARD_STORAGE_KEY}:${normalizeDifficultyKey(difficultyKey)}`;
-
-const safeParseLeaderboard = (difficultyKey) => {
-  const raw = readStorage(getLeaderboardStorageKey(difficultyKey));
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) throw new Error("Leaderboard data not array.");
-    return parsed.filter((entry) => entry && typeof entry === "object");
-  } catch {
-    writeStorage(getLeaderboardStorageKey(difficultyKey), "[]");
-    return [];
-  }
-};
-
-const compareLeaderboardEntries = (a, b) => {
-  const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
-  if (scoreDiff) return scoreDiff;
-  const waveDiff = (Number(b.wave) || 0) - (Number(a.wave) || 0);
-  if (waveDiff) return waveDiff;
-  const killsDiff = (Number(b.kills) || 0) - (Number(a.kills) || 0);
-  if (killsDiff) return killsDiff;
-  const dateA = typeof a.dateISO === "string" ? a.dateISO : "9999-12-31T23:59:59.999Z";
-  const dateB = typeof b.dateISO === "string" ? b.dateISO : "9999-12-31T23:59:59.999Z";
-  if (dateA < dateB) return -1;
-  if (dateA > dateB) return 1;
-  return 0;
-};
-
-const writeLeaderboard = (entries, difficultyKey) => {
-  try {
-    writeStorage(getLeaderboardStorageKey(difficultyKey), JSON.stringify(entries));
-  } catch {
-    return null;
-  }
-  return null;
-};
-
-const updateLeaderboard = (entry, difficultyKey) => {
-  const entries = safeParseLeaderboard(difficultyKey);
-  entries.push(entry);
-  entries.sort(compareLeaderboardEntries);
-  const trimmed = entries.slice(0, 10);
-  writeLeaderboard(trimmed, difficultyKey);
-  return trimmed;
-};
 
 const renderLeaderboardEntries = (container, entries, currentEntry) => {
   const isCurrentRun = (entry) => {
@@ -226,51 +162,10 @@ const renderControlsList = (container) => {
 };
 
 const renderLeaderboardList = (container, currentEntry, difficultyKey) => {
-  const entries = safeParseLeaderboard(difficultyKey).sort(compareLeaderboardEntries);
+  const entries = readLocalLeaderboard(storage, difficultyKey).sort(
+    compareLeaderboardEntries
+  );
   renderLeaderboardEntries(container, entries, currentEntry);
-};
-
-const fetchGlobalLeaderboard = async (difficultyKey, limit = 10) => {
-  const diff = normalizeDifficultyKey(difficultyKey);
-  const url = `/api/leaderboard?difficulty=${encodeURIComponent(diff)}&limit=${limit}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Global leaderboard request failed");
-  const data = await res.json();
-  const items = Array.isArray(data?.items) ? data.items : [];
-  return items.map((item) => {
-    const key = item.difficulty || diff;
-    return {
-      name: item.name || "Player",
-      score: Number(item.score) || 0,
-      wave: Number(item.wave) || 0,
-      kills: Number(item.kills) || 0,
-      difficultyKey: key,
-      difficultyLabel: DIFFICULTY_CONFIG[key]?.label ?? key,
-      dateISO: item.created_at,
-    };
-  });
-};
-
-const submitGlobalScore = async (entry) => {
-  const rawDifficulty = entry?.difficultyKey ?? entry?.difficultyLabel ?? DEFAULT_DIFFICULTY_KEY;
-  const difficulty = normalizeDifficultyKey(rawDifficulty);
-  const payload = {
-    name: entry?.name,
-    difficulty,
-    score: entry?.score ?? 0,
-    wave: entry?.wave ?? 0,
-    kills: entry?.kills ?? 0,
-  };
-  try {
-    fetch("/api/score", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch(() => null);
-  } catch {
-    return null;
-  }
-  return null;
 };
 
 const makeBrandHeader = () => {
@@ -329,14 +224,17 @@ export class GameScene extends Phaser.Scene {
       if (oldOverlay) oldOverlay.remove();
     }
 
-    this.playerName = normalizePlayerName(readStorage(PLAYER_NAME_STORAGE_KEY));
-    this.difficultyKey = normalizeDifficultyKey(readStorage(DIFFICULTY_STORAGE_KEY));
+    this.playerName = normalizePlayerName(storage.read(STORAGE_KEYS.playerName));
+    this.difficultyKey = normalizeDifficultyKey(
+      storage.read(STORAGE_KEYS.difficulty)
+    );
     if (this.startOptions?.playerName) this.playerName = normalizePlayerName(this.startOptions.playerName);
     if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);
     this.difficulty = DIFFICULTY_CONFIG[this.difficultyKey];
     this.difficultyLabel = this.difficulty.label;
-    const querySeed = new URLSearchParams(window.location.search).get("seed");
-    const queryRunLabel = new URLSearchParams(window.location.search).get("run");
+    const queryOptions = readRunOptions();
+    const querySeed = queryOptions.seed;
+    const queryRunLabel = queryOptions.runLabel;
     this.runSeed = normalizeRunSeed(this.startOptions?.runSeed ?? querySeed);
     this.runLabel = String(
       this.startOptions?.runLabel ?? queryRunLabel ?? "unlabeled"
@@ -485,7 +383,7 @@ export class GameScene extends Phaser.Scene {
       const volume = typeof cfg.volume === "number" ? cfg.volume : 0.4;
       this.sfx[key] = this.sound.add(key, { volume });
     });
-    this.showHelp = readStorage(HELP_OVERLAY_STORAGE_KEY) === "true";
+    this.showHelp = storage.read(STORAGE_KEYS.helpOverlay) === "true";
     this.controlsSelectedEl = document.getElementById("controls-selected");
     this.controlsPlacementEl = document.getElementById("controls-placement");
     this.selectedTowerPanelEl = document.getElementById("selected-tower-panel");
@@ -956,9 +854,9 @@ export class GameScene extends Phaser.Scene {
     const onStart = () => {
       const name = normalizePlayerName(nameInput.value);
       this.playerName = name;
-      writeStorage(PLAYER_NAME_STORAGE_KEY, name);
+      storage.write(STORAGE_KEYS.playerName, name);
       this.applyDifficulty(selectedKey);
-      writeStorage(DIFFICULTY_STORAGE_KEY, selectedKey);
+      storage.write(STORAGE_KEYS.difficulty, selectedKey);
       this.isStartScreenActive = false;
       if (this.input?.keyboard) {
         this.input.keyboard.enabled = true;
@@ -1545,7 +1443,7 @@ export class GameScene extends Phaser.Scene {
       difficultyLabel: this.difficultyLabel,
       dateISO: new Date().toISOString(),
     };
-    updateLeaderboard(this.lastLeaderboardEntry, this.difficultyKey);
+    recordLocalScore(storage, this.lastLeaderboardEntry, this.difficultyKey);
     submitGlobalScore(this.lastLeaderboardEntry);
     this.showGameOverScreen();
   }
@@ -1556,7 +1454,7 @@ export class GameScene extends Phaser.Scene {
 
   setHelpOverlay(show) {
     this.showHelp = !!show;
-    writeStorage(HELP_OVERLAY_STORAGE_KEY, this.showHelp ? "true" : "false");
+    storage.write(STORAGE_KEYS.helpOverlay, this.showHelp ? "true" : "false");
 
     if (!this.showHelp) {
       if (this.helpIndicatorTween) {
@@ -2154,10 +2052,10 @@ export class GameScene extends Phaser.Scene {
     const snapshot = Telemetry.snapshotRunTelemetry(this.runTelemetry);
     if (!snapshot) return;
     const archive = Telemetry.updateTelemetryArchive(
-      readStorage(BALANCE_TELEMETRY_STORAGE_KEY),
+      storage.read(STORAGE_KEYS.balanceTelemetry),
       snapshot
     );
-    writeStorage(BALANCE_TELEMETRY_STORAGE_KEY, JSON.stringify(archive));
+    storage.write(STORAGE_KEYS.balanceTelemetry, JSON.stringify(archive));
     window.defenseProtocolTelemetry = snapshot;
     window.defenseProtocolTelemetryRuns = archive.runs;
   }
