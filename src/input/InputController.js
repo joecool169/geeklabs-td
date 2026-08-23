@@ -6,6 +6,7 @@ class InputController {
     this.keyboard = input.keyboard;
     this.onAction = onAction;
     this.keys = {};
+    this.activeTouchPointerId = null;
     this.removeListeners = [];
     this.input.mouse?.disableContextMenu();
 
@@ -35,6 +36,8 @@ class InputController {
 
     this.pointerDownHandler = (pointer) => {
       if (this.isTouchPointer(pointer)) {
+        if (this.activeTouchPointerId !== null) return;
+        this.activeTouchPointerId = pointer.id ?? 0;
         this.dispatchTouch(pointer, "down");
         return;
       }
@@ -49,7 +52,12 @@ class InputController {
     };
     this.pointerMoveHandler = (pointer) => {
       if (this.isTouchPointer(pointer)) {
-        if (pointer.isDown) this.dispatchTouch(pointer, "move");
+        if (
+          pointer.isDown &&
+          (pointer.id ?? 0) === this.activeTouchPointerId
+        ) {
+          this.dispatchTouch(pointer, "move");
+        }
         return;
       }
       this.dispatch({
@@ -59,7 +67,13 @@ class InputController {
       });
     };
     this.pointerUpHandler = (pointer) => {
-      if (this.isTouchPointer(pointer)) this.dispatchTouch(pointer, "up");
+      if (
+        this.isTouchPointer(pointer) &&
+        (pointer.id ?? 0) === this.activeTouchPointerId
+      ) {
+        this.dispatchTouch(pointer, "up");
+        this.activeTouchPointerId = null;
+      }
     };
     input.on("pointerdown", this.pointerDownHandler);
     input.on("pointermove", this.pointerMoveHandler);
@@ -106,6 +120,7 @@ class InputController {
   destroy() {
     this.removeListeners.splice(0).forEach((remove) => remove());
     this.onAction = null;
+    this.activeTouchPointerId = null;
   }
 }
 

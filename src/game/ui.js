@@ -318,6 +318,17 @@ function updateUI(scene) {
   if (scene.touchTargetValueEl) scene.touchTargetValueEl.textContent = targetLabel;
   if (scene.touchUpgradeValueEl) scene.touchUpgradeValueEl.textContent = nextText;
   if (scene.touchSellValueEl) scene.touchSellValueEl.textContent = `$${refund}`;
+  scene.touchTargetBtnEl?.setAttribute("aria-label", `Target mode: ${targetLabel}`);
+  scene.touchUpgradeBtnEl?.setAttribute(
+    "aria-label",
+    nextCost === null ? "Tower at maximum tier" : `Upgrade tower for ${nextCost}`
+  );
+  if (!scene.domView?.touchSellGuard?.armed) {
+    scene.touchSellBtnEl?.setAttribute(
+      "aria-label",
+      `Sell tower for ${refund}; requires confirmation`
+    );
+  }
   if (scene.selectedTowerNameEl) scene.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
   if (scene.selectedTowerTargetEl) scene.selectedTowerTargetEl.textContent = targetLabel;
   if (scene.selectedTowerDmgEl) scene.selectedTowerDmgEl.textContent = `${t.damage}`;

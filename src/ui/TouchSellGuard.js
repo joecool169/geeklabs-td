@@ -25,6 +25,7 @@ class TouchSellGuard {
     }
     this.armed = true;
     this.button?.classList.add("is-confirming");
+    this.button?.setAttribute?.("aria-label", "Confirm sell selected tower");
     if (this.label) this.label.textContent = "Confirm Sell";
     this.timer = this.setTimer(() => this.reset(), this.duration);
     return false;
@@ -35,6 +36,7 @@ class TouchSellGuard {
     this.timer = null;
     this.armed = false;
     this.button?.classList.remove("is-confirming");
+    this.button?.setAttribute?.("aria-label", "Sell selected tower");
     if (this.label) this.label.textContent = "Sell";
   }
 

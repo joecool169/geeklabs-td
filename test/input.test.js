@@ -107,6 +107,24 @@ test("input controller maps device events into semantic game actions", () => {
     worldY: 430,
     wasTouch: true,
   });
+  input.emit("pointerdown", {
+    id: 1,
+    worldX: 500,
+    worldY: 500,
+    wasTouch: true,
+  });
+  input.emit("pointerdown", {
+    id: 2,
+    worldX: 600,
+    worldY: 600,
+    wasTouch: true,
+  });
+  input.emit("pointerup", {
+    id: 1,
+    worldX: 510,
+    worldY: 510,
+    wasTouch: true,
+  });
 
   assert.deepEqual(actions, [
     { type: GAME_ACTIONS.TOGGLE_PLACEMENT },
@@ -127,6 +145,8 @@ test("input controller maps device events into semantic game actions", () => {
     { type: GAME_ACTIONS.TOUCH_AT, x: 300, y: 400, phase: "down" },
     { type: GAME_ACTIONS.TOUCH_AT, x: 320, y: 420, phase: "move" },
     { type: GAME_ACTIONS.TOUCH_AT, x: 330, y: 430, phase: "up" },
+    { type: GAME_ACTIONS.TOUCH_AT, x: 500, y: 500, phase: "down" },
+    { type: GAME_ACTIONS.TOUCH_AT, x: 510, y: 510, phase: "up" },
   ]);
 
   controller.setKeyboardEnabled(false);
@@ -134,5 +154,5 @@ test("input controller maps device events into semantic game actions", () => {
   controller.destroy();
   keys.get("t").emit("down");
   input.emit("pointermove", { worldX: 1, worldY: 2 });
-  assert.equal(actions.length, 8);
+  assert.equal(actions.length, 10);
 });
