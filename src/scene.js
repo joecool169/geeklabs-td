@@ -29,6 +29,8 @@ import {
 import { readRunOptions } from "./services/runOptions.js";
 import { OverlayManager } from "./ui/OverlayManager.js";
 import { GameDomView } from "./ui/GameDomView.js";
+import { GAME_ACTIONS } from "./input/actions.js";
+import { InputController } from "./input/InputController.js";
 
 const storage = createStorageGateway();
 const RANGE_FILL_ALPHA = {
@@ -271,22 +273,6 @@ export class GameScene extends Phaser.Scene {
 
     this.setHelpOverlay(this.showHelp);
 
-    this.input.mouse?.disableContextMenu();
-
-    this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
-    this.keyT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
-    this.keyU = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
-    this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
-    this.keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-    this.key1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
-    this.key2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
-    this.key3 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
-    this.key4 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR);
-    this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
-    this.keyH = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
-    this.keyEsc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-    this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
     this.setPaused = (paused) => {
       const p = !!paused;
       if (p === this.isPaused) return;
@@ -313,156 +299,10 @@ export class GameScene extends Phaser.Scene {
     this.ghostX = 0;
     this.ghostY = 0;
 
-    this.keyT.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.togglePlacement();
-    });
-
-    this.keyU.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.tryUpgradeTower(this.selectedTower);
-    });
-
-    this.keyX.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.trySellTower(this.selectedTower);
-    });
-
-    this.keyF.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      if (this.selectedTower && this.towers.includes(this.selectedTower)) this.cycleTargetMode(this.selectedTower);
-    });
-
-    this.key1.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.trySetPlaceType("basic");
-    });
-
-    this.key2.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.trySetPlaceType("rapid");
-    });
-
-    this.key3.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.trySetPlaceType("sniper");
-    });
-
-    this.key4.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      this.trySetPlaceType("laser");
-    });
-
-    this.keyP.on("down", () => {
-      if (this.isStartScreenActive || this.isGameOver) return;
-      this.togglePause();
-    });
-
-    this.keyH.on("down", () => {
-      if (this.isStartScreenActive || this.isGameOver) return;
-      this.emphasizeControlsPanel();
-      this.setHelpOverlay(!this.showHelp);
-    });
-
-    this.keyEsc.on("down", () => {
-      if (this.isStartScreenActive || this.isGameOver) return;
-      if (this.isPaused) {
-        this.hidePauseMenu();
-        this.setPaused(false);
-        return;
-      }
-      if (this.isPlacing) {
-        this.setPlacement(false);
-        return;
-      }
-      if (this.selectedTower) {
-        this.clearSelection();
-        return;
-      }
-    });
-
-    this.keySpace.on("down", () => {
-      if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
-      const now = this.time.now;
-      if (this.waveState === "intermission") {
-        if (now < this.nextWaveAvailableAt) {
-          if (this.spaceArmMode === "intermission" && now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS) {
-            this.spaceArmedAt = 0;
-            this.spaceArmMode = null;
-            this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, now);
-            this.startWave(this.nextWaveNumberToSpawn);
-            this.nextWaveNumberToSpawn += 1;
-            if (!this.didStartFirstWave) this.didStartFirstWave = true;
-          } else {
-            this.spaceArmedAt = now;
-            this.spaceArmMode = "intermission";
-            this.showToast("Press SPACE again to start early.", 1400);
-          }
-          return;
-        }
-        this.spaceArmedAt = 0;
-        this.spaceArmMode = null;
-        this.startWave(this.nextWaveNumberToSpawn);
-        this.nextWaveNumberToSpawn += 1;
-        if (!this.didStartFirstWave) this.didStartFirstWave = true;
-        return;
-      }
-      if (this.waveState === "running") {
-        if ((this.activeWaves?.length || 0) >= MAX_CONCURRENT_SPAWNERS) {
-          this.showToast(`Spawner cap reached (${MAX_CONCURRENT_SPAWNERS}).`, 1400);
-          return;
-        }
-        if (this.spaceArmMode === "running" && now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS) {
-          this.spaceArmedAt = 0;
-          this.spaceArmMode = null;
-          this.startWave(this.nextWaveNumberToSpawn);
-          this.nextWaveNumberToSpawn += 1;
-          return;
-        }
-        this.spaceArmedAt = now;
-        this.spaceArmMode = "running";
-        this.showToast("Press SPACE again to add a spawner.", 1400);
-      }
-    });
-
-    this.input.on("pointerdown", (p) => {
-      if (this.isStartScreenActive || this.isGameOver) return;
-      const wx = p.worldX;
-      const wy = p.worldY;
-      if (this.isPaused) return;
-
-      if (p.rightButtonDown()) {
-        const t = this.getTowerAt(wx, wy);
-        if (t) {
-          this.trySellTower(t);
-          return;
-        }
-        if (this.isPlacing) this.setPlacement(false);
-        return;
-      }
-
-      if (this.isPlacing) {
-        if (this.ghostValid) {
-          this.tryPlaceTowerAt(this.ghostX, this.ghostY);
-          this.refreshGhostVisual();
-        }
-        return;
-      }
-
-      const t = this.getTowerAt(wx, wy);
-      if (t) {
-        if (this.keyShift.isDown) this.tryUpgradeTower(t);
-        this.selectTower(t);
-        return;
-      }
-      this.clearSelection();
-    });
-
-    this.input.on("pointermove", (p) => {
-      if (this.isStartScreenActive || this.isGameOver) return;
-      if (this.isPaused) return;
-      if (!this.isPlacing) return;
-      this.updateGhost(p.worldX, p.worldY);
+    this.inputController = new InputController({
+      input: this.input,
+      keyCodes: Phaser.Input.Keyboard.KeyCodes,
+      onAction: (action) => this.handleInputAction(action),
     });
 
     this.updateUI();
@@ -473,12 +313,153 @@ export class GameScene extends Phaser.Scene {
       this.overlays = null;
       this.domView?.destroy();
       this.domView = null;
+      this.inputController?.destroy();
+      this.inputController = null;
     });
     if (this.isStartScreenActive) {
       this.showStartScreen();
     } else {
       this.applyDifficulty(this.difficultyKey);
     }
+  }
+
+  handleInputAction(action) {
+    if (!action?.type) return;
+    if (action.type === GAME_ACTIONS.TOGGLE_PAUSE) {
+      if (this.isStartScreenActive || this.isGameOver) return;
+      this.togglePause();
+      return;
+    }
+    if (action.type === GAME_ACTIONS.CANCEL) {
+      if (this.isStartScreenActive || this.isGameOver) return;
+      if (this.isPaused) {
+        this.hidePauseMenu();
+        this.setPaused(false);
+      } else if (this.isPlacing) {
+        this.setPlacement(false);
+      } else if (this.selectedTower) {
+        this.clearSelection();
+      }
+      return;
+    }
+    if (action.type === GAME_ACTIONS.TOGGLE_HELP) {
+      if (this.isStartScreenActive || this.isGameOver) return;
+      this.emphasizeControlsPanel();
+      this.setHelpOverlay(!this.showHelp);
+      return;
+    }
+    if (this.isPaused || this.isStartScreenActive || this.isGameOver) return;
+
+    switch (action.type) {
+      case GAME_ACTIONS.TOGGLE_PLACEMENT:
+        this.togglePlacement();
+        break;
+      case GAME_ACTIONS.SELECT_TOWER_TYPE:
+        this.trySetPlaceType(action.towerType);
+        break;
+      case GAME_ACTIONS.UPGRADE_SELECTED:
+        if (this.selectedTower && this.towers.includes(this.selectedTower)) {
+          this.tryUpgradeTower(this.selectedTower);
+        }
+        break;
+      case GAME_ACTIONS.SELL_SELECTED:
+        if (this.selectedTower && this.towers.includes(this.selectedTower)) {
+          this.trySellTower(this.selectedTower);
+        }
+        break;
+      case GAME_ACTIONS.CYCLE_TARGETING:
+        if (this.selectedTower && this.towers.includes(this.selectedTower)) {
+          this.cycleTargetMode(this.selectedTower);
+        }
+        break;
+      case GAME_ACTIONS.START_WAVE:
+        this.handleStartWaveInput(this.time.now);
+        break;
+      case GAME_ACTIONS.SECONDARY_AT:
+        this.handleSecondaryPointer(action.x, action.y);
+        break;
+      case GAME_ACTIONS.PRIMARY_AT:
+        this.handlePrimaryPointer(action.x, action.y, action.modified);
+        break;
+      case GAME_ACTIONS.POINTER_MOVED:
+        if (this.isPlacing) this.updateGhost(action.x, action.y);
+        break;
+      default:
+        break;
+    }
+  }
+
+  handleStartWaveInput(now) {
+    if (this.waveState === "intermission") {
+      if (now < this.nextWaveAvailableAt) {
+        if (
+          this.spaceArmMode === "intermission" &&
+          now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS
+        ) {
+          this.spaceArmedAt = 0;
+          this.spaceArmMode = null;
+          this.nextWaveAvailableAt = Math.min(this.nextWaveAvailableAt, now);
+          this.startWave(this.nextWaveNumberToSpawn);
+          this.nextWaveNumberToSpawn += 1;
+          if (!this.didStartFirstWave) this.didStartFirstWave = true;
+        } else {
+          this.spaceArmedAt = now;
+          this.spaceArmMode = "intermission";
+          this.showToast("Press SPACE again to start early.", 1400);
+        }
+        return;
+      }
+      this.spaceArmedAt = 0;
+      this.spaceArmMode = null;
+      this.startWave(this.nextWaveNumberToSpawn);
+      this.nextWaveNumberToSpawn += 1;
+      if (!this.didStartFirstWave) this.didStartFirstWave = true;
+      return;
+    }
+    if (this.waveState !== "running") return;
+    if ((this.activeWaves?.length || 0) >= MAX_CONCURRENT_SPAWNERS) {
+      this.showToast(`Spawner cap reached (${MAX_CONCURRENT_SPAWNERS}).`, 1400);
+      return;
+    }
+    if (
+      this.spaceArmMode === "running" &&
+      now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS
+    ) {
+      this.spaceArmedAt = 0;
+      this.spaceArmMode = null;
+      this.startWave(this.nextWaveNumberToSpawn);
+      this.nextWaveNumberToSpawn += 1;
+      return;
+    }
+    this.spaceArmedAt = now;
+    this.spaceArmMode = "running";
+    this.showToast("Press SPACE again to add a spawner.", 1400);
+  }
+
+  handleSecondaryPointer(x, y) {
+    const tower = this.getTowerAt(x, y);
+    if (tower) {
+      this.trySellTower(tower);
+    } else if (this.isPlacing) {
+      this.setPlacement(false);
+    }
+  }
+
+  handlePrimaryPointer(x, y, modified = false) {
+    if (this.isPlacing) {
+      if (this.ghostValid) {
+        this.tryPlaceTowerAt(this.ghostX, this.ghostY);
+        this.refreshGhostVisual();
+      }
+      return;
+    }
+    const tower = this.getTowerAt(x, y);
+    if (tower) {
+      if (modified) this.tryUpgradeTower(tower);
+      this.selectTower(tower);
+      return;
+    }
+    this.clearSelection();
   }
 
   showToast(msg, ms = 2400) {
@@ -520,10 +501,7 @@ export class GameScene extends Phaser.Scene {
       this.applyDifficulty(this.difficultyKey);
       return;
     }
-    if (this.input?.keyboard) {
-      this.input.keyboard.enabled = false;
-      this.input.keyboard.disableGlobalCapture();
-    }
+    this.inputController?.setKeyboardEnabled(false);
     this.overlays.showStart({
       playerName: this.playerName,
       difficultyKey: this.difficultyKey,
@@ -534,10 +512,7 @@ export class GameScene extends Phaser.Scene {
         this.applyDifficulty(difficultyKey);
         storage.write(STORAGE_KEYS.difficulty, difficultyKey);
         this.isStartScreenActive = false;
-        if (this.input?.keyboard) {
-          this.input.keyboard.enabled = true;
-          this.input.keyboard.enableGlobalCapture();
-        }
+        this.inputController?.setKeyboardEnabled(true);
         this.overlays.remove("defense-protocol-start-overlay");
       },
     });
