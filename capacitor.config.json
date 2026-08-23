@@ -1,0 +1,9 @@
+{
+  "appId": "tv.geekstreet.td",
+  "appName": "Defense Protocol",
+  "webDir": "dist",
+  "ios": {
+    "backgroundColor": "#0b0f14",
+    "contentInset": "automatic"
+  }
+}

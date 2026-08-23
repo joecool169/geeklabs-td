@@ -8,12 +8,21 @@
     "build": "vite build",
     "test": "node --test",
     "preview": "vite preview",
-    "deploy": "./scripts/deploy.sh"
+    "deploy": "./scripts/deploy.sh",
+    "native:sync": "npm run build && cap sync",
+    "ios:add": "cap add ios",
+    "ios:sync": "npm run build && cap sync ios",
+    "ios:open": "cap open ios"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.4.2",
     "vite": "^7.3.6"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@capacitor/preferences": "^8.0.1",
     "phaser": "^3.90.0"
   }
 }
