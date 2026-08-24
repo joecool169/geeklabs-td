@@ -15,6 +15,7 @@ const RANGE_LINE_ALPHA = Object.freeze({
   valid: 0.55,
   blocked: 0.6,
 });
+const PLAYFIELD_TEXTURE_KEY = "playfield_floor";
 
 function createDefaultPath() {
   return [
@@ -103,17 +104,31 @@ class WorldRenderer {
     this.scene = scene;
     this.path = path;
     this.graphics = null;
+    this.floor = null;
     this.rangeFill = null;
     this.rangeRing = null;
   }
 
   create() {
     this.makeTextures();
+    this.drawFloor();
     this.graphics = this.scene.add.graphics();
     this.drawGrid();
     this.drawPath();
     this.rangeFill = this.scene.add.graphics().setDepth(-1).setVisible(false);
     this.rangeRing = this.scene.add.graphics().setDepth(10).setVisible(false);
+  }
+
+  drawFloor() {
+    if (!this.scene.textures.exists(PLAYFIELD_TEXTURE_KEY)) return;
+    const width = this.scene.scale.width;
+    const height = this.scene.scale.height - TOP_UI;
+    this.floor = this.scene.add
+      .tileSprite(0, TOP_UI, width, height, PLAYFIELD_TEXTURE_KEY)
+      .setOrigin(0)
+      .setDepth(-20)
+      .setAlpha(0.38);
+    this.floor.setTileScale(0.72);
   }
 
   makeTextures() {
@@ -179,14 +194,34 @@ class WorldRenderer {
   }
 
   drawPath() {
-    this.graphics.lineStyle(10, 0x1b2a43, 1);
+    this.graphics.lineStyle(18, 0x080d13, 0.96);
     for (let i = 0; i < this.path.length - 1; i += 1) {
       const a = this.path[i];
       const b = this.path[i + 1];
       this.graphics.lineBetween(a.x, a.y, b.x, b.y);
     }
-    this.graphics.fillStyle(0x2a3f63, 1);
-    for (const point of this.path) this.graphics.fillCircle(point.x, point.y, 6);
+    this.graphics.lineStyle(12, 0x243142, 1);
+    for (let i = 0; i < this.path.length - 1; i += 1) {
+      const a = this.path[i];
+      const b = this.path[i + 1];
+      this.graphics.lineBetween(a.x, a.y, b.x, b.y);
+    }
+    this.graphics.lineStyle(1, 0x3bd3ff, 0.18);
+    for (let i = 0; i < this.path.length - 1; i += 1) {
+      const a = this.path[i];
+      const b = this.path[i + 1];
+      this.graphics.lineBetween(a.x, a.y, b.x, b.y);
+    }
+    this.graphics.fillStyle(0x34465d, 1);
+    for (const point of this.path) this.graphics.fillCircle(point.x, point.y, 8);
+    this.graphics.fillStyle(0x0b121b, 1);
+    for (const point of this.path) this.graphics.fillCircle(point.x, point.y, 3);
+
+    this.graphics.lineStyle(2, 0xd8a96a, 0.64);
+    for (const point of this.path.slice(1, -1)) {
+      this.graphics.lineBetween(point.x - 7, point.y - 7, point.x - 2, point.y - 2);
+      this.graphics.lineBetween(point.x + 2, point.y + 2, point.x + 7, point.y + 7);
+    }
   }
 
   isOnPath(x, y, radius = 24) {
@@ -248,6 +283,7 @@ class WorldRenderer {
   }
 
   destroy() {
+    this.floor?.destroy();
     this.graphics?.destroy();
     this.rangeFill?.destroy();
     this.rangeRing?.destroy();
@@ -256,6 +292,7 @@ class WorldRenderer {
 }
 
 export {
+  PLAYFIELD_TEXTURE_KEY,
   WorldRenderer,
   createDefaultPath,
   drawTowerTexture,

@@ -54,6 +54,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image("playfield_floor", "/art/playfield-floor-v1.png");
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!cfg?.url) return;
       this.load.audio(key, cfg.url);

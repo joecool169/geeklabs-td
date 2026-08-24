@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  PLAYFIELD_TEXTURE_KEY,
   createDefaultPath,
   getTowerTextureKey,
   pointToSegmentDistance,
@@ -18,6 +19,7 @@ test("world renderer preserves map path and texture identities", () => {
     { x: 860, y: 420 },
   ]);
   assert.equal(getTowerTextureKey("rapid"), "tower_rapid");
+  assert.equal(PLAYFIELD_TEXTURE_KEY, "playfield_floor");
 });
 
 test("dense-wave health bars prioritize durable and badly damaged enemies", () => {
