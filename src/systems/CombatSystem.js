@@ -1,6 +1,10 @@
 import { TOWER_DEFS } from "../constants.js";
 import { computeDamageAgainstEnemy } from "../game/balance.js";
-import { showDeathEffect, showHitEffect } from "../game/bullets.js";
+import {
+  getMuzzlePoint,
+  showDeathEffect,
+  showHitEffect,
+} from "../game/bullets.js";
 import * as Telemetry from "../game/telemetry.js";
 import { dist2, segCircleHit } from "../game/utils.js";
 import { ProjectileSystem } from "./ProjectileSystem.js";
@@ -77,15 +81,16 @@ class CombatSystem {
     const length = Math.sqrt(dx * dx + dy * dy) || 1;
     const endX = tower.x + (dx / length) * tower.range;
     const endY = tower.y + (dy / length) * tower.range;
+    const origin = getMuzzlePoint(tower, target);
     tower.lockMs += dt;
     tower.beamAcc += dt;
 
     if (tower.beam) {
       tower.beam.clear();
       tower.beam.lineStyle(3, 0xff6bff, 0.18);
-      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
+      tower.beam.lineBetween(origin.x, origin.y, endX, endY);
       tower.beam.lineStyle(1, 0xffd1ff, 0.85);
-      tower.beam.lineBetween(tower.x, tower.y, endX, endY);
+      tower.beam.lineBetween(origin.x, origin.y, endX, endY);
       tower.beam.setVisible(true);
     }
 

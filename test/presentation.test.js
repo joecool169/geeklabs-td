@@ -114,6 +114,13 @@ test("projectile muzzle feedback follows tower direction and tier", () => {
     ),
     { angle: 0, x: 60, y: 20 }
   );
+  assert.deepEqual(
+    getMuzzlePoint(
+      { x: 10, y: 20, type: "laser", tier: 2 },
+      { x: 110, y: 20 }
+    ),
+    { angle: 0, x: 35, y: 20 }
+  );
 });
 
 test("extra art feedback yields to dense-wave readability", () => {
