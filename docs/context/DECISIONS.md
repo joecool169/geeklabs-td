@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-08-23 — Give defense and targeting visible physical meaning
+
+**Decision:** Represent the defended objective with a command core beyond the route endpoint, and split Basic towers into stationary foundations plus rotating weapon heads.
+
+**Implementation model:** The command core is presentation-only and reflects integrity through restrained tint and impact effects. Basic targeting rotates only the orthographic weapon head; the perspective-sensitive base remains stationary, and shots originate at the barrel tip.
+
+**Constraint:** Preserve accepted balance, path geometry, collision, targeting, and economy values. Every new bitmap retains a generated fallback.
+
 ## 2026-08-23 — Adopt the industrial–sci-fi visual identity
 
 **Decision:** Establish the production art direction with one complete Basic-versus-Runner vertical slice before replacing the remaining procedural units.

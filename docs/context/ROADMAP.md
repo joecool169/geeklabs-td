@@ -69,7 +69,15 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - coordinate Basic aiming, muzzle, projectile, impact, hit, and Runner destruction feedback
 - validate the vertical slice at desktop, iPhone, and iPad layouts without changing balance
 
-## Phase 9 — Remaining unit art — proposed
+## Phase 9 — Interactive defense presentation — completed
+
+- add a defended command core beyond the route endpoint
+- coordinate integrity color, leak impact, and game-over feedback
+- split Basic towers into stationary bases and tier-specific rotating heads
+- align muzzle flashes and projectile origins with the swiveling barrels
+- preserve all accepted balance and targeting behavior
+
+## Phase 10 — Remaining unit art — proposed
 
 - Rapid and Sprinter paired slice
 - Sniper and Brute paired slice

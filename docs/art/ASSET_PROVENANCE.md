@@ -10,6 +10,8 @@ The v0.8.0 vertical slice uses OpenAI's built-in image generation in `stylized-c
 - `basic-t1-v1.png`: a transparent-background compact cyan sentry with a clear barrel direction, industrial base, and simple tier-one silhouette.
 - `basic-t2-v1.png`: the same sentry evolved into a broader, reinforced tier-two form while preserving its camera, facing, palette, and identity.
 - `basic-t3-v1.png`: the same sentry evolved into its strongest tier-three form with heavier armor and a brighter cyan energy ring, while retaining the shared family silhouette.
+- `command-core-v1.png`: a transparent compact fortified endpoint bunker with welded gunmetal armor, a central cyan energy core, antennas, conduits, and small amber warning details; non-directional and readable at mobile scale.
+- `basic-base-v1.png` and `basic-head-t1/t2/t3-v1.png`: a component sheet derived from the established Basic tower references, containing one stationary three-quarter industrial base and three isolated strict top-down weapon heads pointing right at zero rotation; a second background-extraction pass produced genuine transparency without changing the components.
 
 ## Shipped paths
 
@@ -17,5 +19,7 @@ The v0.8.0 vertical slice uses OpenAI's built-in image generation in `stylized-c
 - Playfield: `public/art/playfield-floor-v1.png`
 - Runner: `public/art/units/runner-v1.png`
 - Basic tower tiers: `public/art/towers/basic-t1-v1.png`, `basic-t2-v1.png`, and `basic-t3-v1.png`
+- Basic tower components: `public/art/towers/basic-base-v1.png` and `public/art/towers/basic-head-t1-v1.png` through `basic-head-t3-v1.png`
+- Command core: `public/art/structures/command-core-v1.png`
 
 Every runtime bitmap has a procedural fallback so a missing image cannot prevent play.

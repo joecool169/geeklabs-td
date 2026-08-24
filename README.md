@@ -6,7 +6,7 @@ A live version is hosted at <https://td.geekstreet.tv>.
 
 ## Current direction
 
-The project now has an accepted Capacitor iOS foundation, a unified command interface, and a first validated industrial–sci-fi art vertical slice across desktop, iPhone, and iPad. The next visual phase can extend that standard to the remaining specialist towers and enemy classes.
+The project now has an accepted Capacitor iOS foundation, a unified command interface, and a validated industrial–sci-fi art vertical slice across desktop, iPhone, and iPad. The defended command core and swiveling layered Basic towers give route leaks and target acquisition a clear visual purpose. The next visual phase can extend that standard to the remaining specialist towers and enemy classes.
 
 Design priorities:
 
@@ -29,6 +29,7 @@ Design priorities:
 - Runner, Sprinter, Brute, and Armored enemy progression
 - distinct tower, enemy, projectile, impact, health, and range visuals
 - textured industrial playfield plus production Runner and Basic T1–T3 artwork with procedural fallbacks
+- defended command-core endpoint with integrity feedback and barrel-aligned swiveling Basic turrets
 - contextual placement and selected-tower sidebar panels
 - local and optional global leaderboards
 - start, pause, wave-state, and game-over presentation
