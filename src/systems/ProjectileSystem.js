@@ -1,10 +1,20 @@
 import { segCircleHit } from "../game/utils.js";
-import { flashEnemy, showHitEffect, showMuzzleEffect } from "../game/bullets.js";
+import {
+  flashEnemy,
+  getMuzzlePoint,
+  showHitEffect,
+  showMuzzleEffect,
+} from "../game/bullets.js";
 
 const PROJECTILE_DEPTH = 50;
 
 const getTowerColor = (tower, fallback) =>
   tower?.visualTint ?? tower?.sprite?.tintTopLeft ?? fallback;
+
+const getProjectileOrigin = (tower, target, projectileType) =>
+  projectileType === "basic"
+    ? getMuzzlePoint(tower, target)
+    : { x: tower.x, y: tower.y };
 
 class ProjectileSystem {
   constructor({ scene, onHit }) {
@@ -28,9 +38,10 @@ class ProjectileSystem {
     if (projectileType === "basic") {
       showMuzzleEffect(this.scene, tower, target, color);
     }
+    const origin = getProjectileOrigin(tower, target, projectileType);
     const projectile = this.scene.add.image(
-      tower.x,
-      tower.y,
+      origin.x,
+      origin.y,
       `projectile_${projectileType}`
     );
     projectile.setDepth(PROJECTILE_DEPTH).setTint(color).setScale(1.12);
@@ -107,4 +118,4 @@ class ProjectileSystem {
   }
 }
 
-export { ProjectileSystem };
+export { ProjectileSystem, getProjectileOrigin };

@@ -16,6 +16,7 @@ import {
   getMuzzlePoint,
   hasTransientEffectBudget,
 } from "../src/game/bullets.js";
+import { getProjectileOrigin } from "../src/systems/ProjectileSystem.js";
 
 test("world renderer preserves map path and texture identities", () => {
   assert.deepEqual(createDefaultPath(), [
@@ -53,7 +54,7 @@ test("point-to-segment placement geometry remains deterministic", () => {
 test("Basic muzzle feedback follows the target direction and tower tier", () => {
   assert.deepEqual(
     getMuzzlePoint({ x: 10, y: 20, tier: 1 }, { x: 110, y: 20 }),
-    { angle: 0, x: 26, y: 20 }
+    { angle: 0, x: 34, y: 20 }
   );
   const vertical = getMuzzlePoint(
     { x: 10, y: 20, tier: 3 },
@@ -61,7 +62,19 @@ test("Basic muzzle feedback follows the target direction and tower tier", () => 
   );
   assert.ok(Math.abs(vertical.angle - Math.PI / 2) < 1e-10);
   assert.ok(Math.abs(vertical.x - 10) < 1e-10);
-  assert.equal(vertical.y, 40);
+  assert.equal(vertical.y, 52);
+  assert.deepEqual(
+    getProjectileOrigin(
+      { x: 10, y: 20, tier: 2 },
+      { x: 110, y: 20 },
+      "basic"
+    ),
+    { angle: 0, x: 38, y: 20 }
+  );
+  assert.deepEqual(
+    getProjectileOrigin({ x: 10, y: 20 }, { x: 110, y: 20 }, "rapid"),
+    { x: 10, y: 20 }
+  );
 });
 
 test("extra art feedback yields to dense-wave readability", () => {

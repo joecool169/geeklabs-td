@@ -6,7 +6,7 @@ const hasTransientEffectBudget = (scene) =>
 
 const getMuzzlePoint = (tower, target) => {
   const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
-  const offset = 14 + Math.min(6, Math.max(1, tower.tier ?? 1) * 2);
+  const offset = 20 + Math.min(12, Math.max(1, tower.tier ?? 1) * 4);
   return {
     angle,
     x: tower.x + Math.cos(angle) * offset,
