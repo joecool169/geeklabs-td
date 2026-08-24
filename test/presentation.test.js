@@ -25,10 +25,12 @@ import {
 import {
   getMuzzlePoint,
   hasTransientEffectBudget,
+  shouldShowImpactEffect,
 } from "../src/game/bullets.js";
 import { getProjectileOrigin } from "../src/systems/ProjectileSystem.js";
 import {
   ART_DEPTHS,
+  FULL_EFFECT_ENEMY_LIMIT,
   TRANSIENT_EFFECT_ENEMY_LIMIT,
   getEnemyArtStandard,
   getTowerArtStandard,
@@ -80,7 +82,8 @@ test("production art standards preserve mobile footprints and depth order", () =
   });
   assert.ok(ART_DEPTHS.towerHead < ART_DEPTHS.enemy);
   assert.ok(ART_DEPTHS.enemyHealth < ART_DEPTHS.projectile);
-  assert.equal(TRANSIENT_EFFECT_ENEMY_LIMIT, 72);
+  assert.equal(FULL_EFFECT_ENEMY_LIMIT, 36);
+  assert.equal(TRANSIENT_EFFECT_ENEMY_LIMIT, 60);
 });
 
 test("dense-wave health bars prioritize durable and badly damaged enemies", () => {
@@ -89,6 +92,9 @@ test("dense-wave health bars prioritize durable and badly damaged enemies", () =
   assert.equal(shouldShowEnemyHealth("brute", 0.9), true);
   assert.equal(shouldShowEnemyHealth("armored", 0.99), true);
   assert.equal(shouldShowEnemyHealth("armored", 1), false);
+  assert.equal(shouldShowEnemyHealth("armored", 0.9, 48), false);
+  assert.equal(shouldShowEnemyHealth("brute", 0.5, 72), true);
+  assert.equal(shouldShowEnemyHealth("runner", 0.3, 72), false);
 });
 
 test("enemy motion and damage polish stay restrained and deterministic", () => {
@@ -159,7 +165,11 @@ test("extra art feedback yields to dense-wave readability", () => {
   const makeScene = (count) => ({
     enemies: { countActive: () => count },
   });
-  assert.equal(hasTransientEffectBudget(makeScene(72)), true);
-  assert.equal(hasTransientEffectBudget(makeScene(73)), false);
+  assert.equal(hasTransientEffectBudget(makeScene(60)), true);
+  assert.equal(hasTransientEffectBudget(makeScene(61)), false);
+  assert.equal(shouldShowImpactEffect(makeScene(36), "rapid"), true);
+  assert.equal(shouldShowImpactEffect(makeScene(48), "rapid"), false);
+  assert.equal(shouldShowImpactEffect(makeScene(48), "sniper"), true);
+  assert.equal(shouldShowImpactEffect(makeScene(61), "sniper"), false);
   assert.equal(hasTransientEffectBudget({}), true);
 });

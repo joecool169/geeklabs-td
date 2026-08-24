@@ -32,7 +32,7 @@ Defense Protocol is an industrial defense network upgraded with restrained milit
 - Hostile direction of travel must read without relying only on rotation or color.
 - Tier changes must alter the Basic tower silhouette, not merely its tint.
 - Effects must disappear quickly and never hide health bars, targets, or the route.
-- Above 72 active enemies, optional transient flourishes yield automatically; at 80 active enemies, units must remain separable and frame pacing must remain comparable to the procedural baseline.
+- Up to 36 active enemies, all restrained combat feedback may render. From 37–60, high-frequency Rapid/Laser impacts yield while Basic/Sniper cues remain. Above 60, optional transient flourishes yield automatically and health bars are limited to meaningfully damaged units; at 80 active enemies, units must remain separable and frame pacing must remain comparable to the procedural baseline.
 
 ## First vertical slice
 

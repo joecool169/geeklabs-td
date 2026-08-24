@@ -110,10 +110,11 @@ class EnemySystem {
   }
 
   update(dt) {
+    const activeEnemyCount = this.countActive();
     this.group.children.iterate((enemy) => {
       if (!enemy?.active) return;
       this.advance(enemy, dt);
-      updateEnemyVisual(enemy);
+      updateEnemyVisual(enemy, activeEnemyCount);
     });
   }
 

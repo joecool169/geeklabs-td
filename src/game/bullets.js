@@ -1,5 +1,6 @@
 import {
   ART_DEPTHS,
+  FULL_EFFECT_ENEMY_LIMIT,
   TRANSIENT_EFFECT_ENEMY_LIMIT,
 } from "../presentation/artStandards.js";
 
@@ -7,6 +8,13 @@ const IMPACT_DEPTH = ART_DEPTHS.impact;
 
 const hasTransientEffectBudget = (scene) =>
   (scene?.enemies?.countActive?.(true) ?? 0) <= TRANSIENT_EFFECT_ENEMY_LIMIT;
+
+const shouldShowImpactEffect = (scene, type) => {
+  const activeEnemies = scene?.enemies?.countActive?.(true) ?? 0;
+  if (activeEnemies <= FULL_EFFECT_ENEMY_LIMIT) return true;
+  if (activeEnemies > TRANSIENT_EFFECT_ENEMY_LIMIT) return false;
+  return type === "basic" || type === "sniper";
+};
 
 const MUZZLE_OFFSETS = Object.freeze({
   basic: Object.freeze([24, 28, 32]),
@@ -87,6 +95,7 @@ const showDeploymentEffect = (scene, enemy) => {
 };
 
 const showHitEffect = (scene, type, x, y, color) => {
+  if (!shouldShowImpactEffect(scene, type)) return;
   const key = `impact_${type}`;
   if (!scene.textures.exists(key)) return;
 
@@ -151,6 +160,7 @@ export {
   flashEnemy,
   getMuzzlePoint,
   hasTransientEffectBudget,
+  shouldShowImpactEffect,
   showDeathEffect,
   showDeploymentEffect,
   showHitEffect,

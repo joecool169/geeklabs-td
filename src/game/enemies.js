@@ -28,9 +28,12 @@ function getEnemyDamagePresentation(ratio) {
   return { alpha: 1, healthColor: 0x57e3ff };
 }
 
-function shouldShowEnemyHealth(typeKey, ratio) {
+function shouldShowEnemyHealth(typeKey, ratio, activeEnemyCount = 0) {
   if (ratio >= 1) return false;
-  if (typeKey === "brute" || typeKey === "armored") return true;
+  const durable = typeKey === "brute" || typeKey === "armored";
+  if (activeEnemyCount > 60) return ratio <= (durable ? 0.55 : 0.25);
+  if (activeEnemyCount > 36) return ratio <= (durable ? 0.8 : 0.4);
+  if (durable) return true;
   return ratio <= 0.55;
 }
 
@@ -124,7 +127,7 @@ function drawEnemyTexture(graphics, typeKey) {
   );
 }
 
-function updateEnemyVisual(e) {
+function updateEnemyVisual(e, activeEnemyCount = 0) {
   if (!e?.active || !e.healthIndicator?.active) return;
   const indicator = e.healthIndicator;
   indicator.setPosition(e.x, e.y);
@@ -138,7 +141,7 @@ function updateEnemyVisual(e) {
   e.presentationAlpha = damagePresentation.alpha;
   if (!e.flashTween) e.setAlpha?.(damagePresentation.alpha);
   indicator.clear();
-  if (!shouldShowEnemyHealth(e.typeKey, ratio)) {
+  if (!shouldShowEnemyHealth(e.typeKey, ratio, activeEnemyCount)) {
     indicator.setVisible(false);
     return;
   }
