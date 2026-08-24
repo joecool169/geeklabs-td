@@ -253,7 +253,13 @@ class WorldRenderer {
       color,
       blocked ? RANGE_LINE_ALPHA.blocked : RANGE_LINE_ALPHA.valid
     );
-    this.rangeRing.strokeCircle(x, y, range).setVisible(true);
+    this.rangeRing.strokeCircle(x, y, range);
+    this.rangeRing.lineStyle(2, color, 0.9);
+    this.rangeRing.lineBetween(x - 8, y, x - 3, y);
+    this.rangeRing.lineBetween(x + 3, y, x + 8, y);
+    this.rangeRing.lineBetween(x, y - 8, x, y - 3);
+    this.rangeRing.lineBetween(x, y + 3, x, y + 8);
+    this.rangeRing.strokeCircle(x, y, 2).setVisible(true);
   }
 
   showTowerRange(tower, color) {

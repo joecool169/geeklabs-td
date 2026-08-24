@@ -21,6 +21,7 @@ const TOWER_SYSTEM_FIELDS = Object.freeze([
 ]);
 const TOUCH_TOWER_SELECT_RADIUS = 34;
 const BASIC_ART_SIZE = Object.freeze({ 1: 40, 2: 42, 3: 46 });
+const PLACEMENT_GHOST_ALPHA = 0.44;
 
 class TowerSystem {
   constructor({ scene, world, runController }) {
@@ -116,7 +117,7 @@ class TowerSystem {
         0,
         getTowerTextureKey(this.placeType)
       );
-      this.ghost.setDepth(9000).setAlpha(0.5);
+      this.ghost.setDepth(9000).setAlpha(PLACEMENT_GHOST_ALPHA);
       const pointer = this.scene.input.activePointer;
       if (pointer) {
         this.ghostX = Number.NaN;
@@ -169,7 +170,14 @@ class TowerSystem {
     const tier0 = def.tiers[0];
     this.ghost.setPosition(this.ghostX, this.ghostY);
     const color = this.ghostValid ? tier0.tint : 0xff4d6d;
-    this.ghost.setTint(color).setScale(tier0.scale ?? 1);
+    if (this.placeType === "basic" && (this.ghost.width ?? 34) > 34) {
+      if (this.ghostValid) this.ghost.clearTint();
+      else this.ghost.setTint(color);
+      this.ghost.setDisplaySize(BASIC_ART_SIZE[1], BASIC_ART_SIZE[1]);
+    } else {
+      this.ghost.setTint(color);
+      this.ghost.setScale(tier0.scale ?? 1);
+    }
     this.world.showGhostRing(
       this.ghostX,
       this.ghostY,

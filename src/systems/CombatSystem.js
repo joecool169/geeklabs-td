@@ -37,11 +37,6 @@ class CombatSystem {
       const target = this.enemySystem.findTarget(tower, tower.targetMode);
       if (!target) continue;
       tower.nextShotAt = time + tower.fireMs;
-      if (tower.type === "basic") {
-        tower.sprite?.setRotation?.(
-          Math.atan2(target.y - tower.y, target.x - tower.x)
-        );
-      }
       this.projectiles.fire(tower, target);
     }
     this.projectiles.update(time, dt);

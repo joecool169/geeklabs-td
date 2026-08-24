@@ -13,7 +13,7 @@ const makeDisplayObject = () => ({
   depth: 1,
   width: 256,
   setDepth() { return this; },
-  setAlpha() { return this; },
+  setAlpha(alpha) { this.alpha = alpha; return this; },
   setTint() { return this; },
   setScale() { return this; },
   setDisplaySize(width, height) {
@@ -62,6 +62,10 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(system.isTowerUnlocked("rapid"), true);
   assert.equal(system.isTowerUnlocked("sniper"), false);
   system.setPlacement(true);
+  system.updateGhost(300, 300);
+  assert.equal(system.ghost.displayWidth, 40);
+  assert.equal(system.ghost.displayHeight, 40);
+  assert.equal(system.ghost.alpha, 0.44);
   const tower = system.tryPlaceTowerAt(300, 300);
   assert.equal(tower.type, "basic");
   assert.equal(system.isPlacing, false);

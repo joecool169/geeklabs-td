@@ -42,3 +42,33 @@ test("combat system clips telemetry damage and owns kill rewards", () => {
   assert.equal(state.score, 38);
   assert.deepEqual(sounds, ["death"]);
 });
+
+test("three-quarter Basic artwork stays upright while firing", () => {
+  let rotations = 0;
+  let shots = 0;
+  const tower = {
+    type: "basic",
+    x: 100,
+    y: 100,
+    fireMs: 260,
+    nextShotAt: 0,
+    targetMode: "first",
+    sprite: { setRotation() { rotations += 1; } },
+  };
+  const target = { active: true, x: 20, y: 100 };
+  const combat = new CombatSystem({
+    scene: {},
+    towerSystem: { towers: [tower] },
+    enemySystem: { findTarget: () => target },
+    runController: {},
+    getDifficulty: () => ({}),
+    getTelemetry: () => null,
+  });
+  combat.projectiles.fire = () => { shots += 1; };
+  combat.projectiles.update = () => {};
+
+  combat.update(1, 16);
+
+  assert.equal(shots, 1);
+  assert.equal(rotations, 0);
+});
