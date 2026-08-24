@@ -8,6 +8,7 @@ import {
   pointToSegmentDistance,
 } from "../src/presentation/WorldRenderer.js";
 import { shouldShowEnemyHealth } from "../src/game/enemies.js";
+import { getMuzzlePoint } from "../src/game/bullets.js";
 
 test("world renderer preserves map path and texture identities", () => {
   assert.deepEqual(createDefaultPath(), [
@@ -36,4 +37,18 @@ test("point-to-segment placement geometry remains deterministic", () => {
   assert.equal(pointToSegmentDistance(-3, 4, 0, 0, 10, 0), 5);
   assert.equal(pointToSegmentDistance(13, 4, 0, 0, 10, 0), 5);
   assert.equal(pointToSegmentDistance(3, 4, 0, 0, 0, 0), 5);
+});
+
+test("Basic muzzle feedback follows the target direction and tower tier", () => {
+  assert.deepEqual(
+    getMuzzlePoint({ x: 10, y: 20, tier: 1 }, { x: 110, y: 20 }),
+    { angle: 0, x: 26, y: 20 }
+  );
+  const vertical = getMuzzlePoint(
+    { x: 10, y: 20, tier: 3 },
+    { x: 10, y: 120 }
+  );
+  assert.ok(Math.abs(vertical.angle - Math.PI / 2) < 1e-10);
+  assert.ok(Math.abs(vertical.x - 10) < 1e-10);
+  assert.equal(vertical.y, 40);
 });

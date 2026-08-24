@@ -1,5 +1,5 @@
 import { segCircleHit } from "../game/utils.js";
-import { flashEnemy, showHitEffect } from "../game/bullets.js";
+import { flashEnemy, showHitEffect, showMuzzleEffect } from "../game/bullets.js";
 
 const PROJECTILE_DEPTH = 50;
 
@@ -25,12 +25,15 @@ class ProjectileSystem {
       tower,
       projectileType === "rapid" ? 0x39ff8f : 0x3bd3ff
     );
+    if (projectileType === "basic") {
+      showMuzzleEffect(this.scene, tower, target, color);
+    }
     const projectile = this.scene.add.image(
       tower.x,
       tower.y,
       `projectile_${projectileType}`
     );
-    projectile.setDepth(PROJECTILE_DEPTH).setTint(color);
+    projectile.setDepth(PROJECTILE_DEPTH).setTint(color).setScale(1.12);
     this.projectiles.push({
       projectile,
       target,

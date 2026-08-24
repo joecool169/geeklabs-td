@@ -1,6 +1,6 @@
 import { TOWER_DEFS } from "../constants.js";
 import { computeDamageAgainstEnemy } from "../game/balance.js";
-import { showHitEffect } from "../game/bullets.js";
+import { showDeathEffect, showHitEffect } from "../game/bullets.js";
 import * as Telemetry from "../game/telemetry.js";
 import { dist2, segCircleHit } from "../game/utils.js";
 import { ProjectileSystem } from "./ProjectileSystem.js";
@@ -188,6 +188,7 @@ class CombatSystem {
     const reward = enemy.reward ?? 8;
     const scoreWeight = enemy.scoreWeight ?? 1;
     this.scene.playSfx?.("death");
+    if (enemy.typeKey === "runner") showDeathEffect(this.scene, enemy);
     enemy.destroy();
     this.runController.recordKill({
       reward,

@@ -1,5 +1,48 @@
 const IMPACT_DEPTH = 60;
 
+const getMuzzlePoint = (tower, target) => {
+  const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
+  const offset = 14 + Math.min(6, Math.max(1, tower.tier ?? 1) * 2);
+  return {
+    angle,
+    x: tower.x + Math.cos(angle) * offset,
+    y: tower.y + Math.sin(angle) * offset,
+  };
+};
+
+const showMuzzleEffect = (scene, tower, target, color = 0x3bd3ff) => {
+  if (!scene?.textures?.exists?.("impact_basic") || !target) return;
+  const muzzle = getMuzzlePoint(tower, target);
+  const flash = scene.add.image(muzzle.x, muzzle.y, "impact_basic");
+  flash
+    .setDepth(IMPACT_DEPTH - 2)
+    .setTint(color)
+    .setRotation(muzzle.angle)
+    .setScale(0.48)
+    .setAlpha(0.9);
+  scene.tweens.add({
+    targets: flash,
+    alpha: 0,
+    scale: 0.9,
+    duration: 55,
+    onComplete: () => flash.active && flash.destroy(),
+  });
+};
+
+const showDeathEffect = (scene, enemy) => {
+  if (!scene?.textures?.exists?.("impact_basic") || !enemy) return;
+  const burst = scene.add.image(enemy.x, enemy.y, "impact_basic");
+  burst.setDepth(IMPACT_DEPTH - 1).setTint(0xff6b74).setScale(0.72).setAlpha(0.85);
+  scene.tweens.add({
+    targets: burst,
+    alpha: 0,
+    scale: 1.65,
+    duration: 120,
+    ease: "Sine.easeOut",
+    onComplete: () => burst.active && burst.destroy(),
+  });
+};
+
 const showHitEffect = (scene, type, x, y, color) => {
   const key = `impact_${type}`;
   if (!scene.textures.exists(key)) return;
@@ -34,7 +77,8 @@ const flashEnemy = (scene, target) => {
   const baseTint = target.baseTint;
   const isArmored = (target.armor || 0) > 0;
   const flashTint = isArmored ? 0x84d8ff : 0xffffff;
-  target.setTint(flashTint);
+  if (target.setTintFill) target.setTintFill(flashTint);
+  else target.setTint(flashTint);
   target.setAlpha(0.55);
   target.flashTween = scene.time.delayedCall(80, () => {
     if (!target.active) return;
@@ -60,4 +104,11 @@ const showTowerPulse = (scene, tower, color = 0x39ff8f) => {
   });
 };
 
-export { flashEnemy, showHitEffect, showTowerPulse };
+export {
+  flashEnemy,
+  getMuzzlePoint,
+  showDeathEffect,
+  showHitEffect,
+  showMuzzleEffect,
+  showTowerPulse,
+};
