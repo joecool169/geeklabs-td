@@ -16,6 +16,7 @@ const RANGE_LINE_ALPHA = Object.freeze({
   blocked: 0.6,
 });
 const PLAYFIELD_TEXTURE_KEY = "playfield_floor";
+const COMMAND_CORE_TEXTURE_KEY = "command_core";
 
 function createDefaultPath() {
   return [
@@ -41,6 +42,18 @@ function pointToSegmentDistance(px, py, ax, ay, bx, by) {
   const cx = ax + t * abx;
   const cy = ay + t * aby;
   return Math.hypot(px - cx, py - cy);
+}
+
+function getCommandCorePosition(path, offset = 48) {
+  const end = path[path.length - 1] ?? { x: 0, y: 0 };
+  const previous = path[path.length - 2] ?? end;
+  const dx = end.x - previous.x;
+  const dy = end.y - previous.y;
+  const length = Math.hypot(dx, dy) || 1;
+  return {
+    x: end.x + (dx / length) * offset,
+    y: end.y + (dy / length) * offset,
+  };
 }
 
 const getTowerTextureKey = (type, tier = 1) =>
@@ -108,6 +121,7 @@ class WorldRenderer {
     this.floor = null;
     this.rangeFill = null;
     this.rangeRing = null;
+    this.commandCore = null;
   }
 
   create() {
@@ -116,6 +130,7 @@ class WorldRenderer {
     this.graphics = this.scene.add.graphics();
     this.drawGrid();
     this.drawPath();
+    this.drawCommandCore();
     this.rangeFill = this.scene.add.graphics().setDepth(-1).setVisible(false);
     this.rangeRing = this.scene.add.graphics().setDepth(10).setVisible(false);
   }
@@ -174,7 +189,53 @@ class WorldRenderer {
       draw();
       graphics.generateTexture(key, width, height);
     }
+    if (!this.scene.textures.exists(COMMAND_CORE_TEXTURE_KEY)) {
+      graphics.clear();
+      graphics.fillStyle(0x263448, 1);
+      graphics.fillCircle(32, 32, 28);
+      graphics.lineStyle(3, 0x3bd3ff, 0.9);
+      graphics.strokeCircle(32, 32, 19);
+      graphics.fillStyle(0x3bd3ff, 1);
+      graphics.fillCircle(32, 32, 8);
+      graphics.generateTexture(COMMAND_CORE_TEXTURE_KEY, 64, 64);
+    }
     graphics.destroy();
+  }
+
+  drawCommandCore() {
+    if (!this.scene.textures.exists(COMMAND_CORE_TEXTURE_KEY)) return;
+    const position = getCommandCorePosition(this.path);
+    this.commandCore = this.scene.add
+      .image(position.x, position.y, COMMAND_CORE_TEXTURE_KEY)
+      .setDepth(8)
+      .setDisplaySize(70, 70);
+  }
+
+  setCoreIntegrity(lives, startingLives = 20) {
+    if (!this.commandCore) return;
+    const ratio = Math.max(0, Number(lives) || 0) / Math.max(1, startingLives);
+    if (ratio <= 0) this.commandCore.setTint(0xff4d6d).setAlpha(0.62);
+    else if (ratio <= 0.25) this.commandCore.setTint(0xff6b74).setAlpha(0.9);
+    else if (ratio <= 0.5) this.commandCore.setTint(0xffc857).setAlpha(1);
+    else this.commandCore.clearTint().setAlpha(1);
+  }
+
+  showCoreImpact(lives, startingLives = 20) {
+    this.setCoreIntegrity(lives, startingLives);
+    if (!this.commandCore || !this.scene.textures.exists("impact_basic")) return;
+    const impact = this.scene.add
+      .image(this.commandCore.x, this.commandCore.y, "impact_basic")
+      .setDepth(30)
+      .setTint(0xff6b74)
+      .setScale(1.5)
+      .setAlpha(0.95);
+    this.scene.tweens.add({
+      targets: impact,
+      alpha: 0,
+      scale: 4.2,
+      duration: 180,
+      onComplete: () => impact.destroy(),
+    });
   }
 
   drawGrid() {
@@ -293,6 +354,7 @@ class WorldRenderer {
   }
 
   destroy() {
+    this.commandCore?.destroy();
     this.floor?.destroy();
     this.graphics?.destroy();
     this.rangeFill?.destroy();
@@ -302,10 +364,12 @@ class WorldRenderer {
 }
 
 export {
+  COMMAND_CORE_TEXTURE_KEY,
   PLAYFIELD_TEXTURE_KEY,
   WorldRenderer,
   createDefaultPath,
   drawTowerTexture,
   getTowerTextureKey,
+  getCommandCorePosition,
   pointToSegmentDistance,
 };

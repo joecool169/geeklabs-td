@@ -59,6 +59,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image("tower_basic_t1", "/art/towers/basic-t1-v1.png");
     this.load.image("tower_basic_t2", "/art/towers/basic-t2-v1.png");
     this.load.image("tower_basic_t3", "/art/towers/basic-t3-v1.png");
+    this.load.image("command_core", "/art/structures/command-core-v1.png");
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!cfg?.url) return;
       this.load.audio(key, cfg.url);
@@ -599,6 +600,7 @@ export class GameScene extends Phaser.Scene {
 
   triggerLifeLossFeedback() {
     if (this.isStartScreenActive || this.isPaused) return;
+    this.worldRenderer?.showCoreImpact(this.lives, 20);
     if (this.lifeHudTween) {
       this.lifeHudTween.stop();
       this.lifeHudTween = null;
@@ -645,6 +647,7 @@ export class GameScene extends Phaser.Scene {
 
   triggerGameOver() {
     if (!this.runController.endGame()) return;
+    this.worldRenderer?.setCoreIntegrity(0, 20);
     const finalTelemetry = Telemetry.recordFinalSnapshot(this.runTelemetry, {
       outcome: "game-over",
       wave: this.wave,
