@@ -7,6 +7,7 @@ import { DIFFICULTY_CONFIG } from "../src/game/config.js";
 import {
   EnemySystem,
   attachEnemySystem,
+  getEnemyArtPresentation,
 } from "../src/systems/EnemySystem.js";
 
 function makeEnemy(x, y) {
@@ -87,4 +88,17 @@ test("enemy system owns spawn, movement, targeting, and leaks", () => {
   system.update(16);
   assert.equal(state.lives, 1);
   assert.deepEqual(events, ["spawn:sprinter", "leak:sprinter", "life"]);
+});
+
+test("Runner bitmap art keeps a compact untinted gameplay footprint", () => {
+  assert.deepEqual(getEnemyArtPresentation("runner", 192), {
+    displayWidth: 34,
+    displayHeight: 23,
+    useTint: false,
+  });
+  assert.deepEqual(getEnemyArtPresentation("runner", 24), {
+    displayWidth: null,
+    displayHeight: null,
+    useTint: true,
+  });
 });

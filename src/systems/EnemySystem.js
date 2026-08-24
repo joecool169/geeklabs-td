@@ -12,6 +12,13 @@ import { dist2 } from "../game/utils.js";
 const ENEMY_DEPTH = 20;
 const ENEMY_HEALTH_DEPTH = 21;
 
+function getEnemyArtPresentation(typeKey, textureWidth = 24) {
+  if (typeKey === "runner" && textureWidth > 24) {
+    return { displayWidth: 34, displayHeight: 23, useTint: false };
+  }
+  return { displayWidth: null, displayHeight: null, useTint: true };
+}
+
 class EnemySystem {
   constructor({
     scene,
@@ -55,7 +62,12 @@ class EnemySystem {
       (1 + (wave - 1) * (def.scaleSpeedPerWave ?? 0.02)) *
       difficulty.enemySpeedMul;
     enemy.typeKey = def.key;
-    enemy.setTint(def.tint);
+    const art = getEnemyArtPresentation(def.key, enemy.width);
+    if (art.useTint) enemy.setTint(def.tint);
+    else {
+      enemy.clearTint();
+      enemy.setDisplaySize(art.displayWidth, art.displayHeight);
+    }
     enemy.hp = computeEnemyHp(def, wave, difficulty);
     enemy.maxHp = enemy.hp;
     enemy.speed = Math.floor(def.baseSpeed * speedMultiplier);
@@ -106,6 +118,7 @@ class EnemySystem {
     const end = this.path[index + 1];
     const vx = end.x - start.x;
     const vy = end.y - start.y;
+    if (enemy.typeKey === "runner") enemy.setRotation?.(Math.atan2(vy, vx));
     const length = Math.sqrt(vx * vx + vy * vy) || 1;
     const move = (enemy.speed * dt) / 1000;
     enemy.x += (vx / length) * move;
@@ -141,4 +154,4 @@ function attachEnemySystem(scene, enemySystem) {
   return enemySystem;
 }
 
-export { EnemySystem, attachEnemySystem };
+export { EnemySystem, attachEnemySystem, getEnemyArtPresentation };
