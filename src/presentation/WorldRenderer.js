@@ -44,7 +44,7 @@ function pointToSegmentDistance(px, py, ax, ay, bx, by) {
   return Math.hypot(px - cx, py - cy);
 }
 
-function getCommandCorePosition(path, offset = 48) {
+function getCommandCorePosition(path, offset = 0) {
   const end = path[path.length - 1] ?? { x: 0, y: 0 };
   const previous = path[path.length - 2] ?? end;
   const dx = end.x - previous.x;
@@ -53,6 +53,18 @@ function getCommandCorePosition(path, offset = 48) {
   return {
     x: end.x + (dx / length) * offset,
     y: end.y + (dy / length) * offset,
+  };
+}
+
+function getBasicTowerArtOrigins(tier = 1) {
+  const headOrigins = {
+    1: { x: 0.485, y: 0.492 },
+    2: { x: 0.455, y: 0.492 },
+    3: { x: 0.49, y: 0.49 },
+  };
+  return {
+    base: { x: 0.5, y: 0.344 },
+    head: headOrigins[tier] ?? headOrigins[1],
   };
 }
 
@@ -66,22 +78,25 @@ const getTowerHeadTextureKey = (type, tier = 1) =>
 function drawBasicBaseTexture(graphics) {
   graphics.clear();
   graphics.fillStyle(0x263448, 1);
-  graphics.fillCircle(32, 32, 22);
+  graphics.fillCircle(32, 36, 22);
   graphics.lineStyle(3, 0x3bd3ff, 0.75);
-  graphics.strokeCircle(32, 32, 14);
+  graphics.strokeCircle(32, 22, 12);
   graphics.fillStyle(0x0b0f14, 1);
-  graphics.fillCircle(32, 32, 9);
+  graphics.fillCircle(32, 22, 7);
 }
 
 function drawBasicHeadTexture(graphics, tier = 1) {
   const length = 30 + tier * 5;
+  const { head } = getBasicTowerArtOrigins(tier);
+  const pivotX = head.x * 128;
+  const pivotY = head.y * 128;
   graphics.clear();
   graphics.fillStyle(0x34465d, 1);
-  graphics.fillRoundedRect(48, 52, length, 24, 6);
+  graphics.fillRoundedRect(pivotX - 16, pivotY - 12, length, 24, 6);
   graphics.lineStyle(2, 0x3bd3ff, 0.85);
-  graphics.strokeCircle(64, 64, 12 + tier);
+  graphics.strokeCircle(pivotX, pivotY, 12 + tier);
   graphics.fillStyle(0x8deeff, 1);
-  graphics.fillRoundedRect(64, 59, length, 10, 4);
+  graphics.fillRoundedRect(pivotX, pivotY - 5, length, 10, 4);
 }
 
 function drawTowerTexture(graphics, type) {
@@ -407,6 +422,7 @@ export {
   getTowerTextureKey,
   getTowerBaseTextureKey,
   getTowerHeadTextureKey,
+  getBasicTowerArtOrigins,
   getCommandCorePosition,
   pointToSegmentDistance,
 };

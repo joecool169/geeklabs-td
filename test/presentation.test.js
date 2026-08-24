@@ -5,6 +5,7 @@ import {
   PLAYFIELD_TEXTURE_KEY,
   COMMAND_CORE_TEXTURE_KEY,
   createDefaultPath,
+  getBasicTowerArtOrigins,
   getCommandCorePosition,
   getTowerTextureKey,
   getTowerBaseTextureKey,
@@ -33,7 +34,12 @@ test("world renderer preserves map path and texture identities", () => {
   assert.equal(getTowerHeadTextureKey("basic", 2), "tower_basic_head_t2");
   assert.equal(PLAYFIELD_TEXTURE_KEY, "playfield_floor");
   assert.equal(COMMAND_CORE_TEXTURE_KEY, "command_core");
-  assert.deepEqual(getCommandCorePosition(createDefaultPath()), { x: 908, y: 420 });
+  assert.deepEqual(getCommandCorePosition(createDefaultPath()), { x: 860, y: 420 });
+  assert.deepEqual(getBasicTowerArtOrigins(1), {
+    base: { x: 0.5, y: 0.344 },
+    head: { x: 0.485, y: 0.492 },
+  });
+  assert.deepEqual(getBasicTowerArtOrigins(2).head, { x: 0.455, y: 0.492 });
 });
 
 test("dense-wave health bars prioritize durable and badly damaged enemies", () => {

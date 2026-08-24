@@ -7,6 +7,7 @@ import {
   getNextUpgradeCost,
 } from "../game/towers.js";
 import {
+  getBasicTowerArtOrigins,
   getTowerBaseTextureKey,
   getTowerHeadTextureKey,
   getTowerTextureKey,
@@ -272,10 +273,12 @@ class TowerSystem {
       this.scene.textures?.exists?.(headKey)
     ) {
       const baseSize = BASIC_BASE_SIZE[tower.tier] ?? BASIC_BASE_SIZE[1];
+      const origins = getBasicTowerArtOrigins(tower.tier);
       tower.sprite
         .setTexture(baseKey)
         .clearTint()
         .setDisplaySize(baseSize, baseSize)
+        .setOrigin(origins.base.x, origins.base.y)
         .setDepth(12);
       if (!tower.head) {
         tower.head = this.scene.add.image(tower.x, tower.y, headKey);
@@ -285,6 +288,7 @@ class TowerSystem {
         .clearTint()
         .setPosition(tower.x, tower.y)
         .setDisplaySize(BASIC_HEAD_SIZE, BASIC_HEAD_SIZE)
+        .setOrigin(origins.head.x, origins.head.y)
         .setDepth(13);
       return;
     }

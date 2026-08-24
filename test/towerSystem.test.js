@@ -21,6 +21,7 @@ const makeDisplayObject = () => ({
     this.displayHeight = height;
     return this;
   },
+  setOrigin(x, y) { this.originX = x; this.originY = y; return this; },
   clearTint() { return this; },
   setPosition() { return this; },
   setTexture(key) { this.textureKey = key; return this; },
@@ -74,7 +75,9 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(scene.selectedTower, tower);
   assert.equal(tower.sprite.textureKey, "tower_basic_base");
   assert.equal(tower.sprite.displayWidth, 64);
+  assert.equal(tower.sprite.originY, 0.344);
   assert.equal(tower.head.textureKey, "tower_basic_head_t1");
+  assert.equal(tower.head.originX, 0.485);
   assert.equal(system.getTowerAt(331, 300), undefined);
   assert.equal(system.getTowerAt(331, 300, { touch: true }), tower);
   assert.deepEqual(system.getPlacementStatusAt(300, 300), {
@@ -87,6 +90,7 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(tower.sprite.textureKey, "tower_basic_base");
   assert.equal(tower.sprite.displayWidth, 67);
   assert.equal(tower.head.textureKey, "tower_basic_head_t2");
+  assert.equal(tower.head.originX, 0.455);
   assert.equal(state.money, 375);
   assert.equal(system.trySellTower(tower), true);
   assert.equal(state.money, 462);

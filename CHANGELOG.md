@@ -1,3 +1,4 @@
+- 2026-08-23 Release v0.9.1 with calibrated Basic tower mounting pivots and the command core centered on the already-blocked terminal path node
 - 2026-08-23 Release v0.9.0 with a defended command-core endpoint, integrity feedback, layered Basic towers, swiveling weapon heads, and barrel-aligned firing
 - 2026-08-23 Release v0.8.1 with an exact-size placement preview, precise placement reticle, and upright three-quarter Basic tower artwork
 - 2026-08-23 Release v0.8.0 with an industrial–sci-fi art direction, textured playfield, Runner artwork, Basic T1–T3 artwork, and cohesive Basic-versus-Runner combat feedback

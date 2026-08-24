@@ -8,6 +8,8 @@
 
 **Constraint:** Preserve accepted balance, path geometry, collision, targeting, and economy values. Every new bitmap retains a generated fallback.
 
+**Placement refinement:** Center the command core on the existing terminal path node so its footprint does not consume or overlap a legal placement tile. Anchor every layered tower component to its mechanical neck rather than its bitmap bounds.
+
 ## 2026-08-23 — Adopt the industrial–sci-fi visual identity
 
 **Decision:** Establish the production art direction with one complete Basic-versus-Runner vertical slice before replacing the remaining procedural units.
