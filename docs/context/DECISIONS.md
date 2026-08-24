@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Complete the first-pass production graphics system
+
+**Decision:** Extend the approved industrial–sci-fi direction to Rapid/Sprinter, Sniper/Brute, and Laser/Armored, then release the result as v0.10.0 without changing accepted balance.
+
+**Implementation model:** Every tower family uses a stationary production base and tier-specific centered weapon heads. All heads track targets, and projectiles, tracers, and beams originate from class-appropriate muzzle positions. Every enemy class uses directional bitmap art plus deterministic low-amplitude movement and damage-state feedback.
+
+**Readability model:** Keep full combat feedback through 36 active enemies, reduce high-frequency Rapid/Laser impacts from 37–60, and suppress optional transient effects above 60 while limiting health bars to meaningfully damaged units. The deployment gate and route hardware are presentation-only and do not consume legal placement tiles.
+
+**Next gate:** Validate late-wave heat, battery use, touch selection, and visual density on physical iPhone and iPad before treating the mobile build as an App Store release candidate.
+
 ## 2026-08-23 — Give defense and targeting visible physical meaning
 
 **Decision:** Represent the defended objective with a command core beyond the route endpoint, and split Basic towers into stationary foundations plus rotating weapon heads.

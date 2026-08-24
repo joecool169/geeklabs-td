@@ -77,12 +77,24 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - align muzzle flashes and projectile origins with the swiveling barrels
 - preserve all accepted balance and targeting behavior
 
-## Phase 10 — Remaining unit art — proposed
+## Phase 10 — Remaining unit art — completed
 
-- Rapid and Sprinter paired slice
-- Sniper and Brute paired slice
-- Laser and Armored paired slice
-- cross-class dense-wave readability and thermal validation
+- Rapid and Sprinter paired slice — completed
+- Sniper and Brute paired slice — completed
+- Laser and Armored paired slice — completed
+- layered three-tier swiveling specialist towers — completed
+- restrained enemy movement and damage-state feedback — completed
+- deployment gate and route hardware — completed
+- cross-class desktop, iPhone, and iPad readability validation — completed
+- density-aware effect and health-bar budgets — completed
+
+## Phase 11 — Field validation and release readiness — next
+
+- complete late-wave physical-device sessions with the full art set on iPhone and iPad
+- record measured battery and thermal behavior during an endurance run
+- verify force-quit preference restoration on the release candidate
+- refine tower pivots or footprints only from physical-device evidence
+- prepare App Store metadata, screenshots, privacy declarations, signing, and TestFlight when product scope is ready
 
 ## Later product work
 
