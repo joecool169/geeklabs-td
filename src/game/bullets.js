@@ -1,4 +1,8 @@
 const IMPACT_DEPTH = 60;
+const TRANSIENT_EFFECT_ENEMY_LIMIT = 72;
+
+const hasTransientEffectBudget = (scene) =>
+  (scene?.enemies?.countActive?.(true) ?? 0) <= TRANSIENT_EFFECT_ENEMY_LIMIT;
 
 const getMuzzlePoint = (tower, target) => {
   const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
@@ -11,7 +15,11 @@ const getMuzzlePoint = (tower, target) => {
 };
 
 const showMuzzleEffect = (scene, tower, target, color = 0x3bd3ff) => {
-  if (!scene?.textures?.exists?.("impact_basic") || !target) return;
+  if (
+    !scene?.textures?.exists?.("impact_basic") ||
+    !target ||
+    !hasTransientEffectBudget(scene)
+  ) return;
   const muzzle = getMuzzlePoint(tower, target);
   const flash = scene.add.image(muzzle.x, muzzle.y, "impact_basic");
   flash
@@ -30,7 +38,11 @@ const showMuzzleEffect = (scene, tower, target, color = 0x3bd3ff) => {
 };
 
 const showDeathEffect = (scene, enemy) => {
-  if (!scene?.textures?.exists?.("impact_basic") || !enemy) return;
+  if (
+    !scene?.textures?.exists?.("impact_basic") ||
+    !enemy ||
+    !hasTransientEffectBudget(scene)
+  ) return;
   const burst = scene.add.image(enemy.x, enemy.y, "impact_basic");
   burst.setDepth(IMPACT_DEPTH - 1).setTint(0xff6b74).setScale(0.72).setAlpha(0.85);
   scene.tweens.add({
@@ -107,6 +119,7 @@ const showTowerPulse = (scene, tower, color = 0x39ff8f) => {
 export {
   flashEnemy,
   getMuzzlePoint,
+  hasTransientEffectBudget,
   showDeathEffect,
   showHitEffect,
   showMuzzleEffect,

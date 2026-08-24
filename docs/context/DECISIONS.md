@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-23 — Adopt the industrial–sci-fi visual identity
+
+**Decision:** Establish the production art direction with one complete Basic-versus-Runner vertical slice before replacing the remaining procedural units.
+
+**Visual model:** Dark welded steel and facility infrastructure establish the industrial world; controlled cyan, green, amber, magenta, and signal-red emissions communicate gameplay roles. Large silhouettes outrank surface detail at mobile scale.
+
+**Implementation model:** Load transparent bitmap art under the existing texture identities and preserve generated geometric textures as automatic fallbacks. Use static unit sprites plus short-lived Phaser effects rather than frame-heavy animation.
+
+**Next gate:** Validate v0.8.0 in late waves on physical iPhone and iPad, then extend the style in paired specialist/threat slices without changing accepted balance values.
+
 ## 2026-08-23 — Release v0.7.0 unified command interface
 
 **Decision:** Replace the incremental browser/mobile presentation with one compact command-HUD system across desktop, iPhone, and iPad while preserving the accepted balance and architecture.

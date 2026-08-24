@@ -6,7 +6,7 @@ A live version is hosted at <https://td.geekstreet.tv>.
 
 ## Current direction
 
-The project now has an accepted Capacitor iOS foundation and a unified v0.7.0 command interface across desktop, iPhone, and iPad. The next product phase is release-candidate endurance testing, followed by onboarding or new content informed by playtest evidence.
+The project now has an accepted Capacitor iOS foundation, a unified command interface, and a first validated industrial–sci-fi art vertical slice across desktop, iPhone, and iPad. The next visual phase can extend that standard to the remaining specialist towers and enemy classes.
 
 Design priorities:
 
@@ -28,6 +28,7 @@ Design priorities:
 - tower upgrades, selling, and targeting modes
 - Runner, Sprinter, Brute, and Armored enemy progression
 - distinct tower, enemy, projectile, impact, health, and range visuals
+- textured industrial playfield plus production Runner and Basic T1–T3 artwork with procedural fallbacks
 - contextual placement and selected-tower sidebar panels
 - local and optional global leaderboards
 - start, pause, wave-state, and game-over presentation

@@ -1,3 +1,5 @@
+- 2026-08-23 Release v0.8.0 with an industrial–sci-fi art direction, textured playfield, Runner artwork, Basic T1–T3 artwork, and cohesive Basic-versus-Runner combat feedback
+- 2026-08-23 Release v0.7.0 with the unified command HUD, tower roles and placement status, forgiving touch selection, responsive protocol overlays, and reduced-motion support
 - 2026-08-23 Release v0.6.0 with accepted Capacitor iOS foundation, clearer HUD hierarchy, refined touch states, reliable controllable audio, and restrained combat/progression feedback
 - 2026-08-23 Release v0.5.0 with touch-ready controls, responsive phone/tablet layouts, safe areas, explicit placement confirmation, and guarded selling
 - 2026-08-22 Release v0.4.1 with final telemetry persistence and the staged architecture refactor

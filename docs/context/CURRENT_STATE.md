@@ -5,18 +5,18 @@ Branch: **main**
 
 Preserved baseline: **`v0.3.0-balance-checkpoint`**
 
-Current reviewed release: **v0.7.0 unified command interface and accepted iOS foundation**, preserving the accepted v0.4.0 balance and v0.4.1 architecture
+Current reviewed release: **v0.8.0 industrial–sci-fi art vertical slice**, preserving the accepted v0.4.0 balance, v0.4.1 architecture, and v0.7.0 interface
 
 ## Repository and validation
 
 - Current project: `/Users/joe/projects/geeklabs-td`
 - Forgejo is the authoritative remote; GitHub is a secondary mirror.
 - Forgejo is authoritative and GitHub mirrors the reviewed main revision.
-- `npm test` passes with **67/67 tests**.
+- `npm test` passes with **70/70 tests**.
 - `npm run build` passes with Vite 7.3.6.
 - `npm audit` reports zero known vulnerabilities.
 - `git diff --check` passes.
-- The v0.7.0 release candidate is built from independently tested UI slices.
+- The v0.8.0 release candidate is built from independently tested art and integration slices.
 
 ## Current gameplay baseline
 
@@ -92,7 +92,7 @@ The five-wave preparation windows and preferred targeting established a meaningf
 ## iOS proof-of-concept state
 
 - The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro Max.
-- The v0.7.0 build is installed on both the iPhone 17 Pro Max and a 12.9-inch iPad Pro; automated launch passed on the iPhone, while iPad launch was correctly blocked because the device was locked.
+- The v0.8.0 build is installed on both the iPhone 17 Pro Max and a 12.9-inch iPad Pro; automated launch passed on the iPhone, while iPad launch was correctly blocked because the device was locked.
 - Safe areas, landscape-left/right orientation, edge-row touch placement, contextual stats/actions, and lifecycle pause behavior pass Simulator validation.
 - A physical-device Easy run reached Wave 54 with 37 towers and 40 active enemies without a reported touch or frame-pacing blocker.
 - Audio now unlocks from DOM or canvas gestures, uses clearer levels, respects Silent Mode, and has a persistent Sound On/Off control.
@@ -112,10 +112,20 @@ The five-wave preparation windows and preferred targeting established a meaningf
 - Touch tower selection receives forgiving hit detection plus visible world and action-panel confirmation.
 - Restrained transitions include a reduced-motion fallback.
 
+## Art vertical-slice state
+
+- The approved direction combines welded industrial machinery with restrained military science-fiction energy accents.
+- The playfield uses a low-contrast steel-panel texture beneath plated route edges, conduits, joints, and hazard cues.
+- Runner uses transparent bitmap artwork, follows route rotation, retains a compact footprint, and falls back to the generated geometric texture if the asset is unavailable.
+- Basic T1–T3 use distinct transparent silhouettes, rotate toward targets, and retain their accepted gameplay stats.
+- Basic muzzle, projectile, impact, hit-flash, and Runner destruction feedback use short-lived, lightweight effects; extra muzzle and destruction flourishes yield automatically above 72 active enemies.
+- Rapid, Sniper, Laser, Sprinter, Brute, and Armored intentionally retain their procedural silhouettes until their own art slices are validated.
+- The production art reference and rules are recorded in `docs/art/ART_DIRECTION.md`.
+
 ## Next step
 
-1. Run the measured battery/thermal and force-quit restoration checks on the v0.7.0 release candidate.
-2. Confirm the unified command interface in a late-wave session on both the installed iPhone and iPad.
+1. Confirm v0.8.0 readability and thermal behavior in a late-wave session on both the installed iPhone and iPad.
+2. Extend the validated style to Rapid/Sprinter, Sniper/Brute, and Laser/Armored as paired visual slices.
 3. Leave accepted balance values unchanged until new evidence identifies a specific problem.
 
 ## Source-of-truth workflow

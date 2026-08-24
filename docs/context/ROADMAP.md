@@ -60,6 +60,22 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - add restrained transitions, pressed states, keyboard focus, and reduced-motion support
 - preserve the accepted balance and gameplay model
 
+## Phase 8 — Industrial–sci-fi art vertical slice — completed
+
+- establish the production palette, materials, camera, footprint, and readability rules
+- add a restrained industrial floor and plated route treatment
+- replace Runner with transparent bitmap art while retaining its procedural fallback
+- give Basic T1–T3 visibly distinct production artwork
+- coordinate Basic aiming, muzzle, projectile, impact, hit, and Runner destruction feedback
+- validate the vertical slice at desktop, iPhone, and iPad layouts without changing balance
+
+## Phase 9 — Remaining unit art — proposed
+
+- Rapid and Sprinter paired slice
+- Sniper and Brute paired slice
+- Laser and Armored paired slice
+- cross-class dense-wave readability and thermal validation
+
 ## Later product work
 
 - onboarding/tutorial refinement

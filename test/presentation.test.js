@@ -8,7 +8,10 @@ import {
   pointToSegmentDistance,
 } from "../src/presentation/WorldRenderer.js";
 import { shouldShowEnemyHealth } from "../src/game/enemies.js";
-import { getMuzzlePoint } from "../src/game/bullets.js";
+import {
+  getMuzzlePoint,
+  hasTransientEffectBudget,
+} from "../src/game/bullets.js";
 
 test("world renderer preserves map path and texture identities", () => {
   assert.deepEqual(createDefaultPath(), [
@@ -51,4 +54,13 @@ test("Basic muzzle feedback follows the target direction and tower tier", () => 
   assert.ok(Math.abs(vertical.angle - Math.PI / 2) < 1e-10);
   assert.ok(Math.abs(vertical.x - 10) < 1e-10);
   assert.equal(vertical.y, 40);
+});
+
+test("extra art feedback yields to dense-wave readability", () => {
+  const makeScene = (count) => ({
+    enemies: { countActive: () => count },
+  });
+  assert.equal(hasTransientEffectBudget(makeScene(72)), true);
+  assert.equal(hasTransientEffectBudget(makeScene(73)), false);
+  assert.equal(hasTransientEffectBudget({}), true);
 });
