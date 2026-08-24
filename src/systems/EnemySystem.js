@@ -9,6 +9,7 @@ import {
   updateEnemyVisual,
 } from "../game/enemies.js";
 import { dist2 } from "../game/utils.js";
+import { showDeploymentEffect } from "../game/bullets.js";
 import {
   ART_DEPTHS,
   getEnemyArtStandard,
@@ -103,6 +104,7 @@ class EnemySystem {
     });
     updateEnemyVisual(enemy);
     this.group.add(enemy);
+    showDeploymentEffect(this.scene, enemy);
     this.onSpawn(enemy);
     return enemy;
   }

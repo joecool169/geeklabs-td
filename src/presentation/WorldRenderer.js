@@ -18,6 +18,7 @@ const RANGE_LINE_ALPHA = Object.freeze({
 });
 const PLAYFIELD_TEXTURE_KEY = "playfield_floor";
 const COMMAND_CORE_TEXTURE_KEY = "command_core";
+const DEPLOYMENT_GATE_TEXTURE_KEY = "deployment_gate";
 
 function createDefaultPath() {
   return [
@@ -55,6 +56,46 @@ function getCommandCorePosition(path, offset = 0) {
     x: end.x + (dx / length) * offset,
     y: end.y + (dy / length) * offset,
   };
+}
+
+function getPathPointAtDistance(path, distance) {
+  let remaining = Math.max(0, distance);
+  for (let index = 0; index < path.length - 1; index += 1) {
+    const start = path[index];
+    const end = path[index + 1];
+    const length = Math.hypot(end.x - start.x, end.y - start.y) || 1;
+    if (remaining <= length) {
+      const ratio = remaining / length;
+      return {
+        x: start.x + (end.x - start.x) * ratio,
+        y: start.y + (end.y - start.y) * ratio,
+      };
+    }
+    remaining -= length;
+  }
+  return path[path.length - 1] ?? { x: 0, y: 0 };
+}
+
+const getDeploymentGatePosition = (path) => getPathPointAtDistance(path, 160);
+
+function getPathHardwareMarkers(path, spacing = 96) {
+  const markers = [];
+  for (let index = 0; index < path.length - 1; index += 1) {
+    const start = path[index];
+    const end = path[index + 1];
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.hypot(dx, dy) || 1;
+    for (let distance = spacing / 2; distance < length; distance += spacing) {
+      markers.push({
+        x: start.x + (dx / length) * distance,
+        y: start.y + (dy / length) * distance,
+        nx: -dy / length,
+        ny: dx / length,
+      });
+    }
+  }
+  return markers;
 }
 
 function getBasicTowerArtOrigins(tier = 1) {
@@ -170,6 +211,7 @@ class WorldRenderer {
     this.rangeFill = null;
     this.rangeRing = null;
     this.commandCore = null;
+    this.deploymentGate = null;
   }
 
   create() {
@@ -178,6 +220,7 @@ class WorldRenderer {
     this.graphics = this.scene.add.graphics();
     this.drawGrid();
     this.drawPath();
+    this.drawDeploymentGate();
     this.drawCommandCore();
     this.rangeFill = this.scene.add.graphics().setDepth(-1).setVisible(false);
     this.rangeRing = this.scene.add.graphics().setDepth(10).setVisible(false);
@@ -269,6 +312,15 @@ class WorldRenderer {
       .setDisplaySize(70, 70);
   }
 
+  drawDeploymentGate() {
+    if (!this.scene.textures.exists(DEPLOYMENT_GATE_TEXTURE_KEY)) return;
+    const position = getDeploymentGatePosition(this.path);
+    this.deploymentGate = this.scene.add
+      .image(position.x, position.y, DEPLOYMENT_GATE_TEXTURE_KEY)
+      .setDepth(7)
+      .setDisplaySize(104, 52);
+  }
+
   setCoreIntegrity(lives, startingLives = 20) {
     if (!this.commandCore) return;
     const ratio = Math.max(0, Number(lives) || 0) / Math.max(1, startingLives);
@@ -345,6 +397,16 @@ class WorldRenderer {
       this.graphics.lineBetween(point.x - 7, point.y - 7, point.x - 2, point.y - 2);
       this.graphics.lineBetween(point.x + 2, point.y + 2, point.x + 7, point.y + 7);
     }
+
+    this.graphics.lineStyle(2, 0x64748b, 0.26);
+    for (const marker of getPathHardwareMarkers(this.path)) {
+      this.graphics.lineBetween(
+        marker.x - marker.nx * 6,
+        marker.y - marker.ny * 6,
+        marker.x + marker.nx * 6,
+        marker.y + marker.ny * 6
+      );
+    }
   }
 
   isOnPath(x, y, radius = 24) {
@@ -413,6 +475,7 @@ class WorldRenderer {
 
   destroy() {
     this.commandCore?.destroy();
+    this.deploymentGate?.destroy();
     this.floor?.destroy();
     this.graphics?.destroy();
     this.rangeFill?.destroy();
@@ -423,6 +486,7 @@ class WorldRenderer {
 
 export {
   COMMAND_CORE_TEXTURE_KEY,
+  DEPLOYMENT_GATE_TEXTURE_KEY,
   PLAYFIELD_TEXTURE_KEY,
   WorldRenderer,
   createDefaultPath,
@@ -433,5 +497,8 @@ export {
   getBasicTowerArtOrigins,
   getTowerArtOrigins,
   getCommandCorePosition,
+  getDeploymentGatePosition,
+  getPathHardwareMarkers,
+  getPathPointAtDistance,
   pointToSegmentDistance,
 };

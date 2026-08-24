@@ -79,6 +79,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image("tower_laser_head_t2", "/art/towers/laser-head-t2-v1.png");
     this.load.image("tower_laser_head_t3", "/art/towers/laser-head-t3-v1.png");
     this.load.image("command_core", "/art/structures/command-core-v1.png");
+    this.load.image("deployment_gate", "/art/structures/deployment-gate-v1.png");
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!cfg?.url) return;
       this.load.audio(key, cfg.url);

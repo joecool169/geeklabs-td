@@ -67,6 +67,25 @@ const showDeathEffect = (scene, enemy) => {
   });
 };
 
+const showDeploymentEffect = (scene, enemy) => {
+  if (
+    !scene?.textures?.exists?.("impact_basic") ||
+    !scene?.add?.image ||
+    !scene?.tweens?.add ||
+    !enemy ||
+    !hasTransientEffectBudget(scene)
+  ) return;
+  const pulse = scene.add.image(enemy.x, enemy.y, "impact_basic");
+  pulse.setDepth(ART_DEPTHS.enemy - 1).setTint(0xff4d6d).setScale(0.55).setAlpha(0.55);
+  scene.tweens.add({
+    targets: pulse,
+    alpha: 0,
+    scale: 1.15,
+    duration: 110,
+    onComplete: () => pulse.active && pulse.destroy(),
+  });
+};
+
 const showHitEffect = (scene, type, x, y, color) => {
   const key = `impact_${type}`;
   if (!scene.textures.exists(key)) return;
@@ -133,6 +152,7 @@ export {
   getMuzzlePoint,
   hasTransientEffectBudget,
   showDeathEffect,
+  showDeploymentEffect,
   showHitEffect,
   showMuzzleEffect,
   showTowerPulse,

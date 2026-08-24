@@ -4,10 +4,14 @@ import assert from "node:assert/strict";
 import {
   PLAYFIELD_TEXTURE_KEY,
   COMMAND_CORE_TEXTURE_KEY,
+  DEPLOYMENT_GATE_TEXTURE_KEY,
   createDefaultPath,
   getBasicTowerArtOrigins,
   getTowerArtOrigins,
   getCommandCorePosition,
+  getDeploymentGatePosition,
+  getPathHardwareMarkers,
+  getPathPointAtDistance,
   getTowerTextureKey,
   getTowerBaseTextureKey,
   getTowerHeadTextureKey,
@@ -47,7 +51,14 @@ test("world renderer preserves map path and texture identities", () => {
   assert.equal(getTowerHeadTextureKey("rapid", 3), "tower_rapid_head_t3");
   assert.equal(PLAYFIELD_TEXTURE_KEY, "playfield_floor");
   assert.equal(COMMAND_CORE_TEXTURE_KEY, "command_core");
+  assert.equal(DEPLOYMENT_GATE_TEXTURE_KEY, "deployment_gate");
   assert.deepEqual(getCommandCorePosition(createDefaultPath()), { x: 860, y: 420 });
+  assert.deepEqual(getDeploymentGatePosition(createDefaultPath()), { x: 40, y: 220 });
+  assert.deepEqual(getPathPointAtDistance(createDefaultPath(), 1100), {
+    x: 980,
+    y: 220,
+  });
+  assert.ok(getPathHardwareMarkers(createDefaultPath()).length > 20);
   assert.deepEqual(getBasicTowerArtOrigins(1), {
     base: { x: 0.5, y: 0.344 },
     head: { x: 0.485, y: 0.492 },
