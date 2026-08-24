@@ -57,6 +57,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image("playfield_floor", "/art/playfield-floor-v1.png");
     this.load.image("enemy_runner", "/art/units/runner-v1.png");
     this.load.image("enemy_sprinter", "/art/units/sprinter-v1.png");
+    this.load.image("enemy_brute", "/art/units/brute-v1.png");
     this.load.image("tower_basic_t1", "/art/towers/basic-t1-v1.png");
     this.load.image("tower_basic_t2", "/art/towers/basic-t2-v1.png");
     this.load.image("tower_basic_t3", "/art/towers/basic-t3-v1.png");
@@ -68,6 +69,10 @@ export class GameScene extends Phaser.Scene {
     this.load.image("tower_rapid_head_t1", "/art/towers/rapid-head-t1-v1.png");
     this.load.image("tower_rapid_head_t2", "/art/towers/rapid-head-t2-v1.png");
     this.load.image("tower_rapid_head_t3", "/art/towers/rapid-head-t3-v1.png");
+    this.load.image("tower_sniper_base", "/art/towers/sniper-base-v1.png");
+    this.load.image("tower_sniper_head_t1", "/art/towers/sniper-head-t1-v1.png");
+    this.load.image("tower_sniper_head_t2", "/art/towers/sniper-head-t2-v1.png");
+    this.load.image("tower_sniper_head_t3", "/art/towers/sniper-head-t3-v1.png");
     this.load.image("command_core", "/art/structures/command-core-v1.png");
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!cfg?.url) return;

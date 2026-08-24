@@ -8,9 +8,17 @@ const IMPACT_DEPTH = ART_DEPTHS.impact;
 const hasTransientEffectBudget = (scene) =>
   (scene?.enemies?.countActive?.(true) ?? 0) <= TRANSIENT_EFFECT_ENEMY_LIMIT;
 
+const MUZZLE_OFFSETS = Object.freeze({
+  basic: Object.freeze([24, 28, 32]),
+  rapid: Object.freeze([24, 28, 32]),
+  sniper: Object.freeze([34, 42, 50]),
+  laser: Object.freeze([22, 25, 28]),
+});
+
 const getMuzzlePoint = (tower, target) => {
   const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
-  const offset = 20 + Math.min(12, Math.max(1, tower.tier ?? 1) * 4);
+  const tierIndex = Math.min(2, Math.max(0, (tower.tier ?? 1) - 1));
+  const offset = (MUZZLE_OFFSETS[tower.type] ?? MUZZLE_OFFSETS.basic)[tierIndex];
   return {
     angle,
     x: tower.x + Math.cos(angle) * offset,

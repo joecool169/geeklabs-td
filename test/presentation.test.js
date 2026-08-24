@@ -107,6 +107,13 @@ test("projectile muzzle feedback follows tower direction and tier", () => {
     getProjectileOrigin({ x: 10, y: 20 }, { x: 110, y: 20 }, "rapid"),
     { angle: 0, x: 34, y: 20 }
   );
+  assert.deepEqual(
+    getMuzzlePoint(
+      { x: 10, y: 20, type: "sniper", tier: 3 },
+      { x: 110, y: 20 }
+    ),
+    { angle: 0, x: 60, y: 20 }
+  );
 });
 
 test("extra art feedback yields to dense-wave readability", () => {

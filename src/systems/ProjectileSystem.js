@@ -58,11 +58,13 @@ class ProjectileSystem {
   fireSniper(tower, target) {
     const tracer = this.scene.add.graphics();
     const color = getTowerColor(tower, 0xffc857);
+    const origin = getMuzzlePoint(tower, target);
     tracer.setDepth(80);
     tracer.lineStyle(3, color, 0.28);
-    tracer.lineBetween(tower.x, tower.y, target.x, target.y);
+    tracer.lineBetween(origin.x, origin.y, target.x, target.y);
     tracer.lineStyle(1, 0xffedc0, 1);
-    tracer.lineBetween(tower.x, tower.y, target.x, target.y);
+    tracer.lineBetween(origin.x, origin.y, target.x, target.y);
+    showMuzzleEffect(this.scene, tower, target, color);
     showHitEffect(this.scene, "sniper", target.x, target.y, color);
     flashEnemy(this.scene, target);
     this.onHit(tower, target, tower.damage);
