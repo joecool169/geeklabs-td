@@ -4,7 +4,7 @@ import { flashEnemy, showHitEffect } from "../game/bullets.js";
 const PROJECTILE_DEPTH = 50;
 
 const getTowerColor = (tower, fallback) =>
-  tower?.sprite?.tintTopLeft ?? fallback;
+  tower?.visualTint ?? tower?.sprite?.tintTopLeft ?? fallback;
 
 class ProjectileSystem {
   constructor({ scene, onHit }) {

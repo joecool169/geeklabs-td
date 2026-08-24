@@ -43,7 +43,8 @@ function pointToSegmentDistance(px, py, ax, ay, bx, by) {
   return Math.hypot(px - cx, py - cy);
 }
 
-const getTowerTextureKey = (type) => `tower_${type}`;
+const getTowerTextureKey = (type, tier = 1) =>
+  type === "basic" ? `tower_basic_t${tier}` : `tower_${type}`;
 
 function drawTowerTexture(graphics, type) {
   const dark = 0x0b0f14;
@@ -134,10 +135,13 @@ class WorldRenderer {
   makeTextures() {
     const graphics = this.scene.add.graphics();
     for (const type of Object.keys(TOWER_DEFS)) {
-      const key = getTowerTextureKey(type);
-      if (this.scene.textures.exists(key)) continue;
-      drawTowerTexture(graphics, type);
-      graphics.generateTexture(key, 34, 34);
+      const tiers = type === "basic" ? [1, 2, 3] : [1];
+      for (const tier of tiers) {
+        const key = getTowerTextureKey(type, tier);
+        if (this.scene.textures.exists(key)) continue;
+        drawTowerTexture(graphics, type);
+        graphics.generateTexture(key, 34, 34);
+      }
     }
     for (const type of Object.keys(ENEMY_DEFS)) {
       const key = getEnemyTextureKey(type);

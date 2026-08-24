@@ -20,6 +20,7 @@ const TOWER_SYSTEM_FIELDS = Object.freeze([
   "ghostY",
 ]);
 const TOUCH_TOWER_SELECT_RADIUS = 34;
+const BASIC_ART_SIZE = Object.freeze({ 1: 40, 2: 42, 3: 46 });
 
 class TowerSystem {
   constructor({ scene, world, runController }) {
@@ -243,13 +244,26 @@ class TowerSystem {
 
   applyTowerTier(tower, tierIndex) {
     applyTowerTier(tower, tierIndex);
+    this.refreshTowerArt(tower);
+  }
+
+  refreshTowerArt(tower) {
+    const tier = TOWER_DEFS[tower.type]?.tiers?.[tower.tier - 1];
+    tower.visualTint = tier?.tint ?? 0xffffff;
+    if (tower.type !== "basic") return;
+    const textureKey = getTowerTextureKey(tower.type, tower.tier);
+    if (!this.scene.textures?.exists?.(textureKey)) return;
+    tower.sprite.setTexture(textureKey);
+    if ((tower.sprite.width ?? 34) <= 34) return;
+    const size = BASIC_ART_SIZE[tower.tier] ?? BASIC_ART_SIZE[1];
+    tower.sprite.clearTint().setDisplaySize(size, size);
   }
 
   tryUpgradeTower(tower) {
     const nextCost = getNextUpgradeCost(tower);
     if (nextCost === null || !this.runController.spend(nextCost)) return false;
     tower.spent += nextCost;
-    applyTowerTier(tower, tower.tier);
+    this.applyTowerTier(tower, tower.tier);
     if (this.selectedTower === tower) {
       this.world.showTowerRange(tower, 0x00ffff);
     }
@@ -270,7 +284,7 @@ class TowerSystem {
     const sprite = this.scene.add.image(
       x,
       y,
-      getTowerTextureKey(def.key)
+      getTowerTextureKey(def.key, 1)
     );
     const tower = {
       x,
@@ -295,6 +309,7 @@ class TowerSystem {
       tower.beam.setDepth(70).setVisible(false);
     }
     sprite.setTint(tier0.tint).setScale(tier0.scale ?? 1);
+    this.refreshTowerArt(tower);
     this.towers.push(tower);
     this.selectTower(tower);
     showTowerPulse(this.scene, tower, tier0.tint);

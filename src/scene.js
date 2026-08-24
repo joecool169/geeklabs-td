@@ -56,6 +56,9 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("playfield_floor", "/art/playfield-floor-v1.png");
     this.load.image("enemy_runner", "/art/units/runner-v1.png");
+    this.load.image("tower_basic_t1", "/art/towers/basic-t1-v1.png");
+    this.load.image("tower_basic_t2", "/art/towers/basic-t2-v1.png");
+    this.load.image("tower_basic_t3", "/art/towers/basic-t3-v1.png");
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!cfg?.url) return;
       this.load.audio(key, cfg.url);

@@ -11,12 +11,19 @@ import {
 const makeDisplayObject = () => ({
   active: true,
   depth: 1,
+  width: 256,
   setDepth() { return this; },
   setAlpha() { return this; },
   setTint() { return this; },
   setScale() { return this; },
+  setDisplaySize(width, height) {
+    this.displayWidth = width;
+    this.displayHeight = height;
+    return this;
+  },
+  clearTint() { return this; },
   setPosition() { return this; },
-  setTexture() { return this; },
+  setTexture(key) { this.textureKey = key; return this; },
   setVisible() { return this; },
   clear() { return this; },
   destroy() { this.active = false; },
@@ -45,6 +52,7 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
     },
     placeHint: { setText() {} },
     towerStripSlots: [],
+    textures: { exists: (key) => key.startsWith("tower_basic_t") },
     showToast() {},
     playSfx(key) { sounds.push(key); },
   };
@@ -60,6 +68,8 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(state.money, 450);
   assert.equal(scene.towers.length, 1);
   assert.equal(scene.selectedTower, tower);
+  assert.equal(tower.sprite.textureKey, "tower_basic_t1");
+  assert.equal(tower.sprite.displayWidth, 40);
   assert.equal(system.getTowerAt(331, 300), undefined);
   assert.equal(system.getTowerAt(331, 300, { touch: true }), tower);
   assert.deepEqual(system.getPlacementStatusAt(300, 300), {
@@ -69,6 +79,8 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
 
   assert.equal(system.tryUpgradeTower(tower), true);
   assert.equal(tower.tier, 2);
+  assert.equal(tower.sprite.textureKey, "tower_basic_t2");
+  assert.equal(tower.sprite.displayWidth, 42);
   assert.equal(state.money, 375);
   assert.equal(system.trySellTower(tower), true);
   assert.equal(state.money, 462);

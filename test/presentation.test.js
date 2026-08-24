@@ -19,6 +19,7 @@ test("world renderer preserves map path and texture identities", () => {
     { x: 860, y: 420 },
   ]);
   assert.equal(getTowerTextureKey("rapid"), "tower_rapid");
+  assert.equal(getTowerTextureKey("basic", 3), "tower_basic_t3");
   assert.equal(PLAYFIELD_TEXTURE_KEY, "playfield_floor");
 });
 
