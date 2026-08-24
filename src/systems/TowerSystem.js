@@ -7,7 +7,7 @@ import {
   getNextUpgradeCost,
 } from "../game/towers.js";
 import {
-  getBasicTowerArtOrigins,
+  getTowerArtOrigins,
   getTowerBaseTextureKey,
   getTowerHeadTextureKey,
   getTowerTextureKey,
@@ -268,7 +268,6 @@ class TowerSystem {
   refreshTowerArt(tower) {
     const tier = TOWER_DEFS[tower.type]?.tiers?.[tower.tier - 1];
     tower.visualTint = tier?.tint ?? 0xffffff;
-    if (tower.type !== "basic") return;
     const artStandard = getTowerArtStandard(tower.type);
     const baseKey = getTowerBaseTextureKey(tower.type);
     const headKey = getTowerHeadTextureKey(tower.type, tower.tier);
@@ -278,7 +277,7 @@ class TowerSystem {
     ) {
       const baseSize =
         artStandard.baseSizeByTier[tower.tier] ?? artStandard.baseSizeByTier[1];
-      const origins = getBasicTowerArtOrigins(tower.tier);
+      const origins = getTowerArtOrigins(tower.type, tower.tier);
       tower.sprite
         .setTexture(baseKey)
         .clearTint()
@@ -329,10 +328,10 @@ class TowerSystem {
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
     if (!this.runController.spend(tier0.cost)) return null;
-    const initialTexture =
-      def.key === "basic"
-        ? getTowerBaseTextureKey(def.key)
-        : getTowerTextureKey(def.key, 1);
+    const baseTexture = getTowerBaseTextureKey(def.key);
+    const initialTexture = this.scene.textures?.exists?.(baseTexture)
+      ? baseTexture
+      : getTowerTextureKey(def.key, 1);
     const sprite = this.scene.add.image(
       x,
       y,

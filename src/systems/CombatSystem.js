@@ -37,11 +37,9 @@ class CombatSystem {
       const target = this.enemySystem.findTarget(tower, tower.targetMode);
       if (!target) continue;
       tower.nextShotAt = time + tower.fireMs;
-      if (tower.type === "basic") {
-        tower.head?.setRotation?.(
-          Math.atan2(target.y - tower.y, target.x - tower.x)
-        );
-      }
+      tower.head?.setRotation?.(
+        Math.atan2(target.y - tower.y, target.x - tower.x)
+      );
       this.projectiles.fire(tower, target);
     }
     this.projectiles.update(time, dt);
@@ -75,6 +73,7 @@ class CombatSystem {
     if (!target) return;
     const dx = target.x - tower.x;
     const dy = target.y - tower.y;
+    tower.head?.setRotation?.(Math.atan2(dy, dx));
     const length = Math.sqrt(dx * dx + dy * dy) || 1;
     const endX = tower.x + (dx / length) * tower.range;
     const endY = tower.y + (dy / length) * tower.range;

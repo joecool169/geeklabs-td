@@ -12,7 +12,7 @@ const getTowerColor = (tower, fallback) =>
   tower?.visualTint ?? tower?.sprite?.tintTopLeft ?? fallback;
 
 const getProjectileOrigin = (tower, target, projectileType) =>
-  projectileType === "basic"
+  projectileType === "basic" || projectileType === "rapid"
     ? getMuzzlePoint(tower, target)
     : { x: tower.x, y: tower.y };
 
@@ -35,7 +35,7 @@ class ProjectileSystem {
       tower,
       projectileType === "rapid" ? 0x39ff8f : 0x3bd3ff
     );
-    if (projectileType === "basic") {
+    if (projectileType === "basic" || projectileType === "rapid") {
       showMuzzleEffect(this.scene, tower, target, color);
     }
     const origin = getProjectileOrigin(tower, target, projectileType);

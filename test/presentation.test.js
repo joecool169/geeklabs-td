@@ -6,6 +6,7 @@ import {
   COMMAND_CORE_TEXTURE_KEY,
   createDefaultPath,
   getBasicTowerArtOrigins,
+  getTowerArtOrigins,
   getCommandCorePosition,
   getTowerTextureKey,
   getTowerBaseTextureKey,
@@ -38,6 +39,8 @@ test("world renderer preserves map path and texture identities", () => {
   assert.equal(getTowerTextureKey("basic", 3), "tower_basic_t3");
   assert.equal(getTowerBaseTextureKey("basic"), "tower_basic_base");
   assert.equal(getTowerHeadTextureKey("basic", 2), "tower_basic_head_t2");
+  assert.equal(getTowerBaseTextureKey("rapid"), "tower_rapid_base");
+  assert.equal(getTowerHeadTextureKey("rapid", 3), "tower_rapid_head_t3");
   assert.equal(PLAYFIELD_TEXTURE_KEY, "playfield_floor");
   assert.equal(COMMAND_CORE_TEXTURE_KEY, "command_core");
   assert.deepEqual(getCommandCorePosition(createDefaultPath()), { x: 860, y: 420 });
@@ -46,6 +49,10 @@ test("world renderer preserves map path and texture identities", () => {
     head: { x: 0.485, y: 0.492 },
   });
   assert.deepEqual(getBasicTowerArtOrigins(2).head, { x: 0.455, y: 0.492 });
+  assert.deepEqual(getTowerArtOrigins("rapid", 2), {
+    base: { x: 0.5, y: 0.36 },
+    head: { x: 0.5, y: 0.5 },
+  });
 });
 
 test("production art standards preserve mobile footprints and depth order", () => {
@@ -76,7 +83,7 @@ test("point-to-segment placement geometry remains deterministic", () => {
   assert.equal(pointToSegmentDistance(3, 4, 0, 0, 0, 0), 5);
 });
 
-test("Basic muzzle feedback follows the target direction and tower tier", () => {
+test("projectile muzzle feedback follows tower direction and tier", () => {
   assert.deepEqual(
     getMuzzlePoint({ x: 10, y: 20, tier: 1 }, { x: 110, y: 20 }),
     { angle: 0, x: 34, y: 20 }
@@ -98,7 +105,7 @@ test("Basic muzzle feedback follows the target direction and tower tier", () => 
   );
   assert.deepEqual(
     getProjectileOrigin({ x: 10, y: 20 }, { x: 110, y: 20 }, "rapid"),
-    { x: 10, y: 20 }
+    { angle: 0, x: 34, y: 20 }
   );
 });
 

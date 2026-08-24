@@ -4,6 +4,7 @@ import {
   drawEnemyTexture,
   getEnemyTextureKey,
 } from "../game/enemies.js";
+import { getTowerArtStandard } from "./artStandards.js";
 
 const RANGE_FILL_ALPHA = Object.freeze({
   selected: 0.035,
@@ -68,12 +69,19 @@ function getBasicTowerArtOrigins(tier = 1) {
   };
 }
 
+function getTowerArtOrigins(type, tier = 1) {
+  if (type === "basic") return getBasicTowerArtOrigins(tier);
+  return {
+    base: getTowerArtStandard(type).baseOrigin,
+    head: { x: 0.5, y: 0.5 },
+  };
+}
+
 const getTowerTextureKey = (type, tier = 1) =>
   type === "basic" ? `tower_basic_t${tier}` : `tower_${type}`;
-const getTowerBaseTextureKey = (type) =>
-  type === "basic" ? "tower_basic_base" : getTowerTextureKey(type);
+const getTowerBaseTextureKey = (type) => `tower_${type}_base`;
 const getTowerHeadTextureKey = (type, tier = 1) =>
-  type === "basic" ? `tower_basic_head_t${tier}` : null;
+  `tower_${type}_head_t${tier}`;
 
 function drawBasicBaseTexture(graphics) {
   graphics.clear();
@@ -423,6 +431,7 @@ export {
   getTowerBaseTextureKey,
   getTowerHeadTextureKey,
   getBasicTowerArtOrigins,
+  getTowerArtOrigins,
   getCommandCorePosition,
   pointToSegmentDistance,
 };

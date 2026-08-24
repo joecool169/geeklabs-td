@@ -14,7 +14,7 @@ import {
 } from "../presentation/artStandards.js";
 
 function getEnemyArtPresentation(typeKey, textureWidth = 24) {
-  if (typeKey === "runner" && textureWidth > 24) {
+  if (textureWidth > 24) {
     const standard = getEnemyArtStandard(typeKey);
     return {
       displayWidth: standard.width,
@@ -124,7 +124,9 @@ class EnemySystem {
     const end = this.path[index + 1];
     const vx = end.x - start.x;
     const vy = end.y - start.y;
-    if (enemy.typeKey === "runner") enemy.setRotation?.(Math.atan2(vy, vx));
+    if (getEnemyArtStandard(enemy.typeKey).rotates) {
+      enemy.setRotation?.(Math.atan2(vy, vx));
+    }
     const length = Math.sqrt(vx * vx + vy * vy) || 1;
     const move = (enemy.speed * dt) / 1000;
     enemy.x += (vx / length) * move;
