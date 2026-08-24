@@ -1,5 +1,9 @@
-const IMPACT_DEPTH = 60;
-const TRANSIENT_EFFECT_ENEMY_LIMIT = 72;
+import {
+  ART_DEPTHS,
+  TRANSIENT_EFFECT_ENEMY_LIMIT,
+} from "../presentation/artStandards.js";
+
+const IMPACT_DEPTH = ART_DEPTHS.impact;
 
 const hasTransientEffectBudget = (scene) =>
   (scene?.enemies?.countActive?.(true) ?? 0) <= TRANSIENT_EFFECT_ENEMY_LIMIT;

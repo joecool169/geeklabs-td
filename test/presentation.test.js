@@ -18,6 +18,12 @@ import {
   hasTransientEffectBudget,
 } from "../src/game/bullets.js";
 import { getProjectileOrigin } from "../src/systems/ProjectileSystem.js";
+import {
+  ART_DEPTHS,
+  TRANSIENT_EFFECT_ENEMY_LIMIT,
+  getEnemyArtStandard,
+  getTowerArtStandard,
+} from "../src/presentation/artStandards.js";
 
 test("world renderer preserves map path and texture identities", () => {
   assert.deepEqual(createDefaultPath(), [
@@ -40,6 +46,19 @@ test("world renderer preserves map path and texture identities", () => {
     head: { x: 0.485, y: 0.492 },
   });
   assert.deepEqual(getBasicTowerArtOrigins(2).head, { x: 0.455, y: 0.492 });
+});
+
+test("production art standards preserve mobile footprints and depth order", () => {
+  assert.equal(getTowerArtStandard("rapid").headSize, 128);
+  assert.equal(getTowerArtStandard("sniper").headSize, 144);
+  assert.deepEqual(getEnemyArtStandard("armored"), {
+    width: 42,
+    height: 34,
+    rotates: true,
+  });
+  assert.ok(ART_DEPTHS.towerHead < ART_DEPTHS.enemy);
+  assert.ok(ART_DEPTHS.enemyHealth < ART_DEPTHS.projectile);
+  assert.equal(TRANSIENT_EFFECT_ENEMY_LIMIT, 72);
 });
 
 test("dense-wave health bars prioritize durable and badly damaged enemies", () => {

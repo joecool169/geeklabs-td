@@ -8,13 +8,19 @@ import {
   updateEnemyVisual,
 } from "../game/enemies.js";
 import { dist2 } from "../game/utils.js";
-
-const ENEMY_DEPTH = 20;
-const ENEMY_HEALTH_DEPTH = 21;
+import {
+  ART_DEPTHS,
+  getEnemyArtStandard,
+} from "../presentation/artStandards.js";
 
 function getEnemyArtPresentation(typeKey, textureWidth = 24) {
   if (typeKey === "runner" && textureWidth > 24) {
-    return { displayWidth: 34, displayHeight: 23, useTint: false };
+    const standard = getEnemyArtStandard(typeKey);
+    return {
+      displayWidth: standard.width,
+      displayHeight: standard.height,
+      useTint: false,
+    };
   }
   return { displayWidth: null, displayHeight: null, useTint: true };
 }
@@ -52,7 +58,7 @@ class EnemySystem {
       start.y,
       getEnemyTextureKey(def.key)
     );
-    enemy.setDepth(ENEMY_DEPTH);
+    enemy.setDepth(ART_DEPTHS.enemy);
     enemy.setCollideWorldBounds(false);
     enemy.body.setAllowGravity(false);
 
@@ -85,7 +91,7 @@ class EnemySystem {
     enemy.pathIndex = 0;
     enemy.isSwarm = !!opts.isSwarm;
     enemy.healthIndicator = this.scene.add.graphics();
-    enemy.healthIndicator.setDepth(ENEMY_HEALTH_DEPTH).setVisible(false);
+    enemy.healthIndicator.setDepth(ART_DEPTHS.enemyHealth).setVisible(false);
     enemy.once("destroy", () => {
       if (enemy.healthIndicator?.active) enemy.healthIndicator.destroy();
       enemy.healthIndicator = null;

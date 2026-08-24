@@ -17,8 +17,10 @@ Defense Protocol is an industrial defense network upgraded with restrained milit
 
 ## Runtime asset standard
 
-- Author unit masters at 256×256 pixels on transparent backgrounds.
-- Export first-pass runtime unit textures at 96×96 pixels; display them at the existing gameplay footprint.
+- Author unit masters at 256×256 pixels or larger on transparent backgrounds.
+- Tower families use a stationary base plus a tier-specific orthographic rotating head. The mechanical mount—not the bitmap bounds—is the rotation origin.
+- Runtime tower bases use 64px transparent canvases; rotating heads use 128px or 144px canvases with the mount at the declared origin.
+- Runtime enemy textures use 96px transparent canvases and display at the fixed per-class footprint declared in `src/presentation/artStandards.js`.
 - Keep important silhouette features inside a central 80% safe area so scaling and glow do not clip.
 - Use premultiplied-looking soft edges without opaque matte halos.
 - First pass uses static unit sprites plus inexpensive Phaser transforms and particles; no frame animation is required.
@@ -30,7 +32,7 @@ Defense Protocol is an industrial defense network upgraded with restrained milit
 - Hostile direction of travel must read without relying only on rotation or color.
 - Tier changes must alter the Basic tower silhouette, not merely its tint.
 - Effects must disappear quickly and never hide health bars, targets, or the route.
-- At 80 active enemies, units must remain separable and frame pacing must remain comparable to the procedural baseline.
+- Above 72 active enemies, optional transient flourishes yield automatically; at 80 active enemies, units must remain separable and frame pacing must remain comparable to the procedural baseline.
 
 ## First vertical slice
 

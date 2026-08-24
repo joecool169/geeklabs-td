@@ -13,6 +13,11 @@ import {
   getTowerTextureKey,
 } from "../presentation/WorldRenderer.js";
 import { showTowerPulse } from "../game/bullets.js";
+import {
+  ART_DEPTHS,
+  PLACEMENT_GHOST_ALPHA,
+  getTowerArtStandard,
+} from "../presentation/artStandards.js";
 
 const TOWER_SYSTEM_FIELDS = Object.freeze([
   "towers",
@@ -25,10 +30,6 @@ const TOWER_SYSTEM_FIELDS = Object.freeze([
   "ghostY",
 ]);
 const TOUCH_TOWER_SELECT_RADIUS = 34;
-const BASIC_ART_SIZE = Object.freeze({ 1: 40, 2: 42, 3: 46 });
-const BASIC_BASE_SIZE = Object.freeze({ 1: 64, 2: 67, 3: 70 });
-const BASIC_HEAD_SIZE = 128;
-const PLACEMENT_GHOST_ALPHA = 0.44;
 
 class TowerSystem {
   constructor({ scene, world, runController }) {
@@ -175,12 +176,14 @@ class TowerSystem {
     if (!this.ghost) return;
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
+    const artStandard = getTowerArtStandard(this.placeType);
     this.ghost.setPosition(this.ghostX, this.ghostY);
     const color = this.ghostValid ? tier0.tint : 0xff4d6d;
     if (this.placeType === "basic" && (this.ghost.width ?? 34) > 34) {
       if (this.ghostValid) this.ghost.clearTint();
       else this.ghost.setTint(color);
-      this.ghost.setDisplaySize(BASIC_ART_SIZE[1], BASIC_ART_SIZE[1]);
+      const size = artStandard.fallbackSizeByTier[1];
+      this.ghost.setDisplaySize(size, size);
     } else {
       this.ghost.setTint(color);
       this.ghost.setScale(tier0.scale ?? 1);
@@ -266,20 +269,22 @@ class TowerSystem {
     const tier = TOWER_DEFS[tower.type]?.tiers?.[tower.tier - 1];
     tower.visualTint = tier?.tint ?? 0xffffff;
     if (tower.type !== "basic") return;
+    const artStandard = getTowerArtStandard(tower.type);
     const baseKey = getTowerBaseTextureKey(tower.type);
     const headKey = getTowerHeadTextureKey(tower.type, tower.tier);
     if (
       this.scene.textures?.exists?.(baseKey) &&
       this.scene.textures?.exists?.(headKey)
     ) {
-      const baseSize = BASIC_BASE_SIZE[tower.tier] ?? BASIC_BASE_SIZE[1];
+      const baseSize =
+        artStandard.baseSizeByTier[tower.tier] ?? artStandard.baseSizeByTier[1];
       const origins = getBasicTowerArtOrigins(tower.tier);
       tower.sprite
         .setTexture(baseKey)
         .clearTint()
         .setDisplaySize(baseSize, baseSize)
         .setOrigin(origins.base.x, origins.base.y)
-        .setDepth(12);
+        .setDepth(ART_DEPTHS.towerBase);
       if (!tower.head) {
         tower.head = this.scene.add.image(tower.x, tower.y, headKey);
       }
@@ -287,16 +292,18 @@ class TowerSystem {
         .setTexture(headKey)
         .clearTint()
         .setPosition(tower.x, tower.y)
-        .setDisplaySize(BASIC_HEAD_SIZE, BASIC_HEAD_SIZE)
+        .setDisplaySize(artStandard.headSize, artStandard.headSize)
         .setOrigin(origins.head.x, origins.head.y)
-        .setDepth(13);
+        .setDepth(ART_DEPTHS.towerHead);
       return;
     }
     const textureKey = getTowerTextureKey(tower.type, tower.tier);
     if (!this.scene.textures?.exists?.(textureKey)) return;
     tower.sprite.setTexture(textureKey);
     if ((tower.sprite.width ?? 34) <= 34) return;
-    const size = BASIC_ART_SIZE[tower.tier] ?? BASIC_ART_SIZE[1];
+    const size =
+      artStandard.fallbackSizeByTier[tower.tier] ??
+      artStandard.fallbackSizeByTier[1];
     tower.sprite.clearTint().setDisplaySize(size, size);
   }
 
