@@ -10,6 +10,23 @@ const ENEMY_DEPTH = 20;
 const ENEMY_HEALTH_DEPTH = 21;
 const ENEMY_HEALTH_WIDTH = 20;
 const ENEMY_HEALTH_Y = -17;
+const ENEMY_MOTION = Object.freeze({
+  runner: Object.freeze({ amplitude: 0.018, frequency: 0.009 }),
+  sprinter: Object.freeze({ amplitude: 0.05, frequency: 0.014 }),
+  brute: Object.freeze({ amplitude: 0.012, frequency: 0.006 }),
+  armored: Object.freeze({ amplitude: 0.007, frequency: 0.004 }),
+});
+
+function getEnemyMotionRotation(typeKey, direction, clock, phase = 0) {
+  const motion = ENEMY_MOTION[typeKey] ?? ENEMY_MOTION.runner;
+  return direction + Math.sin(clock * motion.frequency + phase) * motion.amplitude;
+}
+
+function getEnemyDamagePresentation(ratio) {
+  if (ratio <= 0.25) return { alpha: 0.88, healthColor: 0xff4d6d };
+  if (ratio <= 0.55) return { alpha: 0.94, healthColor: 0xffc857 };
+  return { alpha: 1, healthColor: 0x57e3ff };
+}
 
 function shouldShowEnemyHealth(typeKey, ratio) {
   if (ratio >= 1) return false;
@@ -117,6 +134,9 @@ function updateEnemyVisual(e) {
   e.healthIndicatorMaxHp = e.maxHp;
 
   const ratio = clamp01(e.hp / Math.max(1, e.maxHp));
+  const damagePresentation = getEnemyDamagePresentation(ratio);
+  e.presentationAlpha = damagePresentation.alpha;
+  if (!e.flashTween) e.setAlpha?.(damagePresentation.alpha);
   indicator.clear();
   if (!shouldShowEnemyHealth(e.typeKey, ratio)) {
     indicator.setVisible(false);
@@ -131,7 +151,7 @@ function updateEnemyVisual(e) {
     ENEMY_HEALTH_WIDTH + 2,
     4
   );
-  indicator.fillStyle(ENEMY_DEFS[e.typeKey]?.tint ?? 0xff4d6d, 1);
+  indicator.fillStyle(damagePresentation.healthColor, 1);
   indicator.fillRect(
     -ENEMY_HEALTH_WIDTH / 2,
     ENEMY_HEALTH_Y,
@@ -277,6 +297,8 @@ function findTarget({ path, enemies }, tower, mode) {
 
 export {
   getEnemyTextureKey,
+  getEnemyDamagePresentation,
+  getEnemyMotionRotation,
   drawEnemyTexture,
   updateEnemyVisual,
   shouldShowEnemyHealth,

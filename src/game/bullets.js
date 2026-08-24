@@ -107,7 +107,7 @@ const flashEnemy = (scene, target) => {
   target.flashTween = scene.time.delayedCall(80, () => {
     if (!target.active) return;
     target.setTint(baseTint);
-    target.setAlpha(1);
+    target.setAlpha(target.presentationAlpha ?? 1);
     target.flashTween = null;
   });
 };

@@ -13,7 +13,11 @@ import {
   getTowerHeadTextureKey,
   pointToSegmentDistance,
 } from "../src/presentation/WorldRenderer.js";
-import { shouldShowEnemyHealth } from "../src/game/enemies.js";
+import {
+  getEnemyDamagePresentation,
+  getEnemyMotionRotation,
+  shouldShowEnemyHealth,
+} from "../src/game/enemies.js";
 import {
   getMuzzlePoint,
   hasTransientEffectBudget,
@@ -74,6 +78,23 @@ test("dense-wave health bars prioritize durable and badly damaged enemies", () =
   assert.equal(shouldShowEnemyHealth("brute", 0.9), true);
   assert.equal(shouldShowEnemyHealth("armored", 0.99), true);
   assert.equal(shouldShowEnemyHealth("armored", 1), false);
+});
+
+test("enemy motion and damage polish stay restrained and deterministic", () => {
+  assert.equal(getEnemyMotionRotation("armored", 1.2, 0, 0), 1.2);
+  assert.ok(Math.abs(getEnemyMotionRotation("sprinter", 0, 100, 0)) < 0.051);
+  assert.deepEqual(getEnemyDamagePresentation(0.2), {
+    alpha: 0.88,
+    healthColor: 0xff4d6d,
+  });
+  assert.deepEqual(getEnemyDamagePresentation(0.4), {
+    alpha: 0.94,
+    healthColor: 0xffc857,
+  });
+  assert.deepEqual(getEnemyDamagePresentation(0.8), {
+    alpha: 1,
+    healthColor: 0x57e3ff,
+  });
 });
 
 test("point-to-segment placement geometry remains deterministic", () => {

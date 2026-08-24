@@ -4,6 +4,7 @@ import {
   computeEnemyReward,
   createEnemyRewardCarry,
   findTarget,
+  getEnemyMotionRotation,
   getEnemyTextureKey,
   updateEnemyVisual,
 } from "../game/enemies.js";
@@ -48,6 +49,7 @@ class EnemySystem {
     this.onGameOver = onGameOver;
     this.group = scene.physics.add.group();
     this.rewardCarry = createEnemyRewardCarry();
+    this.spawnSequence = 0;
   }
 
   spawn(typeKey, opts = {}) {
@@ -90,6 +92,9 @@ class EnemySystem {
     enemy.waveNumber = wave;
     enemy.pathIndex = 0;
     enemy.isSwarm = !!opts.isSwarm;
+    enemy.motionClock = 0;
+    enemy.motionPhase = (this.spawnSequence * 2.399963) % (Math.PI * 2);
+    this.spawnSequence += 1;
     enemy.healthIndicator = this.scene.add.graphics();
     enemy.healthIndicator.setDepth(ART_DEPTHS.enemyHealth).setVisible(false);
     enemy.once("destroy", () => {
@@ -124,8 +129,16 @@ class EnemySystem {
     const end = this.path[index + 1];
     const vx = end.x - start.x;
     const vy = end.y - start.y;
+    enemy.motionClock = (enemy.motionClock ?? 0) + dt;
     if (getEnemyArtStandard(enemy.typeKey).rotates) {
-      enemy.setRotation?.(Math.atan2(vy, vx));
+      enemy.setRotation?.(
+        getEnemyMotionRotation(
+          enemy.typeKey,
+          Math.atan2(vy, vx),
+          enemy.motionClock,
+          enemy.motionPhase
+        )
+      );
     }
     const length = Math.sqrt(vx * vx + vy * vy) || 1;
     const move = (enemy.speed * dt) / 1000;
@@ -150,6 +163,7 @@ class EnemySystem {
     this.group?.clear(true, true);
     this.group = null;
     this.rewardCarry = null;
+    this.spawnSequence = 0;
   }
 }
 
