@@ -52,7 +52,7 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
     },
     placeHint: { setText() {} },
     towerStripSlots: [],
-    textures: { exists: (key) => key.startsWith("tower_basic_t") },
+    textures: { exists: (key) => key.startsWith("tower_basic") },
     showToast() {},
     playSfx(key) { sounds.push(key); },
   };
@@ -72,8 +72,9 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(state.money, 450);
   assert.equal(scene.towers.length, 1);
   assert.equal(scene.selectedTower, tower);
-  assert.equal(tower.sprite.textureKey, "tower_basic_t1");
-  assert.equal(tower.sprite.displayWidth, 40);
+  assert.equal(tower.sprite.textureKey, "tower_basic_base");
+  assert.equal(tower.sprite.displayWidth, 64);
+  assert.equal(tower.head.textureKey, "tower_basic_head_t1");
   assert.equal(system.getTowerAt(331, 300), undefined);
   assert.equal(system.getTowerAt(331, 300, { touch: true }), tower);
   assert.deepEqual(system.getPlacementStatusAt(300, 300), {
@@ -83,8 +84,9 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
 
   assert.equal(system.tryUpgradeTower(tower), true);
   assert.equal(tower.tier, 2);
-  assert.equal(tower.sprite.textureKey, "tower_basic_t2");
-  assert.equal(tower.sprite.displayWidth, 42);
+  assert.equal(tower.sprite.textureKey, "tower_basic_base");
+  assert.equal(tower.sprite.displayWidth, 67);
+  assert.equal(tower.head.textureKey, "tower_basic_head_t2");
   assert.equal(state.money, 375);
   assert.equal(system.trySellTower(tower), true);
   assert.equal(state.money, 462);

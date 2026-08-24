@@ -43,8 +43,9 @@ test("combat system clips telemetry damage and owns kill rewards", () => {
   assert.deepEqual(sounds, ["death"]);
 });
 
-test("three-quarter Basic artwork stays upright while firing", () => {
-  let rotations = 0;
+test("Basic weapon head swivels while its three-quarter base stays upright", () => {
+  let baseRotations = 0;
+  let headAngle = null;
   let shots = 0;
   const tower = {
     type: "basic",
@@ -53,7 +54,8 @@ test("three-quarter Basic artwork stays upright while firing", () => {
     fireMs: 260,
     nextShotAt: 0,
     targetMode: "first",
-    sprite: { setRotation() { rotations += 1; } },
+    sprite: { setRotation() { baseRotations += 1; } },
+    head: { setRotation(angle) { headAngle = angle; } },
   };
   const target = { active: true, x: 20, y: 100 };
   const combat = new CombatSystem({
@@ -70,5 +72,6 @@ test("three-quarter Basic artwork stays upright while firing", () => {
   combat.update(1, 16);
 
   assert.equal(shots, 1);
-  assert.equal(rotations, 0);
+  assert.equal(baseRotations, 0);
+  assert.equal(headAngle, Math.PI);
 });

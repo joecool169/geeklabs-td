@@ -58,6 +58,31 @@ function getCommandCorePosition(path, offset = 48) {
 
 const getTowerTextureKey = (type, tier = 1) =>
   type === "basic" ? `tower_basic_t${tier}` : `tower_${type}`;
+const getTowerBaseTextureKey = (type) =>
+  type === "basic" ? "tower_basic_base" : getTowerTextureKey(type);
+const getTowerHeadTextureKey = (type, tier = 1) =>
+  type === "basic" ? `tower_basic_head_t${tier}` : null;
+
+function drawBasicBaseTexture(graphics) {
+  graphics.clear();
+  graphics.fillStyle(0x263448, 1);
+  graphics.fillCircle(32, 32, 22);
+  graphics.lineStyle(3, 0x3bd3ff, 0.75);
+  graphics.strokeCircle(32, 32, 14);
+  graphics.fillStyle(0x0b0f14, 1);
+  graphics.fillCircle(32, 32, 9);
+}
+
+function drawBasicHeadTexture(graphics, tier = 1) {
+  const length = 30 + tier * 5;
+  graphics.clear();
+  graphics.fillStyle(0x34465d, 1);
+  graphics.fillRoundedRect(48, 52, length, 24, 6);
+  graphics.lineStyle(2, 0x3bd3ff, 0.85);
+  graphics.strokeCircle(64, 64, 12 + tier);
+  graphics.fillStyle(0x8deeff, 1);
+  graphics.fillRoundedRect(64, 59, length, 10, 4);
+}
 
 function drawTowerTexture(graphics, type) {
   const dark = 0x0b0f14;
@@ -157,6 +182,16 @@ class WorldRenderer {
         drawTowerTexture(graphics, type);
         graphics.generateTexture(key, 34, 34);
       }
+    }
+    if (!this.scene.textures.exists(getTowerBaseTextureKey("basic"))) {
+      drawBasicBaseTexture(graphics);
+      graphics.generateTexture(getTowerBaseTextureKey("basic"), 64, 64);
+    }
+    for (const tier of [1, 2, 3]) {
+      const headKey = getTowerHeadTextureKey("basic", tier);
+      if (this.scene.textures.exists(headKey)) continue;
+      drawBasicHeadTexture(graphics, tier);
+      graphics.generateTexture(headKey, 128, 128);
     }
     for (const type of Object.keys(ENEMY_DEFS)) {
       const key = getEnemyTextureKey(type);
@@ -370,6 +405,8 @@ export {
   createDefaultPath,
   drawTowerTexture,
   getTowerTextureKey,
+  getTowerBaseTextureKey,
+  getTowerHeadTextureKey,
   getCommandCorePosition,
   pointToSegmentDistance,
 };

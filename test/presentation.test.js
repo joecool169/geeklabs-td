@@ -7,6 +7,8 @@ import {
   createDefaultPath,
   getCommandCorePosition,
   getTowerTextureKey,
+  getTowerBaseTextureKey,
+  getTowerHeadTextureKey,
   pointToSegmentDistance,
 } from "../src/presentation/WorldRenderer.js";
 import { shouldShowEnemyHealth } from "../src/game/enemies.js";
@@ -26,6 +28,8 @@ test("world renderer preserves map path and texture identities", () => {
   ]);
   assert.equal(getTowerTextureKey("rapid"), "tower_rapid");
   assert.equal(getTowerTextureKey("basic", 3), "tower_basic_t3");
+  assert.equal(getTowerBaseTextureKey("basic"), "tower_basic_base");
+  assert.equal(getTowerHeadTextureKey("basic", 2), "tower_basic_head_t2");
   assert.equal(PLAYFIELD_TEXTURE_KEY, "playfield_floor");
   assert.equal(COMMAND_CORE_TEXTURE_KEY, "command_core");
   assert.deepEqual(getCommandCorePosition(createDefaultPath()), { x: 908, y: 420 });

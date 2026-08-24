@@ -59,6 +59,10 @@ export class GameScene extends Phaser.Scene {
     this.load.image("tower_basic_t1", "/art/towers/basic-t1-v1.png");
     this.load.image("tower_basic_t2", "/art/towers/basic-t2-v1.png");
     this.load.image("tower_basic_t3", "/art/towers/basic-t3-v1.png");
+    this.load.image("tower_basic_base", "/art/towers/basic-base-v1.png");
+    this.load.image("tower_basic_head_t1", "/art/towers/basic-head-t1-v1.png");
+    this.load.image("tower_basic_head_t2", "/art/towers/basic-head-t2-v1.png");
+    this.load.image("tower_basic_head_t3", "/art/towers/basic-head-t3-v1.png");
     this.load.image("command_core", "/art/structures/command-core-v1.png");
     Object.entries(SFX_CONFIG).forEach(([key, cfg]) => {
       if (!cfg?.url) return;

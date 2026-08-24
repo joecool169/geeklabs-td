@@ -6,7 +6,11 @@ import {
   cycleTargetMode,
   getNextUpgradeCost,
 } from "../game/towers.js";
-import { getTowerTextureKey } from "../presentation/WorldRenderer.js";
+import {
+  getTowerBaseTextureKey,
+  getTowerHeadTextureKey,
+  getTowerTextureKey,
+} from "../presentation/WorldRenderer.js";
 import { showTowerPulse } from "../game/bullets.js";
 
 const TOWER_SYSTEM_FIELDS = Object.freeze([
@@ -21,6 +25,8 @@ const TOWER_SYSTEM_FIELDS = Object.freeze([
 ]);
 const TOUCH_TOWER_SELECT_RADIUS = 34;
 const BASIC_ART_SIZE = Object.freeze({ 1: 40, 2: 42, 3: 46 });
+const BASIC_BASE_SIZE = Object.freeze({ 1: 64, 2: 67, 3: 70 });
+const BASIC_HEAD_SIZE = 128;
 const PLACEMENT_GHOST_ALPHA = 0.44;
 
 class TowerSystem {
@@ -259,6 +265,29 @@ class TowerSystem {
     const tier = TOWER_DEFS[tower.type]?.tiers?.[tower.tier - 1];
     tower.visualTint = tier?.tint ?? 0xffffff;
     if (tower.type !== "basic") return;
+    const baseKey = getTowerBaseTextureKey(tower.type);
+    const headKey = getTowerHeadTextureKey(tower.type, tower.tier);
+    if (
+      this.scene.textures?.exists?.(baseKey) &&
+      this.scene.textures?.exists?.(headKey)
+    ) {
+      const baseSize = BASIC_BASE_SIZE[tower.tier] ?? BASIC_BASE_SIZE[1];
+      tower.sprite
+        .setTexture(baseKey)
+        .clearTint()
+        .setDisplaySize(baseSize, baseSize)
+        .setDepth(12);
+      if (!tower.head) {
+        tower.head = this.scene.add.image(tower.x, tower.y, headKey);
+      }
+      tower.head
+        .setTexture(headKey)
+        .clearTint()
+        .setPosition(tower.x, tower.y)
+        .setDisplaySize(BASIC_HEAD_SIZE, BASIC_HEAD_SIZE)
+        .setDepth(13);
+      return;
+    }
     const textureKey = getTowerTextureKey(tower.type, tower.tier);
     if (!this.scene.textures?.exists?.(textureKey)) return;
     tower.sprite.setTexture(textureKey);
@@ -289,10 +318,14 @@ class TowerSystem {
     const def = this.getPlaceDef();
     const tier0 = def.tiers[0];
     if (!this.runController.spend(tier0.cost)) return null;
+    const initialTexture =
+      def.key === "basic"
+        ? getTowerBaseTextureKey(def.key)
+        : getTowerTextureKey(def.key, 1);
     const sprite = this.scene.add.image(
       x,
       y,
-      getTowerTextureKey(def.key, 1)
+      initialTexture
     );
     const tower = {
       x,
@@ -306,6 +339,7 @@ class TowerSystem {
       spent: tier0.cost,
       targetMode: def.defaultTargetMode ?? "first",
       sprite,
+      head: null,
       badge: null,
     };
     if (def.key === "laser") {
@@ -333,6 +367,7 @@ class TowerSystem {
     const refund = Math.floor((tower.spent || 0) * 0.7);
     tower.badge?.destroy();
     tower.beam?.destroy();
+    tower.head?.destroy();
     tower.sprite.destroy();
     this.towers.splice(index, 1);
     this.runController.earn(refund);
@@ -350,6 +385,7 @@ class TowerSystem {
     for (const tower of this.towers) {
       tower.beam?.destroy();
       tower.badge?.destroy();
+      tower.head?.destroy();
       tower.sprite?.destroy();
     }
     this.towers = [];
