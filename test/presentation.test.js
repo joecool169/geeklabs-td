@@ -73,8 +73,20 @@ test("world renderer preserves map path and texture identities", () => {
 });
 
 test("production art standards preserve mobile footprints and depth order", () => {
-  assert.equal(getTowerArtStandard("rapid").headSize, 128);
-  assert.equal(getTowerArtStandard("sniper").headSize, 144);
+  assert.deepEqual(getTowerArtStandard("basic").baseSizeByTier, {
+    1: 68,
+    2: 72,
+    3: 76,
+  });
+  assert.equal(getTowerArtStandard("basic").headSize, 112);
+  assert.deepEqual(getTowerArtStandard("rapid").baseSizeByTier, {
+    1: 42,
+    2: 44,
+    3: 46,
+  });
+  assert.equal(getTowerArtStandard("rapid").headSize, 60);
+  assert.equal(getTowerArtStandard("sniper").headSize, 64);
+  assert.equal(getTowerArtStandard("laser").headSize, 60);
   assert.deepEqual(getEnemyArtStandard("armored"), {
     width: 42,
     height: 34,
@@ -124,7 +136,7 @@ test("point-to-segment placement geometry remains deterministic", () => {
 test("projectile muzzle feedback follows tower direction and tier", () => {
   assert.deepEqual(
     getMuzzlePoint({ x: 10, y: 20, tier: 1 }, { x: 110, y: 20 }),
-    { angle: 0, x: 34, y: 20 }
+    { angle: 0, x: 32, y: 20 }
   );
   const vertical = getMuzzlePoint(
     { x: 10, y: 20, tier: 3 },
@@ -132,14 +144,14 @@ test("projectile muzzle feedback follows tower direction and tier", () => {
   );
   assert.ok(Math.abs(vertical.angle - Math.PI / 2) < 1e-10);
   assert.ok(Math.abs(vertical.x - 10) < 1e-10);
-  assert.equal(vertical.y, 52);
+  assert.equal(vertical.y, 48);
   assert.deepEqual(
     getProjectileOrigin(
       { x: 10, y: 20, tier: 2 },
       { x: 110, y: 20 },
       "basic"
     ),
-    { angle: 0, x: 38, y: 20 }
+    { angle: 0, x: 35, y: 20 }
   );
   assert.deepEqual(
     getProjectileOrigin({ x: 10, y: 20 }, { x: 110, y: 20 }, "rapid"),
@@ -150,7 +162,7 @@ test("projectile muzzle feedback follows tower direction and tier", () => {
       { x: 10, y: 20, type: "sniper", tier: 3 },
       { x: 110, y: 20 }
     ),
-    { angle: 0, x: 60, y: 20 }
+    { angle: 0, x: 41, y: 20 }
   );
   assert.deepEqual(
     getMuzzlePoint(

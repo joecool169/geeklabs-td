@@ -25,6 +25,7 @@ const TOWER_SYSTEM_FIELDS = Object.freeze([
   "isPlacing",
   "placeType",
   "ghost",
+  "ghostHead",
   "ghostValid",
   "ghostX",
   "ghostY",
@@ -41,6 +42,7 @@ class TowerSystem {
     this.isPlacing = false;
     this.placeType = "basic";
     this.ghost = null;
+    this.ghostHead = null;
     this.ghostValid = false;
     this.ghostX = 0;
     this.ghostY = 0;
@@ -82,9 +84,40 @@ class TowerSystem {
     this.placeType = type;
     this.syncTowerStripSelection();
     if (this.ghost) {
-      this.ghost.setTexture(getTowerTextureKey(type));
+      this.destroyGhost();
+      this.createGhost();
       this.refreshGhostVisual();
     }
+  }
+
+  createGhost() {
+    const artStandard = getTowerArtStandard(this.placeType);
+    const baseKey = getTowerBaseTextureKey(this.placeType);
+    const headKey = getTowerHeadTextureKey(this.placeType, 1);
+    const hasLayeredArt =
+      this.scene.textures?.exists?.(baseKey) &&
+      this.scene.textures?.exists?.(headKey);
+
+    this.ghost = this.scene.add.image(
+      0,
+      0,
+      hasLayeredArt ? baseKey : getTowerTextureKey(this.placeType)
+    );
+    this.ghost.setDepth(9000).setAlpha(PLACEMENT_GHOST_ALPHA);
+    if (!hasLayeredArt) return;
+
+    this.ghostHead = this.scene.add.image(0, 0, headKey);
+    this.ghostHead
+      .setDepth(9001)
+      .setAlpha(PLACEMENT_GHOST_ALPHA)
+      .setDisplaySize(artStandard.headSize, artStandard.headSize);
+  }
+
+  destroyGhost() {
+    this.ghostHead?.destroy();
+    this.ghostHead = null;
+    this.ghost?.destroy();
+    this.ghost = null;
   }
 
   syncTowerStripSelection() {
@@ -120,12 +153,7 @@ class TowerSystem {
           2600
         );
       }
-      this.ghost = this.scene.add.image(
-        0,
-        0,
-        getTowerTextureKey(this.placeType)
-      );
-      this.ghost.setDepth(9000).setAlpha(PLACEMENT_GHOST_ALPHA);
+      this.createGhost();
       const pointer = this.scene.input.activePointer;
       if (pointer) {
         this.ghostX = Number.NaN;
@@ -136,8 +164,7 @@ class TowerSystem {
       this.syncTowerStripSelection();
       return;
     }
-    this.ghost?.destroy();
-    this.ghost = null;
+    this.destroyGhost();
     this.scene.placeHint.setText("");
     this.world.hideRange();
     this.syncTowerStripSelection();
@@ -179,7 +206,24 @@ class TowerSystem {
     const artStandard = getTowerArtStandard(this.placeType);
     this.ghost.setPosition(this.ghostX, this.ghostY);
     const color = this.ghostValid ? tier0.tint : 0xff4d6d;
-    if (this.placeType === "basic" && (this.ghost.width ?? 34) > 34) {
+    if (this.ghostHead) {
+      const origins = getTowerArtOrigins(this.placeType, 1);
+      const baseSize = artStandard.baseSizeByTier[1];
+      this.ghost
+        .setDisplaySize(baseSize, baseSize)
+        .setOrigin(origins.base.x, origins.base.y);
+      this.ghostHead
+        .setPosition(this.ghostX, this.ghostY)
+        .setDisplaySize(artStandard.headSize, artStandard.headSize)
+        .setOrigin(origins.head.x, origins.head.y);
+      if (this.ghostValid) {
+        this.ghost.clearTint();
+        this.ghostHead.clearTint();
+      } else {
+        this.ghost.setTint(color);
+        this.ghostHead.setTint(color);
+      }
+    } else if ((this.ghost.width ?? 34) > 34) {
       if (this.ghostValid) this.ghost.clearTint();
       else this.ghost.setTint(color);
       const size = artStandard.fallbackSizeByTier[1];
@@ -391,7 +435,7 @@ class TowerSystem {
   }
 
   destroy() {
-    this.ghost?.destroy();
+    this.destroyGhost();
     for (const tower of this.towers) {
       tower.beam?.destroy();
       tower.badge?.destroy();

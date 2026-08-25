@@ -450,13 +450,18 @@ class WorldRenderer {
     this.rangeRing.clear();
     this.rangeRing.lineStyle(1, color, RANGE_LINE_ALPHA.selected);
     this.rangeRing.strokeCircle(tower.x, tower.y, tower.range);
-    this.drawSelectionAccent(tower.x, tower.y, color);
+    this.drawSelectionAccent(
+      tower.x,
+      tower.y,
+      color,
+      getTowerArtStandard(tower.type).selectionRadius
+    );
     this.rangeRing.setVisible(true);
   }
 
-  drawSelectionAccent(x, y, color) {
-    const outer = 18;
-    const inner = 12;
+  drawSelectionAccent(x, y, color, radius = 20) {
+    const outer = radius;
+    const inner = radius - 6;
     this.rangeRing.lineStyle(2, color, 0.95);
     this.rangeRing.lineBetween(x - outer, y - outer, x - inner, y - outer);
     this.rangeRing.lineBetween(x - outer, y - outer, x - outer, y - inner);

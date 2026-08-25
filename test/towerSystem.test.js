@@ -64,8 +64,10 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(system.isTowerUnlocked("sniper"), false);
   system.setPlacement(true);
   system.updateGhost(300, 300);
-  assert.equal(system.ghost.displayWidth, 40);
-  assert.equal(system.ghost.displayHeight, 40);
+  assert.equal(system.ghost.displayWidth, 68);
+  assert.equal(system.ghost.displayHeight, 68);
+  assert.equal(system.ghostHead.displayWidth, 112);
+  assert.equal(system.ghostHead.displayHeight, 112);
   assert.equal(system.ghost.alpha, 0.44);
   const tower = system.tryPlaceTowerAt(300, 300);
   assert.equal(tower.type, "basic");
@@ -74,7 +76,7 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(scene.towers.length, 1);
   assert.equal(scene.selectedTower, tower);
   assert.equal(tower.sprite.textureKey, "tower_basic_base");
-  assert.equal(tower.sprite.displayWidth, 64);
+  assert.equal(tower.sprite.displayWidth, 68);
   assert.equal(tower.sprite.originY, 0.344);
   assert.equal(tower.head.textureKey, "tower_basic_head_t1");
   assert.equal(tower.head.originX, 0.485);
@@ -88,7 +90,7 @@ test("tower system owns placement, upgrades, selection, and refunds", () => {
   assert.equal(system.tryUpgradeTower(tower), true);
   assert.equal(tower.tier, 2);
   assert.equal(tower.sprite.textureKey, "tower_basic_base");
-  assert.equal(tower.sprite.displayWidth, 67);
+  assert.equal(tower.sprite.displayWidth, 72);
   assert.equal(tower.head.textureKey, "tower_basic_head_t2");
   assert.equal(tower.head.originX, 0.455);
   assert.equal(state.money, 375);

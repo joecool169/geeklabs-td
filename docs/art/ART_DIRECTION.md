@@ -19,6 +19,7 @@ Defense Protocol is an industrial defense network upgraded with restrained milit
 
 - Author unit masters at 256×256 pixels or larger on transparent backgrounds.
 - Tower families use a stationary base plus a tier-specific orthographic rotating head. The mechanical mount—not the bitmap bounds—is the rotation origin.
+- Normalize each tower's visible base and main turret body to the 40px placement grid. Barrels may overhang modestly, but adjacent towers must remain visually separable.
 - Runtime tower bases use 64px transparent canvases; rotating heads use 128px or 144px canvases with the mount at the declared origin.
 - Runtime enemy textures use tight transparent canvases matching each class silhouette and display at the fixed per-class footprint declared in `src/presentation/artStandards.js`.
 - Keep important silhouette features inside a central 80% safe area so scaling and glow do not clip.

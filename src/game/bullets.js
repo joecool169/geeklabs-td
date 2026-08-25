@@ -17,9 +17,9 @@ const shouldShowImpactEffect = (scene, type) => {
 };
 
 const MUZZLE_OFFSETS = Object.freeze({
-  basic: Object.freeze([24, 28, 32]),
-  rapid: Object.freeze([24, 28, 32]),
-  sniper: Object.freeze([34, 42, 50]),
+  basic: Object.freeze([22, 25, 28]),
+  rapid: Object.freeze([24, 26, 28]),
+  sniper: Object.freeze([27, 29, 31]),
   laser: Object.freeze([22, 25, 28]),
 });
 

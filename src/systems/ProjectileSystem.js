@@ -13,7 +13,10 @@ const getTowerColor = (tower, fallback) =>
 
 const getProjectileOrigin = (tower, target, projectileType) =>
   projectileType === "basic" || projectileType === "rapid"
-    ? getMuzzlePoint(tower, target)
+    ? getMuzzlePoint(
+        tower?.type ? tower : { ...tower, type: projectileType },
+        target
+      )
     : { x: tower.x, y: tower.y };
 
 class ProjectileSystem {
