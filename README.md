@@ -2,7 +2,9 @@
 
 GeekLabs-TD is a mechanics-first tower defense game developed in the GeekLabs sandbox. The playable game is titled **Defense Protocol**.
 
-A live version is hosted at <https://td.geekstreet.tv>.
+Play the live web edition at <https://play.geeklabs.io>. The GeekLabs landing
+page, player guide, support information, privacy policy, release notes, credits,
+and global standings are available at <https://geeklabs.io>.
 
 ## Current direction
 
