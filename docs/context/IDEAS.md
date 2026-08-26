@@ -1,8 +1,8 @@
-# GeekLabs‑TD – Gameplay Roadmap (Options & Ideas)
+# Defense Protocol — Gameplay Options and Ideas
 
 > **Status:** Exploratory / Non‑binding
 >
-> This document captures _possible_ design directions and systems for GeekLabs‑TD.
+> This document captures _possible_ design directions and systems for Defense Protocol.
 > Nothing here is a commitment. These are options to consider, mix, defer, or discard.
 >
 > The purpose of this file is to preserve design thinking so it can be reused as **AI context** without assuming implementation intent.

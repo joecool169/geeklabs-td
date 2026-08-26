@@ -24,7 +24,8 @@ Implemented and locally verified:
 - the signed app installs and launches on an iPhone 17 Pro Max
 - a real-device Easy run reached Wave 54 with 37 towers, 3,626 kills, 20 lives, and 40 active enemies without a reported touch or frame-pacing blocker
 - real-device sound activation works after the first touch; effects are audible, Silent Mode is respected, and the persistent Sound On/Off control works
-- the production bundle, 66-test suite, dependency audit, Capacitor sync, Simulator build, signed device build, installation, and launch pass
+- the production bundle, full automated suite, dependency audit, Capacitor sync,
+  Simulator build, signed device build, installation, and launch pass
 
 Deferred to release endurance testing:
 
@@ -35,8 +36,10 @@ The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`.
 ## Touch-polish device handoff — 2026-08-23
 
 - the final signed build installed on an iPhone 17 Pro Max and 12.9-inch iPad Pro (6th generation)
-- automated launch succeeded on the iPad
-- the iPhone installation succeeded; automated launch was denied only because the device was locked, so its final launch and interaction check remains a manual acceptance step
+- automated launch succeeded on the iPhone
+- the iPad installation succeeded; automated launch was denied only because the
+  device was locked, so its final launch and interaction check remains a manual
+  acceptance step
 - both devices should verify landscape-left/right rotation, bottom-row placement, placement exit, selected-tower stats, and the compact pause menu
 
 ## Physical-device installation — 2026-08-23
@@ -57,7 +60,8 @@ The current Mac uses Xcode 26.6 at `/Applications/Xcode.app/Contents/Developer`.
 - one tower was placed through touch controls and its contextual actions appeared
 - the app launches directly into landscape and supports both landscape orientations
 - backgrounding during the active wave paused the run; foregrounding did not resume it automatically
-- automated native preference, lifecycle, placement, and touch-stat coverage passes in the 66-test suite
+- automated native preference, lifecycle, placement, and touch-stat coverage
+  passes in the full test suite
 
 ## One-time Mac setup
 
@@ -103,4 +107,6 @@ For a real iPhone, select a development team for the App target in Xcode, connec
 - run continuously for at least 20 minutes and note device warmth, battery drain, audio stability, and crashes
 - force-quit and relaunch to verify Preferences restores name, difficulty, local scores, and telemetry
 
-Record the iPhone model, iOS version, orientation, last wave, and any reproducible issue before deciding whether Capacitor is suitable for the mobile edition.
+Record the device model, iOS version, orientation, last wave, endurance notes,
+and any reproducible issue as release-validation evidence for the accepted
+Capacitor mobile foundation.

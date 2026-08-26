@@ -27,7 +27,8 @@ Pure definitions and calculations remain under `src/constants.js` and `src/game/
 
 ### Tests
 
-- `npm test` runs Node's built-in test runner; the current suite has 59 tests.
+- `npm test` runs Node's built-in test runner. The exact current count is kept in
+  `CURRENT_STATE.md` rather than duplicated here.
 - Focused system/service tests cover run state, input, world presentation, towers, enemies, combat, waves, preferences, leaderboard access, and telemetry publication.
 - `test/progression.test.js` continues to protect all accepted balance and deterministic-composition invariants.
 
@@ -40,14 +41,40 @@ Pure definitions and calculations remain under `src/constants.js` and `src/game/
 - Projectiles are manually resolved rather than depending on unstable physics overlap behavior.
 - Difficulty multipliers are centralized.
 - The sidebar is contextual rather than duplicating tower selection.
-- Towers, enemies, range coverage, projectiles, impacts, and wave states are readable without external art assets.
+- Production unit art is backed by procedural fallbacks, preserving readable
+  towers, enemies, projectiles, impacts, and wave states if an asset fails.
 - Progression has regression tests.
 
 ### Current weaknesses
 
 - `src/scene.js` still creates Phaser HUD/effect objects and coordinates menus; further reduction should be driven by native lifecycle needs, not code movement alone.
-- Native compilation and device behavior remain unverified until full Xcode and an iPhone are available.
 - Balance tests are currently formula/regression tests; there is no deterministic simulation harness for full wave outcomes.
+- Global score submission is intentionally lightweight and trust-based; there is
+  no account identity, client attestation, or competitive anti-cheat boundary.
+
+## Production and repository boundaries
+
+This repository owns the game source, generated Vite bundle, Capacitor shell,
+and Nginx game image. It does not own the public marketing/support site or the
+persistent production service definitions.
+
+```text
+Cloudflare Tunnel
+    |
+    v
+Nginx gateway (geeklabs-site deployment)
+    |-- geeklabs.io ----------> public site container
+    `-- play.geeklabs.io
+          |-- /api/* ---------> leaderboard API + SQLite
+          `-- everything else -> game container from this repository
+```
+
+The public site, gateway, leaderboard API, database volume, backup definitions,
+and Compose stack live in the separate `geeklabs-site` repository. Keeping
+`/api/*` on the game origin preserves the browser service contract without
+embedding infrastructure ownership in the game core. Cloudflare Tunnel is the
+only public ingress; containers communicate on a private Docker network and do
+not require host-published web ports.
 
 ## Current layout behavior
 
@@ -124,8 +151,8 @@ Keyboard, mouse, touch, and future controller input should map into those comman
 ## Native direction
 
 - Preserve Phaser/Vite as the game core.
-- Use Capacitor as the initial iOS wrapper candidate.
-- Run an early device proof of concept.
+- Use the accepted Capacitor shell as the iOS wrapper.
+- Keep physical-device endurance and restoration checks in the release gate.
 - Add native-specific services only behind a platform boundary.
 - Pause active gameplay when iOS becomes inactive and require an explicit resume after returning.
 - Keep browser storage synchronous while mirroring managed values to native Preferences for durability.

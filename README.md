@@ -1,104 +1,95 @@
-# GeekLabs-TD
+# Defense Protocol
 
-GeekLabs-TD is a mechanics-first tower defense game developed in the GeekLabs sandbox. The playable game is titled **Defense Protocol**.
+Defense Protocol is a mechanics-first, endless tower-defense game built in the
+GeekLabs sandbox. This repository is the shared Phaser/Vite game core for the
+live web edition and the Capacitor iOS app.
 
-Play the live web edition at <https://play.geeklabs.io>. The GeekLabs landing
-page, player guide, support information, privacy policy, release notes, credits,
-and global standings are available at <https://geeklabs.io>.
+![Defense Protocol live game](docs/images/defense-protocol-live.png)
 
-## Current direction
+[Play Defense Protocol](https://play.geeklabs.io) ·
+[GeekLabs](https://geeklabs.io) ·
+[Field guide](https://geeklabs.io/guide/defense-protocol) ·
+[Support](https://geeklabs.io/support/defense-protocol) ·
+[Privacy](https://geeklabs.io/privacy/defense-protocol)
 
-The project now has an accepted Capacitor iOS foundation, a unified command interface, and a complete first-pass industrial–sci-fi unit-art system validated across desktop, iPhone, and iPad. Every tower family has a stationary base and three swiveling weapon heads, every enemy class has a directional production silhouette, and the route connects a deployment gate to the defended command core.
+## Status
 
-Design priorities:
+| Target | State |
+| --- | --- |
+| Web | Live at `play.geeklabs.io` |
+| iPhone and iPad | Capacitor foundation accepted; final release validation remains |
+| Current release | `v0.10.0` production graphics pass |
 
-- long-form endless play
-- gentle early onboarding
-- gradually increasing strategic pressure
-- readable tower/enemy roles
-- meaningful choices among placement, buying, upgrading, and saving
-- one Phaser/Vite core shared by web and the Capacitor iOS app
+The accepted gameplay baseline combines long-form endless play, gentle early
+onboarding, and increasing strategic pressure without changing the web and
+mobile rules independently.
 
-## Current features
+## Highlights
 
-- responsive Phaser playfield with desktop and short-laptop layouts
-- grid-based tower placement
-- path-based enemy movement
-- wave-based spawning with concurrent wave support
-- Easy, Medium, and Hard modes
-- Basic, Rapid, Sniper, and Laser towers
-- tower upgrades, selling, and targeting modes
+- Easy, Medium, and Hard endless modes with concurrent waves
+- Basic, Rapid, Sniper, and Laser towers with upgrades and targeting modes
 - Runner, Sprinter, Brute, and Armored enemy progression
-- distinct tower, enemy, projectile, impact, health, and range visuals
-- textured industrial playfield plus production artwork for every tower and enemy class, with procedural fallbacks
-- layered, barrel-aligned swiveling Basic, Rapid, Sniper, and Laser turrets
-- deployment-gate entry, plated route hardware, and defended command-core endpoint with integrity feedback
-- density-aware combat effects and health indicators that preserve late-wave readability
-- contextual placement and selected-tower sidebar panels
-- local and optional global leaderboards
-- start, pause, wave-state, and game-over presentation
-- regression tests for progression milestones
-- seeded wave composition and automatic balance-run checkpoints
-- final game-over telemetry snapshots, including partial failure waves
-- explicit wave, tower, enemy, combat, projectile, run-state, input, UI, and platform-service boundaries
-- touch controls with drag-to-aim placement, explicit confirmation, contextual tower actions, and guarded selling
-- landscape iPhone/iPad and short-landscape browser layouts with safe-area support
-- static deployment through Nginx
+- responsive desktop, short-laptop, iPhone, and iPad landscape layouts
+- keyboard, mouse, and touch controls built on one semantic action layer
+- industrial-science-fiction production art with procedural fallbacks
+- local scores plus an optional same-origin global leaderboard
+- deterministic wave composition, telemetry, and progression regression tests
 
-## Progression milestones
+The [player field guide](https://geeklabs.io/guide/defense-protocol) contains
+the progression milestones, tower and enemy roles, controls, and touch-play
+instructions.
 
-- Basic: wave 1
-- Rapid: wave 10
-- Sprinters begin: wave 15
-- Sniper: wave 20
-- Brutes begin: wave 25
-- Laser: wave 30
-- Armored enemies begin: wave 35
+## Quick start
 
-## Controls
+Use Node.js 22 and npm, then run:
 
-- `1 / 2 / 3 / 4`: select a tower and enter placement mode
-- `T`: toggle placement mode
-- Left click: place or select
-- Right click: cancel placement or sell selected tower contextually
-- `U` or Shift-click: upgrade selected tower
-- `X`: sell selected tower
-- `F`: cycle targeting mode
-- `Space`: start an available wave
-- `P`: pause or resume
-- `Esc`: cancel, deselect, or resume contextually
+```bash
+npm ci
+npm run dev
+```
 
-Touch devices use persistent Start Wave, Place, Cancel, and Pause controls. Tap a tower card, drag on the playfield to aim above your finger, and tap Place to confirm. Selecting a placed tower reveals Target, Upgrade, and two-step Sell actions.
+Vite prints the local development URL. Common validation commands are:
+
+```bash
+npm test
+npm run build
+npm run ios:sync
+npm run ios:validate
+```
+
+## Deployment
+
+Production is served by an Nginx game container behind the shared GeekLabs
+gateway and Cloudflare Tunnel. Browser leaderboard calls remain same-origin at
+`/api/*`; the API, gateway, public site, and persistent data are maintained in
+the separate `geeklabs-site` deployment repository.
+
+`npm run deploy` is a production operation. It requires a clean, reviewed
+`main` branch, pushes the exact commit to Forgejo, updates the VM checkout,
+rebuilds the game container, and performs public health checks. It does not
+mirror the commit to GitHub. Read
+[`docs/context/WORKFLOW.md`](docs/context/WORKFLOW.md) before using it.
+
+## Technology
+
+- Phaser 3 and modern JavaScript modules
+- Vite production builds
+- Capacitor 8 for the iOS shell and native preference bridge
+- Node's built-in test runner
+- Docker Compose, Nginx, and Cloudflare Tunnel in production
+- same-origin leaderboard service backed by SQLite in the deployment stack
 
 ## Project context
 
-Forgejo is the authoritative repository and GitHub is a secondary mirror. The files under `docs/context/` capture current state, architecture, decisions, and roadmap details, while Git remains the source of truth. Portable ZIP exports are optional transport artifacts; see `docs/context/PORTABLE_EXPORT.md`.
+Forgejo is the authoritative repository and GitHub is a secondary public
+mirror. Git and the source code remain authoritative; the maintained documents
+under [`docs/context/`](docs/context/README.md) explain current state,
+architecture, decisions, roadmap, validation evidence, and deployment workflow.
 
-## Development commands
-
-```bash
-npm run dev
-npm test
-npm run build
-npm run deploy
-```
-
-## Tech stack
-
-- Phaser 3
-- Vite
-- modern JavaScript modules
-- Node built-in test runner
-- static Nginx deployment
-
-## Development philosophy
-
-- make one coherent change at a time
-- verify visually and with tests/builds
-- keep balance changes separate from structural refactors
-- use playtest evidence before changing progression or tower value
-- keep the web game free and evaluate a polished mobile edition later
+Portable ZIP exports are optional transport artifacts, not a parallel source of
+truth. See
+[`docs/context/PORTABLE_EXPORT.md`](docs/context/PORTABLE_EXPORT.md).
 
 ## License
 
-See `LICENSE`.
+See [`LICENSE`](LICENSE).

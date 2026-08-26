@@ -88,13 +88,27 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - cross-class desktop, iPhone, and iPad readability validation — completed
 - density-aware effect and health-bar budgets — completed
 
-## Phase 11 — Field validation and release readiness — next
+## Phase 11 — Public web foundation — completed
+
+- publish `geeklabs.io` as the durable GeekLabs and Defense Protocol presence
+- publish the web game at `play.geeklabs.io`
+- provide stable support, privacy, field-guide, updates, credits, and leaderboard URLs
+- route public traffic through Cloudflare Tunnel and the shared Nginx gateway
+- preserve the game's same-origin leaderboard API contract
+- deploy the leaderboard API with SQLite persistence and nightly same-VM backups
+- establish a reviewed Forgejo-driven game deployment with public health checks
+
+## Phase 12 — Field validation and App Store readiness — next
 
 - complete late-wave physical-device sessions with the full art set on iPhone and iPad
 - record measured battery and thermal behavior during an endurance run
 - verify force-quit preference restoration on the release candidate
 - refine tower pivots or footprints only from physical-device evidence
-- prepare App Store metadata, screenshots, privacy declarations, signing, and TestFlight when product scope is ready
+- confirm the support mailbox is monitored and complete the factual/legal review
+  of privacy, credits, licenses, known issues, and supported devices
+- finish App Store metadata, screenshots, privacy declarations, signing, and TestFlight
+- harden the production VM and add an off-host or Proxmox-level backup
+- polish the public site with authentic gameplay media and the App Store badge when available
 
 ## Later product work
 
@@ -103,4 +117,4 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - additional maps, modes, towers, or progression only when supported by playtest evidence
 - free web version with a polished mobile edition considered later
 
-See `CONTEXT_IDEAS.md` for non-binding gameplay possibilities.
+See [IDEAS.md](IDEAS.md) for non-binding gameplay possibilities.

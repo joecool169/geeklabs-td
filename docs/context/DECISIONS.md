@@ -1,5 +1,60 @@
 # Decision Log
 
+## 2026-08-26 — Separate the public-site and game repositories
+
+**Decision:** Keep the shared Phaser/Capacitor game core in `geeklabs-td` and
+maintain marketing, support, privacy, guide, updates, credits, leaderboard API,
+gateway, and deployment definitions in a separate `geeklabs-site` repository.
+
+**URL model:** Use `geeklabs.io` for the durable company and product presence,
+`www.geeklabs.io` as a redirect, and `play.geeklabs.io` exclusively for the
+playable build. Keep player and App Store resources under stable paths on the
+root domain rather than creating a premature documentation subdomain.
+
+**Reason:** Public policy and support content can change independently of game
+releases, while the game repository remains focused on the shared runtime.
+
+## 2026-08-26 — Use Cloudflare Tunnel as the only public ingress
+
+**Decision:** Run the game, public site, gateway, and leaderboard as containers
+on the dedicated `geeklabs-td` VM. Cloudflare Tunnel connects to the Nginx
+gateway over the private Docker network; web ports do not need to be published
+on the VM's LAN interface.
+
+**Routing:** The gateway sends `geeklabs.io` to the public site and
+`play.geeklabs.io` to the game, except `/api/*`, which goes to the leaderboard
+service. This preserves the existing same-origin browser contract.
+
+**Operations:** Firewall, SSH, and broader VM hardening remain a separate future
+phase. The tunnel token is a secret stored outside Git.
+
+## 2026-08-26 — Keep the initial leaderboard intentionally small
+
+**Decision:** Use a minimal same-origin API backed by SQLite for optional global
+scores. Store the submitted player name, difficulty, score, wave, kills, and
+operational timestamps needed by the service.
+
+**Data handling:** Disclose submitted score data and relevant server/Cloudflare
+logs in the privacy policy. Maintain nightly same-VM database backups now, then
+add an off-host or Proxmox-level backup before treating the service as durable.
+
+**Constraint:** The first version is trust-based and does not claim competitive
+anti-cheat, account identity, or client attestation.
+
+## 2026-08-26 — Deploy the game from a reviewed Forgejo revision
+
+**Decision:** Keep Forgejo authoritative and GitHub as a public mirror. The game
+deploy command requires clean reviewed `main`, validates locally, pushes the
+exact commit to Forgejo, fast-forwards the VM checkout, rebuilds only the game
+container, refreshes the gateway, and checks the public game and API.
+
+**Mirror rule:** The production command does not push GitHub. Mirror the same
+reviewed commit explicitly after deployment so a GitHub outage cannot block the
+production path.
+
+**Evidence rule:** A repository push is not deployment proof. Record the
+revision verified by the deploy and independently check the public endpoints.
+
 ## 2026-08-23 — Complete the first-pass production graphics system
 
 **Decision:** Extend the approved industrial–sci-fi direction to Rapid/Sprinter, Sniper/Brute, and Laser/Armored, then release the result as v0.10.0 without changing accepted balance.

@@ -7,7 +7,7 @@ Git is authoritative for Defense Protocol. Forgejo is the primary remote and Git
 ## Starting a development session
 
 ```bash
-cd /Users/joe/projects/geeklabs-td
+cd /path/to/geeklabs-td
 git fetch --all --prune
 git status --short --branch
 git pull --rebase forgejo main
@@ -79,6 +79,13 @@ Deploy only a reviewed revision. The script publishes that revision to Forgejo
 as part of the deployment and refuses to continue if the VM cannot match the
 same commit exactly.
 
+The deploy script does **not** push GitHub. After a successful deployment,
+mirror the reviewed commit explicitly:
+
+```bash
+git push origin main
+```
+
 To inspect the live deployment without changing it:
 
 ```bash
@@ -87,9 +94,18 @@ ssh geeklabs-td 'cd /opt/docker/stacks/geeklabs-web && sudo docker compose ps ga
 curl --fail https://play.geeklabs.io/
 ```
 
-The VM checkout commit is the deployed source revision. Record material
-production deployments in `CURRENT_STATE.md` when the project context is next
-updated.
+At deploy time, the script verifies that the VM checkout matches the exact local
+commit. A later documentation-only commit or manual checkout update can make the
+two branch tips differ without changing the running game image, so repository
+state alone is not durable proof of the deployed artifact. Record the verified
+game revision and any material production change in `CURRENT_STATE.md`.
+
+## Context maintenance
+
+Use the ownership and update triggers in [README.md](README.md). In particular,
+refresh `CURRENT_STATE.md` after material releases, deployments, device results,
+or operational changes; do not copy its volatile test counts and commit IDs into
+stable architecture or workflow documents.
 
 ## Portable exports
 
