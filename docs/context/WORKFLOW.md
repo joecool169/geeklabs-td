@@ -59,28 +59,37 @@ Documentation-only changes do not require npm validation unless they also modify
 
 ## Deployment
 
-Production is served from:
+Production runs on `geeklabs-td` in the shared GeekLabs Docker stack:
 
 ```text
-joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
+/home/joe/projects/geeklabs-td
+/opt/docker/stacks/geeklabs-web
 ```
 
-The deployment script refuses a dirty working tree, builds the committed revision, rsyncs `dist/`, and performs a checksum dry run afterward:
+The deployment script refuses a dirty working tree or non-`main` branch, runs
+the tests and production build on the Mac, pushes the exact commit to Forgejo,
+fast-forwards the VM checkout, rebuilds only the game container, refreshes the
+gateway, and checks the public game and leaderboard API:
 
 ```bash
 npm run deploy
 ```
 
-Deploy only a reviewed revision that has been pushed to Forgejo and passed the relevant tests, build, live smoke, and documentation review.
+Deploy only a reviewed revision. The script publishes that revision to Forgejo
+as part of the deployment and refuses to continue if the VM cannot match the
+same commit exactly.
 
-To verify parity again without changing production:
+To inspect the live deployment without changing it:
 
 ```bash
-npm run build
-rsync -avnc --delete dist/ joe@192.168.7.25:/opt/docker/stacks/nginx-static/html/td/
+ssh geeklabs-td 'git -C /home/joe/projects/geeklabs-td status -sb'
+ssh geeklabs-td 'cd /opt/docker/stacks/geeklabs-web && sudo docker compose ps game gateway'
+curl --fail https://play.geeklabs.io/
 ```
 
-No file entries means production content matches the local build. Directory-only entries are not content differences. Record the deployed commit in `CURRENT_STATE.md` when deployment occurs.
+The VM checkout commit is the deployed source revision. Record material
+production deployments in `CURRENT_STATE.md` when the project context is next
+updated.
 
 ## Portable exports
 
