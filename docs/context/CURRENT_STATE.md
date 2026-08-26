@@ -39,7 +39,7 @@ its existing same-origin `/api/score` and `/api/leaderboard` contract.
 | --- | --- |
 | Shared web/iOS game core and game image | This `geeklabs-td` repository |
 | Public site, gateway, leaderboard API, and deployment definitions | Separate `geeklabs-site` repository |
-| Runtime host | `geeklabs-td` Proxmox VM |
+| Runtime host | Dedicated Proxmox VM |
 | Public ingress | Cloudflare Tunnel only |
 | Internal routing | Nginx gateway on the private Docker network |
 | Leaderboard data | SQLite with nightly same-VM backups |

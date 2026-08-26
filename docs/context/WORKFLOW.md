@@ -59,12 +59,16 @@ Documentation-only changes do not require npm validation unless they also modify
 
 ## Deployment
 
-Production runs on `geeklabs-td` in the shared GeekLabs Docker stack:
+Production runs on a dedicated VM in the shared GeekLabs Docker stack. Keep the
+machine-specific SSH alias and remote paths in the ignored local configuration:
 
-```text
-/home/joe/projects/geeklabs-td
-/opt/docker/stacks/geeklabs-web
+```bash
+cp -n scripts/deploy.env.example scripts/deploy.local.env
+# Edit scripts/deploy.local.env for this workstation.
 ```
+
+The required variables are `DEPLOY_HOST`, `REMOTE_REPO`, and `REMOTE_STACK`.
+`DEPLOY_BRANCH` and `SOURCE_REMOTE` retain their normal tracked defaults.
 
 The deployment script refuses a dirty working tree or non-`main` branch, runs
 the tests and production build on the Mac, pushes the exact commit to Forgejo,
@@ -89,8 +93,11 @@ git push origin main
 To inspect the live deployment without changing it:
 
 ```bash
-ssh geeklabs-td 'git -C /home/joe/projects/geeklabs-td status -sb'
-ssh geeklabs-td 'cd /opt/docker/stacks/geeklabs-web && sudo docker compose ps game gateway'
+set -a
+source scripts/deploy.local.env
+set +a
+ssh "$DEPLOY_HOST" "git -C '$REMOTE_REPO' status -sb"
+ssh "$DEPLOY_HOST" "cd '$REMOTE_STACK' && sudo docker compose ps game gateway"
 curl --fail https://play.geeklabs.io/
 ```
 

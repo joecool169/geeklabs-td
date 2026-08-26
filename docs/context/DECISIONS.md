@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-08-26 — Keep machine-specific deployment details out of Git
+
+**Decision:** Track only a generic deployment configuration example. Store the
+actual SSH host alias and remote checkout/stack paths in
+`scripts/deploy.local.env`, which is ignored by Git and loaded by the deployment
+script when present.
+
+**Reason:** These values are not credentials, but publishing them provides
+unnecessary infrastructure and workstation detail. Keeping them local preserves
+the existing deployment flow without placing operational defaults in the public
+repository.
+
+**Constraint:** The deploy script must fail closed with a clear message when the
+required values are absent. Credentials and tunnel tokens remain outside both
+the tracked example and the ignored project-local file.
+
 ## 2026-08-26 — Separate the public-site and game repositories
 
 **Decision:** Keep the shared Phaser/Capacitor game core in `geeklabs-td` and
@@ -17,7 +33,7 @@ releases, while the game repository remains focused on the shared runtime.
 ## 2026-08-26 — Use Cloudflare Tunnel as the only public ingress
 
 **Decision:** Run the game, public site, gateway, and leaderboard as containers
-on the dedicated `geeklabs-td` VM. Cloudflare Tunnel connects to the Nginx
+on a dedicated game VM. Cloudflare Tunnel connects to the Nginx
 gateway over the private Docker network; web ports do not need to be published
 on the VM's LAN interface.
 

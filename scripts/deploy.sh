@@ -3,11 +3,28 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-DEPLOY_HOST="${DEPLOY_HOST:-geeklabs-td}"
-DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
-SOURCE_REMOTE="${SOURCE_REMOTE:-forgejo}"
-REMOTE_REPO="${REMOTE_REPO:-/home/joe/projects/geeklabs-td}"
-REMOTE_STACK="${REMOTE_STACK:-/opt/docker/stacks/geeklabs-web}"
+
+DEPLOY_CONFIG="${DEPLOY_CONFIG:-$SCRIPT_DIR/deploy.local.env}"
+ENV_DEPLOY_HOST="${DEPLOY_HOST-}"
+ENV_DEPLOY_BRANCH="${DEPLOY_BRANCH-}"
+ENV_SOURCE_REMOTE="${SOURCE_REMOTE-}"
+ENV_REMOTE_REPO="${REMOTE_REPO-}"
+ENV_REMOTE_STACK="${REMOTE_STACK-}"
+
+if [[ -f "$DEPLOY_CONFIG" ]]; then
+  # Machine-specific deployment locations belong in the ignored local file.
+  # shellcheck disable=SC1090
+  source "$DEPLOY_CONFIG"
+fi
+
+DEPLOY_HOST="${ENV_DEPLOY_HOST:-${DEPLOY_HOST-}}"
+DEPLOY_BRANCH="${ENV_DEPLOY_BRANCH:-${DEPLOY_BRANCH:-main}}"
+SOURCE_REMOTE="${ENV_SOURCE_REMOTE:-${SOURCE_REMOTE:-forgejo}}"
+REMOTE_REPO="${ENV_REMOTE_REPO:-${REMOTE_REPO-}}"
+REMOTE_STACK="${ENV_REMOTE_STACK:-${REMOTE_STACK-}}"
+: "${DEPLOY_HOST:?Set DEPLOY_HOST or create scripts/deploy.local.env}"
+: "${REMOTE_REPO:?Set REMOTE_REPO or create scripts/deploy.local.env}"
+: "${REMOTE_STACK:?Set REMOTE_STACK or create scripts/deploy.local.env}"
 
 cd "$ROOT_DIR"
 
