@@ -13,6 +13,7 @@ if [[ -z "$DEVELOPER_DIR_PATH" || "$DEVELOPER_DIR_PATH" == *CommandLineTools* ]]
 fi
 
 cd "$ROOT_DIR"
+plutil -lint ios/App/App/PrivacyInfo.xcprivacy ios/App/App/Info.plist
 npm run ios:sync
 xcodebuild \
   -project ios/App/App.xcodeproj \
@@ -22,3 +23,9 @@ xcodebuild \
   -derivedDataPath ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO \
   build
+
+BUILT_APP="ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app"
+plutil -lint "$BUILT_APP/PrivacyInfo.xcprivacy"
+cmp ios/App/App/PrivacyInfo.xcprivacy "$BUILT_APP/PrivacyInfo.xcprivacy"
+test -s "$BUILT_APP/public/legal/third-party-notices.txt"
+echo "Privacy manifest and runtime notices are packaged in the Simulator app."

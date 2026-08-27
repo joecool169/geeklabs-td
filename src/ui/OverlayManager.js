@@ -72,7 +72,7 @@ function renderLeaderboardEntries(container, entries, currentEntry) {
   }
 
   const header = element("div", "leaderboard-row leaderboard-header");
-  ["#", "Name", "Score", "Wave", "Kills", "Difficulty"].forEach((label) =>
+  ["#", "Callsign", "Score", "Wave", "Kills", "Difficulty"].forEach((label) =>
     header.append(element("div", null, label))
   );
   container.append(header);
@@ -236,7 +236,7 @@ class OverlayManager {
       "start",
       "is-start"
     );
-    const nameLabel = element("label", "game-overlay-label", "Player name");
+    const nameLabel = element("label", "game-overlay-label", "Public callsign");
     const nameInput = element("input", "game-overlay-input");
     nameInput.type = "text";
     nameInput.value = playerName;
@@ -343,7 +343,7 @@ class OverlayManager {
     );
     const stats = element("div", "game-overlay-stats");
     [
-      ["Player", result.playerName],
+      ["Callsign", result.playerName],
       ["Difficulty", result.difficultyLabel],
       ["Wave", result.wave],
       ["Total Kills", result.kills],
