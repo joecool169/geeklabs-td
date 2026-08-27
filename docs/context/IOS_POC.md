@@ -1,5 +1,13 @@
 # iOS proof of concept
 
+## Store-preparation handoff — 2026-08-26
+
+Privacy/license packaging, native Release screenshots, store metadata, and a
+development-signed Release archive are now prepared. See the
+[App Store readiness record](../app-store/READINESS.md) for exact artifacts,
+verification evidence, and remaining release gates. This does not replace final
+physical-device endurance checks or App Store distribution validation.
+
 ## Current status — accepted proof of concept
 
 The Capacitor 8 shell and generated iOS 15+ project are in the repository. The native project uses bundle identifier `tv.geekstreet.td` and includes the App and Preferences plugins.

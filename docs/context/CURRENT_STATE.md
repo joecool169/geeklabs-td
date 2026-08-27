@@ -12,9 +12,9 @@ and longer-term work live in the other documents linked from the
 ## Repository and validation
 
 - Forgejo is authoritative; GitHub mirrors reviewed revisions for public access.
-- The production game image was built from `f153289`. Later reviewed revisions
-  in this documentation series change repository presentation and context only.
-- `npm test` passes with **73 tests**.
+- The production game image was built from `019c6b5`, including native leaderboard
+  controls, public callsign labels, bundled runtime notices, and local branding.
+- `npm test` passes with **77 tests**.
 - `npm run build`, `npm audit`, and `git diff --check` pass.
 - The v0.10.0 release preserves the accepted v0.4.0 balance and v0.7.0 command
   interface while completing the first-pass production graphics system.
@@ -72,6 +72,12 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
   placement, contextual actions, lifecycle pause behavior, and persistence.
 - A physical-device Easy run reached Wave 54 with no reported touch or frame-
   pacing blocker.
+- The privacy manifest, required-reason declaration, and export-compliance flag
+  are packaged; a development-signed `1.0 (1)` Release archive passed signature
+  and debug-symbol checks.
+- Native iPhone 6.9-inch and iPad 13-inch Release screenshots are prepared.
+- Store copy, review notes, and privacy/age-rating worksheets are prepared in
+  the public-site repository; App Store Connect upload is still pending.
 
 The proof of concept is accepted. A measured endurance/thermal run and final
 force-quit preference-restoration audit remain release gates; see
@@ -82,12 +88,15 @@ force-quit preference-restoration audit remain release gates; see
 1. Complete late-wave physical-device checks on both the installed iPhone and
    iPad, including battery, heat, touch selection, and visual density.
 2. Verify force-quit preference restoration on the release candidate.
-3. Confirm the support mailbox is monitored and complete the factual/legal
-   review of privacy, credits, licenses, and supported-device information.
-4. Prepare App Store screenshots, metadata, privacy declarations, signing, and
-   TestFlight distribution.
+3. Resolve public free-form callsign moderation and document ownership or
+   licensing of the seven shipped sound effects.
+4. Confirm the support mailbox and Cloudflare retention, approve final store
+   declarations, and complete distribution signing, upload, and TestFlight.
 5. Harden the VM and establish an off-host or Proxmox-level backup before the
    service is treated as durable production infrastructure.
+
+See [the App Store readiness record](../app-store/READINESS.md) for completed
+artifacts, validation evidence, and the remaining owner decisions.
 
 Only update gameplay balance or art pivots from specific new evidence. Broader
 ideas remain non-binding in [IDEAS.md](IDEAS.md).
