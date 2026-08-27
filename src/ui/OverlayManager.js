@@ -6,6 +6,7 @@ import {
 } from "../services/leaderboard.js";
 
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
+const PRIVACY_URL = "https://geeklabs.io/privacy/defense-protocol";
 const CONTROLS = Object.freeze([
   ["T", "Toggle placement mode"],
   ["Click", "Place tower"],
@@ -53,6 +54,14 @@ const makeButton = (label, tone = "neutral") => {
   const button = element("button", `game-overlay-button is-${tone}`, label);
   button.type = "button";
   return button;
+};
+
+const makePrivacyLink = () => {
+  const link = element("a", "game-overlay-link", "Privacy details");
+  link.href = PRIVACY_URL;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  return link;
 };
 
 function renderLeaderboardEntries(container, entries, currentEntry) {
@@ -217,6 +226,7 @@ class OverlayManager {
     playerName,
     difficultyKey,
     soundEnabled = true,
+    globalScoresEnabled = true,
     onToggleSound = () => soundEnabled,
     onStart,
   }) {
@@ -264,8 +274,27 @@ class OverlayManager {
       difficultyOptions.append(option);
     });
 
+    const leaderboardSetting = element("div", "game-overlay-setting");
+    const leaderboardToggle = element("label", "game-overlay-setting-toggle");
+    const leaderboardCheckbox = element("input");
+    leaderboardCheckbox.type = "checkbox";
+    leaderboardCheckbox.checked = globalScoresEnabled !== false;
+    const leaderboardCopy = element("span", "game-overlay-setting-copy");
+    leaderboardCopy.append(
+      element("strong", null, "Submit scores online"),
+      element(
+        "span",
+        null,
+        "Your callsign and game results will be posted to the global leaderboard."
+      )
+    );
+    leaderboardToggle.append(leaderboardCheckbox, leaderboardCopy);
+    leaderboardSetting.append(leaderboardToggle, makePrivacyLink());
+
     const startButton = makeButton("Engage Protocol", "primary");
     const soundButton = makeButton("", "neutral");
+    const startActions = element("div", "game-overlay-start-actions");
+    startActions.append(startButton, soundButton);
     let isSoundEnabled = soundEnabled !== false;
     const renderSoundButton = () => {
       soundButton.textContent = `Sound: ${isSoundEnabled ? "On" : "Off"}`;
@@ -280,6 +309,7 @@ class OverlayManager {
       onStart({
         playerName: nameInput.value,
         difficultyKey: selectedDifficulty,
+        globalScoresEnabled: leaderboardCheckbox.checked,
       });
     startButton.addEventListener("click", start);
     nameInput.addEventListener("keydown", (event) => {
@@ -290,8 +320,8 @@ class OverlayManager {
       nameLabel,
       difficultyLabel,
       difficultyOptions,
-      startButton,
-      soundButton
+      leaderboardSetting,
+      startActions
     );
     if (!document.documentElement.classList.contains("touch-ui")) {
       nameInput.focus();
@@ -360,7 +390,9 @@ class OverlayManager {
   showPause({
     difficultyKey,
     soundEnabled = true,
+    globalScoresEnabled = true,
     onToggleSound = () => soundEnabled,
+    onToggleGlobalScores = () => globalScoresEnabled,
     onResume,
     onRestart,
     onChange,
@@ -384,6 +416,7 @@ class OverlayManager {
     const restart = makeButton("Restart", "primary");
     const change = makeButton("Change name / difficulty", "neutral");
     const sound = makeButton("", "neutral");
+    const globalScores = makeButton("", "neutral");
     resume.classList.add("is-resume");
     controls.classList.add("is-keyboard-controls");
     let isSoundEnabled = soundEnabled !== false;
@@ -395,6 +428,21 @@ class OverlayManager {
     sound.addEventListener("click", () => {
       isSoundEnabled = onToggleSound() !== false;
       renderSoundButton();
+    });
+    let areGlobalScoresEnabled = globalScoresEnabled !== false;
+    const renderGlobalScoresButton = () => {
+      globalScores.textContent = `Online Scores: ${
+        areGlobalScoresEnabled ? "On" : "Off"
+      }`;
+      globalScores.setAttribute(
+        "aria-pressed",
+        String(areGlobalScoresEnabled)
+      );
+    };
+    renderGlobalScoresButton();
+    globalScores.addEventListener("click", () => {
+      areGlobalScoresEnabled = onToggleGlobalScores() !== false;
+      renderGlobalScoresButton();
     });
     const controlsPanel = makeControlsPanel();
     const leaderboardPanel = makeLeaderboardPanel(
@@ -413,14 +461,23 @@ class OverlayManager {
     });
     restart.addEventListener("click", onRestart);
     change.addEventListener("click", onChange);
-    buttons.append(resume, sound, controls, leaderboard, restart, change);
+    buttons.append(
+      resume,
+      sound,
+      globalScores,
+      controls,
+      leaderboard,
+      restart,
+      change
+    );
     panel.append(
       makeBrandHeader(),
       title,
       detail,
       buttons,
       controlsPanel,
-      leaderboardPanel.element
+      leaderboardPanel.element,
+      makePrivacyLink()
     );
     return true;
   }

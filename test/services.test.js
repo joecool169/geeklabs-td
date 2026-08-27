@@ -4,14 +4,17 @@ import assert from "node:assert/strict";
 import {
   compareLeaderboardEntries,
   fetchGlobalLeaderboard,
+  getLeaderboardApiUrl,
   getLeaderboardStorageKey,
   readLocalLeaderboard,
+  recordLeaderboardScore,
   recordLocalScore,
   submitGlobalScore,
 } from "../src/services/leaderboard.js";
 import {
   STORAGE_KEYS,
   createStorageGateway,
+  isPreferenceEnabled,
   normalizeDifficultyKey,
   normalizePlayerName,
 } from "../src/services/preferences.js";
@@ -34,6 +37,10 @@ test("preferences preserve public storage keys and normalize inputs", () => {
   assert.equal(STORAGE_KEYS.playerName, "defense_protocol_player_name_v1");
   assert.equal(STORAGE_KEYS.difficulty, "defense_protocol_difficulty_v1");
   assert.equal(STORAGE_KEYS.leaderboard, "defense_protocol_leaderboard_v1");
+  assert.equal(
+    STORAGE_KEYS.globalScoresEnabled,
+    "defense_protocol_global_scores_enabled_v1"
+  );
   assert.equal(STORAGE_KEYS.soundEnabled, "defense_protocol_sound_enabled_v1");
   assert.equal(
     STORAGE_KEYS.balanceTelemetry,
@@ -43,6 +50,9 @@ test("preferences preserve public storage keys and normalize inputs", () => {
   assert.equal(normalizePlayerName("  "), "Player");
   assert.equal(normalizeDifficultyKey("hard"), "hard");
   assert.equal(normalizeDifficultyKey("impossible"), "easy");
+  assert.equal(isPreferenceEnabled(null), true);
+  assert.equal(isPreferenceEnabled("true"), true);
+  assert.equal(isPreferenceEnabled("false"), false);
 });
 
 test("storage gateway isolates unavailable storage and mirrors successful writes", async () => {
@@ -153,6 +163,57 @@ test("global leaderboard service preserves request and response contracts", asyn
     wave: 54,
     kills: 3682,
   });
+});
+
+test("leaderboard API URLs stay same-origin on web and use production on native", () => {
+  assert.equal(getLeaderboardApiUrl("/api/score", false), "/api/score");
+  assert.equal(
+    getLeaderboardApiUrl("/api/score", true),
+    "https://play.geeklabs.io/api/score"
+  );
+  assert.equal(
+    getLeaderboardApiUrl("/api/leaderboard?difficulty=hard&limit=10", true),
+    "https://play.geeklabs.io/api/leaderboard?difficulty=hard&limit=10"
+  );
+});
+
+test("score recording always stays local and only submits globally when enabled", async () => {
+  const memory = createMemoryStorage();
+  const storage = createStorageGateway(memory);
+  const requests = [];
+  const fetchImpl = async (url) => {
+    requests.push(url);
+    return { ok: true };
+  };
+  const entry = {
+    name: "Player",
+    difficultyKey: "easy",
+    score: 100,
+    wave: 4,
+    kills: 20,
+  };
+
+  const localOnly = recordLeaderboardScore({
+    storage,
+    entry,
+    difficultyKey: "easy",
+    globalScoresEnabled: false,
+    fetchImpl,
+  });
+  assert.equal(localOnly.localEntries.length, 1);
+  assert.equal(localOnly.globalSubmission, null);
+  assert.deepEqual(requests, []);
+
+  const online = recordLeaderboardScore({
+    storage,
+    entry: { ...entry, score: 200 },
+    difficultyKey: "easy",
+    globalScoresEnabled: true,
+    fetchImpl,
+  });
+  await online.globalSubmission;
+  assert.deepEqual(requests, ["/api/score"]);
+  assert.equal(readLocalLeaderboard(storage, "easy")[0].score, 200);
 });
 
 test("run options parse deterministic seed and label without browser globals", () => {

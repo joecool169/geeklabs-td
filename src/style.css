@@ -175,6 +175,47 @@ body {
 .difficulty-option input {
   margin-right: 6px;
 }
+.game-overlay-setting {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--dp-line);
+  border-radius: 2px;
+  background: rgba(8, 15, 23, 0.74);
+}
+.game-overlay-setting-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.game-overlay-setting-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--dp-green);
+}
+.game-overlay-setting-copy {
+  display: grid;
+  gap: 3px;
+  color: var(--dp-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.game-overlay-setting-copy strong {
+  color: var(--dp-text);
+  font-size: 13px;
+}
+.game-overlay-link {
+  width: fit-content;
+  color: #9fc6ff;
+  font-size: 11px;
+}
+.game-overlay-link:focus-visible {
+  outline: 2px solid var(--dp-teal);
+  outline-offset: 2px;
+}
 .game-overlay-actions {
   display: grid;
   grid-template-columns: 1fr;
@@ -197,7 +238,12 @@ body {
   background: linear-gradient(180deg, rgba(20, 61, 43, 0.96), rgba(10, 34, 24, 0.98));
   color: #e4ffe8;
 }
-.game-overlay-panel.is-start > .game-overlay-button {
+.game-overlay-start-actions {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+.game-overlay-start-actions .game-overlay-button {
   padding: 12px 16px;
   font-size: 14px;
 }
@@ -1416,8 +1462,12 @@ html.touch-ui .game-overlay-input {
   html.touch-ui .game-overlay-panel.is-start .difficulty-options {
     margin-bottom: 9px;
   }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-setting {
+    margin-bottom: 9px;
+    padding: 7px 9px;
+  }
   html.touch-ui .game-overlay-panel.is-start .difficulty-option,
-  html.touch-ui .game-overlay-panel.is-start > .game-overlay-button {
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-start-actions .game-overlay-button {
     min-height: 44px;
     padding-block: 8px;
   }

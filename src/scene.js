@@ -9,12 +9,12 @@ import * as Telemetry from "./game/telemetry.js";
 import { normalizeRunSeed } from "./game/random.js";
 import { ENEMY_DEFS, TOWER_DEFS } from "./constants.js";
 import {
-  recordLocalScore,
-  submitGlobalScore,
+  recordLeaderboardScore,
 } from "./services/leaderboard.js";
 import {
   STORAGE_KEYS,
   createStorageGateway,
+  isPreferenceEnabled,
   normalizeDifficultyKey,
   normalizePlayerName,
 } from "./services/preferences.js";
@@ -97,6 +97,9 @@ export class GameScene extends Phaser.Scene {
     this.playerName = normalizePlayerName(storage.read(STORAGE_KEYS.playerName));
     this.difficultyKey = normalizeDifficultyKey(
       storage.read(STORAGE_KEYS.difficulty)
+    );
+    this.globalScoresEnabled = isPreferenceEnabled(
+      storage.read(STORAGE_KEYS.globalScoresEnabled)
     );
     if (this.startOptions?.playerName) this.playerName = normalizePlayerName(this.startOptions.playerName);
     if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);
@@ -529,11 +532,13 @@ export class GameScene extends Phaser.Scene {
       playerName: this.playerName,
       difficultyKey: this.difficultyKey,
       soundEnabled: this.audioController.enabled,
+      globalScoresEnabled: this.globalScoresEnabled,
       onToggleSound: () => this.toggleSound(),
-      onStart: ({ playerName, difficultyKey }) => {
+      onStart: ({ playerName, difficultyKey, globalScoresEnabled }) => {
         const name = normalizePlayerName(playerName);
         this.playerName = name;
         storage.write(STORAGE_KEYS.playerName, name);
+        this.setGlobalScoresEnabled(globalScoresEnabled);
         this.applyDifficulty(difficultyKey);
         storage.write(STORAGE_KEYS.difficulty, difficultyKey);
         this.runController.startGame();
@@ -570,7 +575,10 @@ export class GameScene extends Phaser.Scene {
     this.overlays?.showPause({
       difficultyKey: this.difficultyKey,
       soundEnabled: this.audioController.enabled,
+      globalScoresEnabled: this.globalScoresEnabled,
       onToggleSound: () => this.toggleSound(),
+      onToggleGlobalScores: () =>
+        this.setGlobalScoresEnabled(!this.globalScoresEnabled),
       onResume: () => this.setPaused(false),
       onRestart: () => {
         this.setPaused(false);
@@ -591,6 +599,15 @@ export class GameScene extends Phaser.Scene {
 
   hidePauseMenu() {
     this.overlays?.hidePause();
+  }
+
+  setGlobalScoresEnabled(enabled) {
+    this.globalScoresEnabled = enabled !== false;
+    storage.write(
+      STORAGE_KEYS.globalScoresEnabled,
+      String(this.globalScoresEnabled)
+    );
+    return this.globalScoresEnabled;
   }
 
   toggleSound() {
@@ -708,8 +725,12 @@ export class GameScene extends Phaser.Scene {
       difficultyLabel: this.difficultyLabel,
       dateISO: new Date().toISOString(),
     };
-    recordLocalScore(storage, this.lastLeaderboardEntry, this.difficultyKey);
-    submitGlobalScore(this.lastLeaderboardEntry);
+    recordLeaderboardScore({
+      storage,
+      entry: this.lastLeaderboardEntry,
+      difficultyKey: this.difficultyKey,
+      globalScoresEnabled: this.globalScoresEnabled,
+    });
     this.showGameOverScreen();
   }
 

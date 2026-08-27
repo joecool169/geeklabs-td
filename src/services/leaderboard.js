@@ -4,6 +4,13 @@ import {
   STORAGE_KEYS,
   normalizeDifficultyKey,
 } from "./preferences.js";
+import { isNativeRuntime } from "../platform/nativeRuntime.js";
+
+const NATIVE_API_ORIGIN = "https://play.geeklabs.io";
+
+function getLeaderboardApiUrl(path, nativeRuntime = isNativeRuntime()) {
+  return nativeRuntime ? new URL(path, NATIVE_API_ORIGIN).href : path;
+}
 
 const getLeaderboardStorageKey = (difficultyKey) =>
   `${STORAGE_KEYS.leaderboard}:${normalizeDifficultyKey(difficultyKey)}`;
@@ -51,13 +58,29 @@ function recordLocalScore(storage, entry, difficultyKey) {
   return trimmed;
 }
 
+function recordLeaderboardScore({
+  storage,
+  entry,
+  difficultyKey,
+  globalScoresEnabled = true,
+  fetchImpl = globalThis.fetch,
+}) {
+  const localEntries = recordLocalScore(storage, entry, difficultyKey);
+  const globalSubmission = globalScoresEnabled
+    ? submitGlobalScore(entry, fetchImpl)
+    : null;
+  return { localEntries, globalSubmission };
+}
+
 async function fetchGlobalLeaderboard(
   difficultyKey,
   limit = 10,
   fetchImpl = globalThis.fetch
 ) {
   const difficulty = normalizeDifficultyKey(difficultyKey);
-  const url = `/api/leaderboard?difficulty=${encodeURIComponent(difficulty)}&limit=${limit}`;
+  const url = getLeaderboardApiUrl(
+    `/api/leaderboard?difficulty=${encodeURIComponent(difficulty)}&limit=${limit}`
+  );
   const response = await fetchImpl(url);
   if (!response.ok) throw new Error("Global leaderboard request failed");
   const data = await response.json();
@@ -89,7 +112,7 @@ async function submitGlobalScore(entry, fetchImpl = globalThis.fetch) {
     kills: entry?.kills ?? 0,
   };
   try {
-    await fetchImpl("/api/score", {
+    await fetchImpl(getLeaderboardApiUrl("/api/score"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -103,8 +126,10 @@ async function submitGlobalScore(entry, fetchImpl = globalThis.fetch) {
 export {
   compareLeaderboardEntries,
   fetchGlobalLeaderboard,
+  getLeaderboardApiUrl,
   getLeaderboardStorageKey,
   readLocalLeaderboard,
+  recordLeaderboardScore,
   recordLocalScore,
   submitGlobalScore,
   writeLocalLeaderboard,
