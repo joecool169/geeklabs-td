@@ -14,7 +14,8 @@ checked for orientation, safe areas, readable controls, and real gameplay.
 The iPad status bar is normalized to 9:41 and a full battery.
 
 The Release build used the shared game/UI changes from this preparation pass.
-Only the non-visual privacy collection declarations were finalized after capture.
+Only non-visual privacy declarations and localization of a hidden footer image
+were finalized after capture.
 If the public callsign flow changes before submission, recapture the start screens.
 
 Apple's current accepted sizes:

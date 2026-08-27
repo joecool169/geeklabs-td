@@ -26,3 +26,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+GitHub logo
+
+The GitHub logo is a trademark of GitHub, Inc. The bundled image is used only
+to identify the link to this project's source repository. Original asset:
+https://brand.github.com/_next/static/media/logo-01.a1916c76.png
+Brand guidance: https://brand.github.com/

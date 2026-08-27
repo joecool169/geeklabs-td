@@ -28,4 +28,5 @@ test('iOS release declarations and bundled runtime notices remain present', () =
   assert.match(notices, /Phaser 3\.90\.0/);
   assert.match(notices, /Capacitor Preferences/);
   assert.match(notices, /Permission is hereby granted/);
+  assert.doesNotMatch(read('index.html'), /<img[^>]+src=["']https?:\/\//);
 });
