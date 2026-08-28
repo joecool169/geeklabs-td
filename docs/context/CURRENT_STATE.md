@@ -12,12 +12,25 @@ and longer-term work live in the other documents linked from the
 ## Repository and validation
 
 - Forgejo is authoritative; GitHub mirrors reviewed revisions for public access.
-- The production game image was built from `019c6b5`, including native leaderboard
-  controls, public callsign labels, bundled runtime notices, and local branding.
-- `npm test` passes with **86 tests** in the local playtest follow-up.
+- The production game image was built from `3817ef3` and deployed on 2026-08-28,
+  including immediate wave buttons, replay fixes, wave previews, escape reports,
+  and touch readability improvements. Balance values are unchanged.
+- `npm test` passes with **86 tests**.
 - `npm run build`, `npm audit`, and `git diff --check` pass.
 - The v0.10.0 release preserves the accepted v0.4.0 balance and v0.7.0 command
   interface while completing the first-pass production graphics system.
+
+### Deployment verification — 2026-08-28
+
+- `npm run deploy` completed for `3817ef3`; the VM checkout matched that revision.
+- Game and gateway containers reported healthy after recreation/restart.
+- Running game image: `sha256:9a77f327f61239ad2ff34fe6698963fe7269ba6fbad148a2ccabd8182ec711ef`.
+- Public HTML, JavaScript, CSS, and leaderboard JSON returned successfully.
+  Public JS/CSS bytes matched the locally validated production build.
+- Browser startup at `play.geeklabs.io` rendered the new `NEXT W1 • 11 Runner`
+  preview and setup controls. No test score was submitted.
+- A later documentation-only commit records this deployment; it does not change
+  the running game image or the physical iPhone/iPad installations.
 
 ## Live product
 
@@ -63,11 +76,12 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
 
 ## iOS state
 
-- Local playtest follow-up fixes compact results, restart teardown, and the
+- Playtest follow-up fixes compact results, restart teardown, and the
   change-difficulty return path. It adds deterministic next-wave counts,
   per-type/per-wave escape summaries, specialist bonus text, and clearer enemy
   cues. Tests and Simulator packaging pass; native replay/result checks pass.
-  This follow-up is not deployed or installed on physical devices. Details and
+  Revision `3817ef3` is deployed to the web game but not installed on physical
+  devices. Details and
   remaining acceptance checks are in [iOS proof of concept](IOS_POC.md).
 
 - Start/Add Wave now deploys immediately on one touch without the keyboard
@@ -77,7 +91,7 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
   on both the iPhone and iPad over Wi-Fi after direct `devicectl` requests
   established their connections; `xctrace` had reported them offline.
   Physical-device interaction verification of this change remains pending.
-  This change has not been deployed to the live web game.
+  This change is included in the live web deployment of `3817ef3`.
 - The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro
   Max.
 - The v0.10.0 build is installed on that iPhone and a 12.9-inch iPad Pro.

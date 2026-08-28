@@ -2,7 +2,8 @@
 
 ## Playtest follow-up — 2026-08-28
 
-Local follow-up build (not installed on physical devices or deployed):
+Follow-up build `3817ef3` (deployed to the web game on 2026-08-28;
+not installed on physical devices):
 
 - compact landscape game-over screen keeps wave, kills, score, and replay/change/
   leaderboard buttons visible; expandable escape counts show type and wave
