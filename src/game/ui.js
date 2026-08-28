@@ -34,7 +34,7 @@ function formatWaveHint({
   }
   const startAction = touchUi ? "Tap Start Wave" : "SPACE to start";
   const deployAction = touchUi
-    ? "Tap Start Wave twice to deploy"
+    ? "Tap Start Wave to deploy now"
     : "SPACE twice to deploy now";
   if (!didStartFirstWave) return `WAVE ${wave} READY  •  ${startAction}`;
   if (ready) {

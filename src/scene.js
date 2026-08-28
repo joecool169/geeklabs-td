@@ -281,7 +281,10 @@ export class GameScene extends Phaser.Scene {
       onTarget: () =>
         this.handleInputAction({ type: GAME_ACTIONS.CYCLE_TARGETING }),
       onStartWave: () =>
-        this.handleInputAction({ type: GAME_ACTIONS.START_WAVE }),
+        this.handleInputAction({
+          type: GAME_ACTIONS.START_WAVE,
+          requireConfirmation: false,
+        }),
       onPlace: () =>
         this.handleInputAction({ type: GAME_ACTIONS.CONFIRM_PLACEMENT }),
       onCancel: () =>
@@ -415,7 +418,7 @@ export class GameScene extends Phaser.Scene {
         }
         break;
       case GAME_ACTIONS.START_WAVE:
-        this.handleStartWaveInput(this.time.now);
+        this.handleStartWaveInput(this.time.now, action);
         break;
       case GAME_ACTIONS.CONFIRM_PLACEMENT:
         this.confirmTouchPlacement();
@@ -437,8 +440,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  handleStartWaveInput(now) {
-    this.waveSystem.handleStartInput(now);
+  handleStartWaveInput(now, options) {
+    this.waveSystem.handleStartInput(now, options);
   }
 
   handleTouchPointer({ x, y, phase }) {

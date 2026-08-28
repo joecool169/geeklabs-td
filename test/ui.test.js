@@ -41,4 +41,21 @@ test("wave hints use device-appropriate actions", () => {
   assert.match(formatWaveHint({ ...state, touchUi: true }), /Tap Start Wave/);
   assert.doesNotMatch(formatWaveHint({ ...state, touchUi: true }), /SPACE/);
   assert.match(formatWaveHint({ ...state, touchUi: false }), /SPACE to start/);
+
+  for (const autoStartWaves of [false, true]) {
+    const countdown = {
+      ...state,
+      didStartFirstWave: true,
+      ready: false,
+      seconds: 2,
+      autoStartWaves,
+    };
+    const touchHint = formatWaveHint({ ...countdown, touchUi: true });
+    assert.match(touchHint, /Tap Start Wave to deploy now/);
+    assert.doesNotMatch(touchHint, /SPACE|twice/);
+    assert.match(
+      formatWaveHint({ ...countdown, touchUi: false }),
+      /SPACE twice to deploy now/
+    );
+  }
 });

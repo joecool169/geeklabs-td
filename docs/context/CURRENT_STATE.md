@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-08-26**
+- Snapshot date: **2026-08-28**
 - Branch: **`main`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
@@ -14,7 +14,7 @@ and longer-term work live in the other documents linked from the
 - Forgejo is authoritative; GitHub mirrors reviewed revisions for public access.
 - The production game image was built from `019c6b5`, including native leaderboard
   controls, public callsign labels, bundled runtime notices, and local branding.
-- `npm test` passes with **77 tests**.
+- `npm test` passes with **80 tests**.
 - `npm run build`, `npm audit`, and `git diff --check` pass.
 - The v0.10.0 release preserves the accepted v0.4.0 balance and v0.7.0 command
   interface while completing the first-pass production graphics system.
@@ -63,6 +63,12 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
 
 ## iOS state
 
+- Start/Add Wave now deploys immediately on one touch without the keyboard
+  confirmation prompt; desktop Space confirmation and the spawner cap remain.
+  The 2026-08-28 change passes tests, production build, Simulator packaging
+  validation, and a signed Debug device build. Both physical devices were offline,
+  so installation and physical-device verification of this change are pending.
+  This change has not been deployed to the live web game.
 - The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro
   Max.
 - The v0.10.0 build is installed on that iPhone and a 12.9-inch iPad Pro.

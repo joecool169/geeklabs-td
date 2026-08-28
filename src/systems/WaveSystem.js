@@ -123,12 +123,13 @@ class WaveSystem {
     this.showTransition(`WAVE ${wave} ENGAGED`);
   }
 
-  handleStartInput(now) {
+  handleStartInput(now, { requireConfirmation = true } = {}) {
     if (this.state.waveState === "intermission") {
       if (now < this.nextWaveAvailableAt) {
         if (
-          this.spaceArmMode === "intermission" &&
-          now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS
+          !requireConfirmation ||
+          (this.spaceArmMode === "intermission" &&
+            now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS)
         ) {
           this.spaceArmedAt = 0;
           this.spaceArmMode = null;
@@ -155,8 +156,9 @@ class WaveSystem {
       return;
     }
     if (
-      this.spaceArmMode === "running" &&
-      now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS
+      !requireConfirmation ||
+      (this.spaceArmMode === "running" &&
+        now - this.spaceArmedAt <= WAVE_SPAM_WINDOW_MS)
     ) {
       this.spaceArmedAt = 0;
       this.spaceArmMode = null;
