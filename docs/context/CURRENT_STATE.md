@@ -80,8 +80,10 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
   change-difficulty return path. It adds deterministic next-wave counts,
   per-type/per-wave escape summaries, specialist bonus text, and clearer enemy
   cues. Tests and Simulator packaging pass; native replay/result checks pass.
-  Revision `3817ef3` is deployed to the web game but not installed on physical
-  devices. Details and
+  Revision `3817ef3` is deployed to the web game and its game code is installed
+  on both physical devices as a signed Debug build (2026-08-28). Installation,
+  launch, and subsequent process checks passed on the iPhone 17 Pro Max and
+  12.9-inch iPad Pro. Details and
   remaining acceptance checks are in [iOS proof of concept](IOS_POC.md).
 
 - Start/Add Wave now deploys immediately on one touch without the keyboard

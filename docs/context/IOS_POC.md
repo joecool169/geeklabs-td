@@ -2,8 +2,8 @@
 
 ## Playtest follow-up — 2026-08-28
 
-Follow-up build `3817ef3` (deployed to the web game on 2026-08-28;
-not installed on physical devices):
+Follow-up game code `3817ef3` was deployed to the web game and installed on both
+physical devices on 2026-08-28:
 
 - compact landscape game-over screen keeps wave, kills, score, and replay/change/
   leaderboard buttons visible; expandable escape counts show type and wave
@@ -18,6 +18,13 @@ not installed on physical devices):
 - the no-tower result correctly displayed 20 escapes: 11 from wave 1, nine from
   wave 2; all result buttons and the expanded breakdown fitted in landscape
 - browser forced-touch at 1280×720 now keeps HUD and controls on one screen
+- signed Debug device build and strict code-signature verification passed;
+  packaged JavaScript matched the verified web build
+- installed and launched on the iPhone 17 Pro Max and 12.9-inch iPad Pro
+  (6th generation), both running iOS/iPadOS 26.6.1; subsequent process queries
+  confirmed the new apps remained running
+- initial wireless connections failed despite paired/available listings;
+  retrying direct lock-state queries established both tunnels without re-pairing
 
 Remaining acceptance: iPhone/iPad finger testing, long specialist descriptions
 at late waves, both landscape orientations on physical devices, and measured
