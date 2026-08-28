@@ -296,6 +296,7 @@ export class GameScene extends Phaser.Scene {
     this.towerStripSlots = this.domView.towerStripSlots;
     this.hudController = new HudController(this);
     this._uiCache = null;
+    this._previewWave = null;
     this._towerStripWave = null;
     this.pauseText = this.add
       .text(540, 14, "", {
@@ -318,7 +319,8 @@ export class GameScene extends Phaser.Scene {
       this.physics.world.isPaused = this.isPaused;
       if (this.autoStartTimer) this.autoStartTimer.paused = this.isPaused;
       if (this.isPaused && this.isPlacing) this.towerSystem.setPlacement(false);
-      this.pauseText.setText(this.isPaused ? "PAUSED — P / ESC to resume" : "");
+      const touchUi = globalThis.document?.documentElement?.classList.contains("touch-ui");
+      this.pauseText.setText(this.isPaused ? (touchUi ? "PAUSED" : "PAUSED — P / ESC to resume") : "");
       this.pauseText.setVisible(this.isPaused);
       if (this.isPaused) {
         this.hudController.clearTransition();
@@ -560,6 +562,8 @@ export class GameScene extends Phaser.Scene {
         wave: this.wave,
         kills: this.killCount,
         score: this.score,
+        escapedByType: this.runTelemetry?.final?.escapedByType,
+        escapesByWave: this.runTelemetry?.final?.escapesByWave,
       },
       currentEntry: this.lastLeaderboardEntry,
       onRestart: () => {
@@ -569,7 +573,7 @@ export class GameScene extends Phaser.Scene {
           difficultyKey: this.difficultyKey,
         });
       },
-      onChange: () => this.scene.restart(),
+      onChange: () => this.scene.restart({ skipStartScreen: false }),
     });
   }
 
@@ -595,7 +599,8 @@ export class GameScene extends Phaser.Scene {
       onChange: () => {
         this.setPaused(false);
         this.hidePauseMenu();
-        this.scene.restart();
+        // Explicit data replaces Phaser's previous skipStartScreen restart data.
+        this.scene.restart({ skipStartScreen: false });
       },
     });
   }
@@ -787,6 +792,7 @@ export class GameScene extends Phaser.Scene {
 
     this.combatSystem.update(time, dt);
     this.enemySystem.update(dt);
+    if (this.isGameOver) return;
 
     this.waveSystem.update(time);
     Telemetry.observeActiveEnemies(
@@ -820,7 +826,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   recordEnemyLeak(enemy) {
-    Telemetry.recordEnemyLeak(this.runTelemetry, enemy?.waveNumber);
+    Telemetry.recordEnemyLeak(this.runTelemetry, enemy?.waveNumber, enemy?.typeKey);
   }
 
   publishRunTelemetry() {
@@ -845,7 +851,6 @@ export class GameScene extends Phaser.Scene {
         seed: this.runSeed,
         checkpoint,
       });
-      this.showToast(`Wave ${wave} balance checkpoint recorded.`, 1800);
     }
   }
 

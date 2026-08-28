@@ -24,6 +24,7 @@
             <div class="hud-stat is-secondary"><small>Score</small><strong id="hud-score">0</strong></div>
             <div id="hud-difficulty">Easy</div>
             <div id="hud-wave-status" role="status">Wave 1 ready</div>
+            <div id="hud-wave-preview" aria-label="Upcoming enemy mix"></div>
           </section>
         </div>
         <nav id="touch-controls" aria-label="Game controls" aria-live="polite">
@@ -36,6 +37,7 @@
           <div id="touch-tower-summary">
             <div id="touch-tower-name">Selected Tower</div>
             <div id="touch-tower-stats"></div>
+            <div id="touch-tower-specialty"></div>
           </div>
           <button id="touch-target" class="touch-control" type="button">
             <span>Target</span><span id="touch-target-value"></span>
@@ -99,11 +101,12 @@
         <section id="selected-tower-panel" aria-label="Selected tower">
           <div id="selected-tower-title">Selected Tower</div>
           <div id="tower-name">—</div>
+          <div id="tower-specialty"></div>
           <div id="selected-tower-stats">
             <div class="tower-row"><span class="tower-label">DMG</span><span class="tower-value" id="tower-dmg">—</span></div>
             <div class="tower-row"><span class="tower-label">Fire</span><span class="tower-value" id="tower-fire">—</span></div>
             <div class="tower-row"><span class="tower-label">Range</span><span class="tower-value" id="tower-range">—</span></div>
-            <div class="tower-row"><span class="tower-label">DPS</span><span class="tower-value" id="tower-dps">—</span></div>
+            <div class="tower-row"><span class="tower-label">Base DPS</span><span class="tower-value" id="tower-dps">—</span></div>
           </div>
           <div id="selected-tower-actions">
             <button id="tower-target-btn" class="tower-action" type="button">

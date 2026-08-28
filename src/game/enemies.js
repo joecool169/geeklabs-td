@@ -23,8 +23,8 @@ function getEnemyMotionRotation(typeKey, direction, clock, phase = 0) {
 }
 
 function getEnemyDamagePresentation(ratio) {
-  if (ratio <= 0.25) return { alpha: 0.88, healthColor: 0xff4d6d };
-  if (ratio <= 0.55) return { alpha: 0.94, healthColor: 0xffc857 };
+  if (ratio <= 0.25) return { alpha: 1, healthColor: 0xff4d6d };
+  if (ratio <= 0.55) return { alpha: 1, healthColor: 0xffc857 };
   return { alpha: 1, healthColor: 0x57e3ff };
 }
 
@@ -132,21 +132,25 @@ function updateEnemyVisual(e, activeEnemyCount = 0) {
   const indicator = e.healthIndicator;
   indicator.setPosition(e.x, e.y);
 
-  if (e.healthIndicatorHp === e.hp && e.healthIndicatorMaxHp === e.maxHp) return;
+  const ratio = clamp01(e.hp / Math.max(1, e.maxHp));
+  const showHealth = shouldShowEnemyHealth(e.typeKey, ratio, activeEnemyCount);
+  if (e.healthIndicatorHp === e.hp && e.healthIndicatorMaxHp === e.maxHp && e.healthIndicatorShown === showHealth) return;
   e.healthIndicatorHp = e.hp;
   e.healthIndicatorMaxHp = e.maxHp;
+  e.healthIndicatorShown = showHealth;
 
-  const ratio = clamp01(e.hp / Math.max(1, e.maxHp));
   const damagePresentation = getEnemyDamagePresentation(ratio);
   e.presentationAlpha = damagePresentation.alpha;
   if (!e.flashTween) e.setAlpha?.(damagePresentation.alpha);
   indicator.clear();
-  if (!shouldShowEnemyHealth(e.typeKey, ratio, activeEnemyCount)) {
-    indicator.setVisible(false);
-    return;
-  }
-
   indicator.setVisible(true);
+  // Reuse the health graphics for a steady type cue; no new effects or sprites.
+  const points = getEnemyTypeMarker(e.typeKey).map(([x, y]) => ({ x, y: y + 15 }));
+  indicator.fillStyle(0x0b0f14, 0.95);
+  indicator.fillPoints(points, true);
+  indicator.lineStyle(2, ENEMY_DEFS[e.typeKey]?.tint ?? ENEMY_DEFS.runner.tint, 1);
+  indicator.strokePoints(points, true);
+  if (!showHealth) return;
   indicator.fillStyle(0x0b0f14, 0.9);
   indicator.fillRect(
     -ENEMY_HEALTH_WIDTH / 2 - 1,
@@ -161,6 +165,15 @@ function updateEnemyVisual(e, activeEnemyCount = 0) {
     Math.max(1, Math.ceil(ENEMY_HEALTH_WIDTH * ratio)),
     2
   );
+}
+
+function getEnemyTypeMarker(typeKey) {
+  switch (typeKey) {
+    case "sprinter": return [[0, -5], [6, 0], [0, 5], [-6, 0]];
+    case "brute": return [[-5, -5], [5, -5], [5, 5], [-5, 5]];
+    case "armored": return [[-6, -5], [6, -5], [5, 2], [0, 6], [-5, 2]];
+    default: return [[-5, -4], [6, 0], [-5, 4]];
+  }
 }
 
 function pickWeighted(rng01, entries) {
@@ -300,6 +313,7 @@ function findTarget({ path, enemies }, tower, mode) {
 
 export {
   getEnemyTextureKey,
+  getEnemyTypeMarker,
   getEnemyDamagePresentation,
   getEnemyMotionRotation,
   drawEnemyTexture,

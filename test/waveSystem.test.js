@@ -6,6 +6,7 @@ import { RunState } from "../src/core/RunState.js";
 import { computeClearBonus } from "../src/game/balance.js";
 import { MAX_CONCURRENT_SPAWNERS, WAVE_SPAM_WINDOW_MS } from "../src/game/config.js";
 import { WaveSystem, attachWaveSystem } from "../src/systems/WaveSystem.js";
+import { computeWavePreview } from "../src/game/waves.js";
 
 function makeWaveSystem() {
   const timers = [];
@@ -44,6 +45,23 @@ function makeWaveSystem() {
   attachWaveSystem(scene, system);
   return { scene, state, system, spawned, cleared, timers, toasts };
 }
+
+test("seeded previews match actual spawns, including packs and late waves", () => {
+  for (const wave of [1, 10, 15, 25, 35, 40, 45, 49, 52, 55]) {
+    const { system, spawned } = makeWaveSystem();
+    const preview = computeWavePreview(wave, "wave-system-test");
+    system.startWave(wave);
+    const spawner = system.activeWaves[0];
+    for (let time = 0; time < 300000 && spawner.enemiesSpawned < spawner.enemiesTotal; time += 16) {
+      system.updateSpawning(time);
+    }
+    const actual = { runner: 0, sprinter: 0, brute: 0, armored: 0 };
+    spawned.forEach(([type]) => actual[type] += 1);
+    assert.equal(spawned.length, preview.total);
+    assert.deepEqual(actual, preview.counts);
+    assert.deepEqual(computeWavePreview(wave, "wave-system-test"), preview);
+  }
+});
 
 test("wave system owns launch, deterministic spawning, and completion", () => {
   const { scene, state, system, spawned, cleared, timers } = makeWaveSystem();

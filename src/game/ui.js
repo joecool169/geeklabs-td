@@ -1,4 +1,5 @@
-import { TOWER_DEFS } from "../constants.js";
+import { ENEMY_DEFS, TOWER_DEFS } from "../constants.js";
+import { computeWavePreview } from "./waves.js";
 import { round1 } from "./utils.js";
 import { getNextUpgradeCost, getTargetModeLabel } from "./towers.js";
 
@@ -50,7 +51,27 @@ function formatWaveHint({
 function formatTouchTowerStats(tower) {
   const shotsPerSecond = 1000 / tower.fireMs;
   const dps = tower.damage * shotsPerSecond;
-  return `DMG ${tower.damage}  •  RNG ${tower.range}  •  RATE ${round1(shotsPerSecond)}/s  •  DPS ${round1(dps)}`;
+  return `DMG ${tower.damage}  •  RNG ${tower.range}  •  RATE ${round1(shotsPerSecond)}/s  •  BASE DPS ${round1(dps)}`;
+}
+
+function formatTowerSpecialty(type) {
+  const def = TOWER_DEFS[type];
+  if (!def) return "";
+  if (type === "laser") {
+    return `Ignores ${def.armorPenetration} armor • Pierces ${def.maxPierce} (×${def.pierceFalloff} per hit) • Lock up to ×${1 + def.maxLockBonus} in ${def.lockRampMs * def.maxLockBonus / 1000}s`;
+  }
+  const bonuses = Object.entries(def.matchupDamage ?? {}).map(
+    ([key, value]) => `×${value} vs ${ENEMY_DEFS[key].name}`
+  );
+  if (def.armorMultiplier > 1) bonuses.push(`Armor penalty ×${def.armorMultiplier}`);
+  return bonuses.join(" • ") || def.desc;
+}
+
+function formatWavePreview({ wave, counts }) {
+  const mix = Object.entries(counts).filter(([, count]) => count > 0).map(
+    ([key, count]) => `${count} ${ENEMY_DEFS[key].name}${ENEMY_DEFS[key].unlockWave === wave && wave > 1 ? " NEW" : ""}`
+  );
+  return `NEXT W${wave} • ${mix.join(" · ")}`;
 }
 
 function showToast(scene, msg, ms = 2400) {
@@ -253,6 +274,12 @@ function updateUI(scene) {
 
   const wait = Math.max(0, scene.nextWaveAvailableAt - scene.time.now);
   const touchUi = globalThis.document?.documentElement?.classList.contains("touch-ui") ?? false;
+  if (scene.hudWavePreviewEl && scene._previewWave !== scene.nextWaveNumberToSpawn) {
+    scene._previewWave = scene.nextWaveNumberToSpawn;
+    scene.hudWavePreviewEl.textContent = formatWavePreview(
+      computeWavePreview(scene.nextWaveNumberToSpawn, scene.runSeed)
+    );
+  }
   updateWaveHint(scene, formatWaveHint({
     wave: scene.wave,
     waveState: scene.waveState,
@@ -401,6 +428,9 @@ function updateUI(scene) {
   if (scene.touchTowerStatsEl) {
     scene.touchTowerStatsEl.textContent = formatTouchTowerStats(t);
   }
+  const specialty = formatTowerSpecialty(t.type);
+  if (scene.touchTowerSpecialtyEl) scene.touchTowerSpecialtyEl.textContent = specialty;
+  if (scene.selectedTowerSpecialtyEl) scene.selectedTowerSpecialtyEl.textContent = specialty;
   if (scene.touchTargetValueEl) scene.touchTargetValueEl.textContent = targetLabel;
   if (scene.touchUpgradeValueEl) scene.touchUpgradeValueEl.textContent = nextText;
   if (scene.touchSellValueEl) scene.touchSellValueEl.textContent = `$${refund}`;
@@ -460,4 +490,4 @@ class HudController {
   }
 }
 
-export { HudController, formatHudText, formatTouchTowerStats, formatWaveHint };
+export { HudController, formatHudText, formatTouchTowerStats, formatTowerSpecialty, formatWaveHint, formatWavePreview };

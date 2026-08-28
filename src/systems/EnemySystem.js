@@ -112,7 +112,7 @@ class EnemySystem {
   update(dt) {
     const activeEnemyCount = this.countActive();
     this.group.children.iterate((enemy) => {
-      if (!enemy?.active) return;
+      if (!enemy?.active || this.runController.state.isGameOver) return;
       this.advance(enemy, dt);
       updateEnemyVisual(enemy, activeEnemyCount);
     });
@@ -163,7 +163,9 @@ class EnemySystem {
   }
 
   destroy() {
-    this.group?.clear(true, true);
+    // Phaser may already have destroyed the group during scene shutdown.
+    // Group.destroy is idempotent; clear dereferences its removed children set.
+    this.group?.destroy(true);
     this.group = null;
     this.rewardCarry = null;
     this.spawnSequence = 0;

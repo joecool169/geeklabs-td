@@ -545,7 +545,7 @@ test("balance telemetry records reproducible checkpoint summaries", () => {
   recordEnemyKill(telemetry, "runner");
   recordTowerDamage(telemetry, "rapid", 8.25);
   recordTowerKill(telemetry, "rapid");
-  recordEnemyLeak(telemetry, 18);
+  recordEnemyLeak(telemetry, 18, "brute");
   observeActiveEnemies(telemetry, 14);
   observeActiveEnemies(telemetry, 9);
 
@@ -572,6 +572,10 @@ test("balance telemetry records reproducible checkpoint summaries", () => {
   });
   assert.equal(checkpoint.firstLeakWave, 18);
   assert.equal(checkpoint.totalLeaks, 1);
+  assert.deepEqual(checkpoint.escapedByType, { brute: 1 });
+  assert.deepEqual(checkpoint.escapesByWave, { 18: 1 });
+  recordEnemyLeak(telemetry, 21, "runner");
+  assert.deepEqual(checkpoint.escapedByType, { brute: 1 });
   assert.equal(checkpoint.peakActiveEnemies, 14);
   assert.equal(checkpoint.peakActiveEnemiesSinceLastCheckpoint, 14);
   assert.deepEqual(checkpoint.spawnedByType, { runner: 1, brute: 1 });
@@ -594,7 +598,7 @@ test("balance telemetry persists the final partial-wave result once", () => {
   });
   recordEnemySpawn(telemetry, "armored");
   recordEnemyKill(telemetry, "armored");
-  recordEnemyLeak(telemetry, 48);
+  recordEnemyLeak(telemetry, 48, "runner");
   recordTowerDamage(telemetry, "laser", 123.45);
   recordTowerKill(telemetry, "laser");
   observeActiveEnemies(telemetry, 73);
@@ -617,6 +621,8 @@ test("balance telemetry persists the final partial-wave result once", () => {
     score: 60273,
     kills: 3682,
     totalLeaks: 1,
+    escapedByType: { runner: 1 },
+    escapesByWave: { 48: 1 },
     firstLeakWave: 48,
     activeEnemies: 61,
     peakActiveEnemies: 73,
@@ -634,6 +640,8 @@ test("balance telemetry persists the final partial-wave result once", () => {
     killsByTowerType: { laser: 1 },
   });
   assert.equal(recordFinalSnapshot(telemetry, { wave: 55 }), null);
+  recordEnemyLeak(telemetry, 55, "armored");
+  assert.equal(telemetry.totalLeaks, 1);
   assert.deepEqual(telemetry.final, final);
 });
 

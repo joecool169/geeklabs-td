@@ -1,5 +1,29 @@
 # iOS proof of concept
 
+## Playtest follow-up — 2026-08-28
+
+Local follow-up build (not installed on physical devices or deployed):
+
+- compact landscape game-over screen keeps wave, kills, score, and replay/change/
+  leaderboard buttons visible; expandable escape counts show type and wave
+- restart cleanup tolerates Phaser already destroying its enemy group
+- Change name / difficulty explicitly clears the prior skip-start-screen setting
+- seeded next-wave preview, full-opacity damaged enemies with distinct type
+  markers, and specialist bonuses alongside explicitly labeled base DPS
+- checkpoint diagnostic toast removed; telemetry preserved
+- 86 automated tests pass; production build and Simulator packaging pass
+- native Simulator checks: place a tower, pause/restart, launch a fresh wave,
+  natural game over with no towers, expand the escape report, and Re-engage
+- the no-tower result correctly displayed 20 escapes: 11 from wave 1, nine from
+  wave 2; all result buttons and the expanded breakdown fitted in landscape
+- browser forced-touch at 1280×720 now keeps HUD and controls on one screen
+
+Remaining acceptance: iPhone/iPad finger testing, long specialist descriptions
+at late waves, both landscape orientations on physical devices, and measured
+frame pacing/thermal/battery endurance. Simulator responsiveness is not evidence
+for these checks. See [balance testing](BALANCE_TESTING.md) for the planned
+controlled comparison; no balance values changed in this follow-up.
+
 ## Single-tap wave update — 2026-08-28
 
 - Revision `990c150` starts/adds waves with one touch and no keyboard

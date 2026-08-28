@@ -14,7 +14,7 @@ and longer-term work live in the other documents linked from the
 - Forgejo is authoritative; GitHub mirrors reviewed revisions for public access.
 - The production game image was built from `019c6b5`, including native leaderboard
   controls, public callsign labels, bundled runtime notices, and local branding.
-- `npm test` passes with **80 tests**.
+- `npm test` passes with **86 tests** in the local playtest follow-up.
 - `npm run build`, `npm audit`, and `git diff --check` pass.
 - The v0.10.0 release preserves the accepted v0.4.0 balance and v0.7.0 command
   interface while completing the first-pass production graphics system.
@@ -62,6 +62,13 @@ showed the mixed-specialist build surviving eight waves longer than Basic-heavy
 See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
 
 ## iOS state
+
+- Local playtest follow-up fixes compact results, restart teardown, and the
+  change-difficulty return path. It adds deterministic next-wave counts,
+  per-type/per-wave escape summaries, specialist bonus text, and clearer enemy
+  cues. Tests and Simulator packaging pass; native replay/result checks pass.
+  This follow-up is not deployed or installed on physical devices. Details and
+  remaining acceptance checks are in [iOS proof of concept](IOS_POC.md).
 
 - Start/Add Wave now deploys immediately on one touch without the keyboard
   confirmation prompt; desktop Space confirmation and the spawner cap remain.

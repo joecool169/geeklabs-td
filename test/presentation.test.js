@@ -19,6 +19,7 @@ import {
 } from "../src/presentation/WorldRenderer.js";
 import {
   getEnemyDamagePresentation,
+  getEnemyTypeMarker,
   getEnemyMotionRotation,
   shouldShowEnemyHealth,
 } from "../src/game/enemies.js";
@@ -113,17 +114,23 @@ test("enemy motion and damage polish stay restrained and deterministic", () => {
   assert.equal(getEnemyMotionRotation("armored", 1.2, 0, 0), 1.2);
   assert.ok(Math.abs(getEnemyMotionRotation("sprinter", 0, 100, 0)) < 0.051);
   assert.deepEqual(getEnemyDamagePresentation(0.2), {
-    alpha: 0.88,
+    alpha: 1,
     healthColor: 0xff4d6d,
   });
   assert.deepEqual(getEnemyDamagePresentation(0.4), {
-    alpha: 0.94,
+    alpha: 1,
     healthColor: 0xffc857,
   });
   assert.deepEqual(getEnemyDamagePresentation(0.8), {
     alpha: 1,
     healthColor: 0x57e3ff,
   });
+});
+
+test("enemy type cues have distinct silhouettes, including without color", () => {
+  const markers = ["runner", "sprinter", "brute", "armored"].map(getEnemyTypeMarker);
+  assert.equal(new Set(markers.map(JSON.stringify)).size, 4);
+  assert.deepEqual(getEnemyTypeMarker("unknown"), getEnemyTypeMarker("runner"));
 });
 
 test("point-to-segment placement geometry remains deterministic", () => {

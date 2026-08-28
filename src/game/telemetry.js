@@ -24,6 +24,8 @@ function createRunTelemetry({
     startingLives,
     firstLeakWave: null,
     totalLeaks: 0,
+    escapedByType: {},
+    escapesByWave: {},
     peakActiveEnemies: 0,
     peakActiveEnemiesSinceCheckpoint: 0,
     spawnedByType: {},
@@ -45,11 +47,14 @@ function recordEnemyKill(telemetry, enemyType) {
   incrementCount(telemetry.killedByType, enemyType);
 }
 
-function recordEnemyLeak(telemetry, waveNumber) {
-  if (!telemetry) return;
+function recordEnemyLeak(telemetry, waveNumber, enemyType) {
+  if (!telemetry || telemetry.final) return;
+  const wave = Math.max(1, Number(waveNumber) || 1);
   telemetry.totalLeaks += 1;
+  incrementCount(telemetry.escapedByType, enemyType || "unknown");
+  incrementCount(telemetry.escapesByWave, wave);
   if (telemetry.firstLeakWave === null) {
-    telemetry.firstLeakWave = Math.max(1, Number(waveNumber) || 1);
+    telemetry.firstLeakWave = wave;
   }
 }
 
@@ -116,6 +121,8 @@ function recordCheckpoint(telemetry, waveNumber, state) {
     score: Number(state.score) || 0,
     kills: Number(state.kills) || 0,
     totalLeaks: telemetry.totalLeaks,
+    escapedByType: { ...telemetry.escapedByType },
+    escapesByWave: { ...telemetry.escapesByWave },
     firstLeakWave: telemetry.firstLeakWave,
     activeEnemies: Math.max(0, Number(state.activeEnemies) || 0),
     peakActiveEnemies: telemetry.peakActiveEnemies,
@@ -142,6 +149,8 @@ function recordFinalSnapshot(telemetry, state) {
     score: Number(state.score) || 0,
     kills: Number(state.kills) || 0,
     totalLeaks: telemetry.totalLeaks,
+    escapedByType: { ...telemetry.escapedByType },
+    escapesByWave: { ...telemetry.escapesByWave },
     firstLeakWave: telemetry.firstLeakWave,
     activeEnemies: Math.max(0, Number(state.activeEnemies) || 0),
     peakActiveEnemies: telemetry.peakActiveEnemies,

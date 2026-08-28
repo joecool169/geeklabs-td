@@ -1,4 +1,5 @@
 import { DIFFICULTY_CONFIG } from "../game/config.js";
+import { ENEMY_DEFS } from "../constants.js";
 import {
   compareLeaderboardEntries,
   fetchGlobalLeaderboard,
@@ -339,12 +340,10 @@ class OverlayManager {
     const detail = element(
       "div",
       "game-overlay-detail is-danger",
-      "DEFENSE LINE BREACHED"
+      `${result.playerName} • ${result.difficultyLabel} • Defense line breached`
     );
     const stats = element("div", "game-overlay-stats");
     [
-      ["Callsign", result.playerName],
-      ["Difficulty", result.difficultyLabel],
       ["Wave", result.wave],
       ["Total Kills", result.kills],
       ["Final Score", result.score],
@@ -376,12 +375,28 @@ class OverlayManager {
     });
     leaderboard.addEventListener("click", () => leaderboardPanel.toggle());
     buttons.append(restart, change, leaderboard);
+    const losses = element("details", "game-over-losses");
+    const escaped = Object.entries(result.escapedByType ?? {});
+    const totalEscaped = escaped.reduce((total, [, count]) => total + count, 0);
+    losses.append(element("summary", null, `Escaped enemies: ${totalEscaped} • View breakdown`));
+    const byType = element("div", "game-over-loss-types");
+    for (const [key, count] of escaped) {
+      byType.append(element("div", null, `${ENEMY_DEFS[key]?.name ?? "Unknown"}: ${count}`));
+    }
+    losses.append(byType);
+    const byWave = element("div", "game-over-loss-waves");
+    byWave.append(element("strong", null, "Escapes by enemy's wave"));
+    for (const [wave, count] of Object.entries(result.escapesByWave ?? {})) {
+      byWave.append(element("span", null, `W${wave}: ${count}`));
+    }
+    losses.append(byWave);
     panel.append(
       makeBrandHeader(),
       title,
       detail,
       stats,
       buttons,
+      losses,
       leaderboardPanel.element
     );
     return overlay;

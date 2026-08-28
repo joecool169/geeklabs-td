@@ -4,6 +4,41 @@
 
 Compare a mixed-specialist strategy with a Basic-heavy strategy under identical enemy compositions. Do not change balance values between the runs.
 
+## August 28 follow-up
+
+Two observational Hard games prompted UI fixes, not balance changes:
+
+| Surface | Final wave | Kills | Score |
+| --- | ---: | ---: | ---: |
+| Browser, forced touch layout | 52 | 3,443 | 56,287 |
+| Native iPhone 17 Pro Simulator | 49 | 3,089 | 50,629 |
+
+Both ran at normal speed. They used different seeds/placements; the browser run
+also included an early concurrent-wave test. Do not treat the three-wave gap as
+a platform or balance regression. No new controlled full-game matrix has been
+completed since these observations.
+
+Next controlled matrix: use seeds `specialists-v0.4.0`, `hard-review-b`, and
+`hard-review-c`, with one mixed-specialist and one Basic-heavy run per seed.
+Use unique run labels (for example `review-b-mixed-1`), the same build, normal
+speed, automatic waves, and a recorded placement/upgrade order. Keep online
+scores off for test runs. Record the build, surface, input method, and viewport.
+
+Compare lives, money, investment, damage contribution, enemy mix, and escapes
+through waves 40–55. Export each run before reusing a label. Repeat any apparent
+outlier before changing HP, rewards, tower stats, or cadence.
+
+New runs record `escapedByType` and `escapesByWave` in checkpoints and the final
+snapshot. Wave attribution follows the escaped enemy's originating spawner,
+including concurrent waves. Counts stop at game over: enemies still alive do
+not count as escapes. Older archives lack these additive fields; do not infer
+escapes from spawned minus killed. Checkpoints remain in telemetry/console but
+no longer interrupt players with a diagnostic toast.
+
+The next-wave HUD preview uses an independent seeded generator and includes
+forced Runner packs. Automated tests compare it with actual WaveSystem spawns;
+that verifies composition, not player survival or frame pacing.
+
 ## Start the runs
 
 Use the same `seed` value and a different `run` label for each run:

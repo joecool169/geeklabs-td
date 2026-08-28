@@ -41,6 +41,9 @@ function makeGraphics() {
     clear() { return this; },
     fillStyle() { return this; },
     fillRect() { return this; },
+    fillPoints() { return this; },
+    lineStyle() { return this; },
+    strokePoints() { return this; },
     destroy() { this.active = false; },
   };
 }
@@ -73,7 +76,7 @@ test("enemy system owns spawn, movement, targeting, and leaks", () => {
     onSpawn: (enemy) => events.push(`spawn:${enemy.typeKey}`),
     onLeak: (enemy) => events.push(`leak:${enemy.typeKey}`),
     onLifeLost: () => events.push("life"),
-    onGameOver: () => events.push("gameover"),
+    onGameOver: () => { state.isGameOver = true; events.push("gameover"); },
   });
   attachEnemySystem(scene, system);
 
@@ -88,6 +91,14 @@ test("enemy system owns spawn, movement, targeting, and leaks", () => {
   system.update(16);
   assert.equal(state.lives, 1);
   assert.deepEqual(events, ["spawn:sprinter", "leak:sprinter", "life"]);
+
+  const remaining = [system.spawn("runner"), system.spawn("brute")];
+  remaining.forEach((enemy) => { enemy.pathIndex = 1; });
+  system.update(16);
+  assert.equal(state.lives, 0);
+  assert.equal(state.isGameOver, true);
+  assert.equal(remaining[1].active, true, "no extra escapes after the fatal leak in the same frame");
+  assert.equal(events.filter((event) => event === "gameover").length, 1);
 });
 
 test("Runner bitmap art keeps a compact untinted gameplay footprint", () => {
@@ -101,4 +112,21 @@ test("Runner bitmap art keeps a compact untinted gameplay footprint", () => {
     displayHeight: null,
     useTint: true,
   });
+});
+
+test("enemy teardown tolerates Phaser destroying the group before scene cleanup", () => {
+  let destroyed = false;
+  const group = {
+    children: {},
+    destroy() { destroyed = true; this.children = undefined; },
+    clear() { assert.fail("clear is unsafe after Phaser shutdown"); },
+  };
+  const system = new EnemySystem({
+    scene: { physics: { add: { group: () => group } } },
+  });
+  group.destroy();
+  assert.doesNotThrow(() => system.destroy());
+  assert.doesNotThrow(() => system.destroy());
+  assert.equal(destroyed, true);
+  assert.equal(system.group, null);
 });

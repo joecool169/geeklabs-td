@@ -1,4 +1,6 @@
 import { clamp01, ENEMY_DEFS, WAVE_CADENCE } from "../constants.js";
+import { pickWeighted } from "./enemies.js";
+import { createWaveRandom } from "./random.js";
 
 function computeSpawnTopology(total, packEvery, packSize) {
   let spawned = 0;
@@ -122,4 +124,16 @@ function computeWaveConfig(wave, intermissionMs = 2000) {
   };
 }
 
-export { computeSpawnTopology, computeWaveConfig };
+// Use an independent RNG: previewing must never consume the live spawner's draws.
+function computeWavePreview(wave, seed) {
+  const config = computeWaveConfig(wave);
+  const random = createWaveRandom(seed, wave);
+  const counts = Object.fromEntries(Object.keys(ENEMY_DEFS).map(key => [key, 0]));
+  counts.runner = config.spawnTopology.forcedRunners;
+  for (let i = 0; i < config.spawnTopology.randomSpawns; i += 1) {
+    counts[pickWeighted(random(), config.weights)] += 1;
+  }
+  return { wave, total: config.total, counts };
+}
+
+export { computeSpawnTopology, computeWaveConfig, computeWavePreview };
