@@ -1,5 +1,21 @@
 # iOS proof of concept
 
+## Single-tap wave update — 2026-08-28
+
+- Revision `990c150` starts/adds waves with one touch and no keyboard
+  confirmation prompt; keyboard confirmation and the spawner cap are preserved.
+- All 80 tests, production build, Simulator packaging validation, signed Debug
+  device build, and code-signature verification passed.
+- The update installed and launched on the iPhone 17 Pro Max and 12.9-inch
+  iPad Pro over Wi-Fi. Manual single-tap interaction verification is pending.
+- `xcrun xctrace list devices` initially reported both devices offline, while
+  `xcrun devicectl list devices` reported them available and paired. Direct
+  `devicectl device info details --device <identifier>` and
+  `devicectl device info lockState --device <identifier>` requests established
+  the connections; the iPad needed a retry. Check these before treating an
+  `xctrace` offline listing as an installation blocker. No re-pairing or device
+  settings changes were needed.
+
 ## Store-preparation handoff — 2026-08-26
 
 Privacy/license packaging, native Release screenshots, store metadata, and a

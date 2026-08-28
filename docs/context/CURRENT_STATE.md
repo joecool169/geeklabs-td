@@ -66,14 +66,16 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
 - Start/Add Wave now deploys immediately on one touch without the keyboard
   confirmation prompt; desktop Space confirmation and the spawner cap remain.
   The 2026-08-28 change passes tests, production build, Simulator packaging
-  validation, and a signed Debug device build. Both physical devices were offline,
-  so installation and physical-device verification of this change are pending.
+  validation, and a signed Debug device build. The update installed and launched
+  on both the iPhone and iPad over Wi-Fi after direct `devicectl` requests
+  established their connections; `xctrace` had reported them offline.
+  Physical-device interaction verification of this change remains pending.
   This change has not been deployed to the live web game.
 - The Capacitor 8 shell builds, signs, installs, and launches on an iPhone 17 Pro
   Max.
 - The v0.10.0 build is installed on that iPhone and a 12.9-inch iPad Pro.
-- Automated launch passed on the iPhone; the iPad launch attempt was blocked
-  because the device was locked and still needs a manual acceptance check.
+- Automated launch passed on both devices on 2026-08-28; the earlier iPad
+  launch attempt had been blocked because the device was locked.
 - Simulator validation covers safe areas, both landscape orientations, touch
   placement, contextual actions, lifecycle pause behavior, and persistence.
 - A physical-device Easy run reached Wave 54 with no reported touch or frame-
