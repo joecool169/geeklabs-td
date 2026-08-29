@@ -1,5 +1,45 @@
 # iOS proof of concept
 
+## Immersive tablet layout — 2026-08-28
+
+- Hide the native status bar at startup and configure Capacitor's built-in
+  SystemBars plugin to keep it hidden (the plugin otherwise overrides the plist
+  preference). The home indicator can auto-hide; safe-area padding remains.
+- Landscape touch tablets above 600 CSS pixels high and at most 8:5 aspect ratio
+  now put controls, selected-tower actions, and the palette in a bottom dock.
+  The battlefield preserves its 1080:730 proportions and uses the remaining
+  screen height. Reserved dock space prevents selection from resizing the board.
+- Phones and wider touch viewports retain the side controls. The palette expands
+  across the unused selection area when no tower is selected.
+- Verified status-bar removal in the native 13-inch iPad Simulator. Simulator
+  touch automation was unreliable, so placement and selected-tower layout were
+  checked in a browser iframe with an exact 1366×1024 viewport. All controls fit;
+  the 1280×720 browser check still uses side controls.
+- All 86 tests pass; Simulator build, signed device build, strict signature
+  verification, and packaged CSS comparison pass. The bundled Capacitor config
+  includes the SystemBars setting.
+- With the user's approval between games, installed on the physical 12.9-inch
+  iPad Pro over Wi-Fi. Launch succeeded and a subsequent process query confirmed
+  the new app remained running (PID 4499). Physical touch/layout acceptance is
+  still pending. These changes are not committed or deployed to the web.
+
+## Large-iPad layout correction — 2026-08-28
+
+- The physical 12.9-inch iPad screenshot exposed a missed breakpoint: landscape
+  touch layout stopped at 900 CSS pixels tall, leaving the 1366×1024 viewport
+  in a stacked layout whose selected-tower panel pushed the palette off screen.
+- The landscape touch grid now applies without a height ceiling; the larger
+  tablet typography override also remains active above 900 pixels.
+- Verified placement and selection on a 13-inch iPad Air Simulator with the same
+  2732×2048 display resolution. Board, selected-tower actions, and all four tower
+  choices fit. All 86 tests, Simulator packaging, and signed device build pass.
+- With the user's approval after their run, installed this correction on the
+  physical 12.9-inch iPad Pro over Wi-Fi. Launch succeeded and a subsequent
+  process query confirmed the new app remained running (PID 4367).
+- Physical touch/layout acceptance remains pending; visual layout verification
+  above was on Simulator. This correction has not yet been committed or deployed
+  to the web game.
+
 ## Playtest follow-up — 2026-08-28
 
 Follow-up game code `3817ef3` was deployed to the web game and installed on both

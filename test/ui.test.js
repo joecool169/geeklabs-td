@@ -41,7 +41,7 @@ test("specialist descriptions expose bonuses and Laser's non-base damage", () =>
   assert.match(formatTowerSpecialty("rapid"), /×1.5 vs Sprinter/);
   assert.match(formatTowerSpecialty("rapid"), /Armor penalty ×2/);
   assert.match(formatTowerSpecialty("sniper"), /×1.6 vs Brute/);
-  assert.match(formatTowerSpecialty("laser"), /Ignores 3 armor.*Pierces 5.*×0.7 per hit.*×2.5 in 3s/);
+  assert.match(formatTowerSpecialty("laser"), /Ignores 3 armor.*Pierces 5.*×0.7 per hit.*×2.5 in 2s.*persists between targets/);
 });
 
 test("game-over overlay renders actual escapes and dispatches replay/change actions", () => {

@@ -1,0 +1,455 @@
+[
+  {
+    "action": "place",
+    "type": "Basic",
+    "x": 940,
+    "y": 460,
+    "at": "2026-08-28T23:48:01.935Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 940,
+    "y": 460,
+    "tier": 2,
+    "wave": 1,
+    "cost": 75,
+    "at": "2026-08-28T23:48:39.894Z"
+  },
+  {
+    "action": "place",
+    "type": "Basic",
+    "x": 900,
+    "y": 380,
+    "at": "2026-08-28T23:49:16.602Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 900,
+    "y": 380,
+    "cost": 75,
+    "tier": 2,
+    "at": "2026-08-28T23:49:24.561Z"
+  },
+  {
+    "action": "place",
+    "type": "Basic",
+    "x": 180,
+    "y": 500,
+    "at": "2026-08-28T23:50:11.769Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 180,
+    "y": 500,
+    "cost": 75,
+    "tier": 2,
+    "at": "2026-08-28T23:50:12.327Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 180,
+    "y": 500,
+    "cost": 120,
+    "tier": 3,
+    "at": "2026-08-28T23:50:12.878Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 900,
+    "y": 380,
+    "cost": 120,
+    "tier": 3,
+    "at": "2026-08-28T23:50:41.727Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 940,
+    "y": 460,
+    "cost": 120,
+    "tier": 3,
+    "at": "2026-08-28T23:51:22.960Z"
+  },
+  {
+    "action": "place",
+    "type": "Rapid",
+    "x": 940,
+    "y": 260,
+    "wave": 10,
+    "towersAfter": 4,
+    "at": "2026-08-28T23:52:10.165Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 940,
+    "y": 260,
+    "cost": 90,
+    "tier": 2,
+    "wave": 10,
+    "at": "2026-08-28T23:52:10.728Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 940,
+    "y": 260,
+    "cost": 140,
+    "tier": 3,
+    "wave": 10,
+    "at": "2026-08-28T23:52:11.278Z"
+  },
+  {
+    "action": "place",
+    "type": "Rapid",
+    "x": 900,
+    "y": 540,
+    "wave": 11,
+    "towersAfter": 5,
+    "at": "2026-08-28T23:52:43.717Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 900,
+    "y": 540,
+    "cost": 90,
+    "tier": 2,
+    "wave": 11,
+    "at": "2026-08-28T23:52:44.278Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 900,
+    "y": 540,
+    "cost": 140,
+    "tier": 3,
+    "wave": 13,
+    "at": "2026-08-28T23:53:07.397Z"
+  },
+  {
+    "action": "place",
+    "type": "Rapid",
+    "x": 180,
+    "y": 380,
+    "wave": 13,
+    "towersAfter": 6,
+    "at": "2026-08-28T23:53:07.969Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 180,
+    "y": 380,
+    "cost": 90,
+    "tier": 2,
+    "wave": 13,
+    "at": "2026-08-28T23:53:13.530Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 180,
+    "y": 380,
+    "cost": 140,
+    "tier": 3,
+    "wave": 14,
+    "at": "2026-08-28T23:53:47.295Z"
+  },
+  {
+    "action": "place",
+    "type": "Rapid",
+    "x": 140,
+    "y": 660,
+    "wave": 15,
+    "towersAfter": 7,
+    "at": "2026-08-28T23:53:51.636Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 140,
+    "y": 660,
+    "cost": 90,
+    "tier": 2,
+    "wave": 15,
+    "at": "2026-08-28T23:53:52.196Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Rapid",
+    "x": 140,
+    "y": 660,
+    "cost": 140,
+    "tier": 3,
+    "wave": 16,
+    "at": "2026-08-28T23:54:25.930Z"
+  },
+  {
+    "action": "place",
+    "type": "Basic",
+    "x": 540,
+    "y": 540,
+    "wave": 18,
+    "towersAfter": 8,
+    "at": "2026-08-28T23:55:07.618Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 540,
+    "y": 540,
+    "cost": 75,
+    "tier": 2,
+    "wave": 18,
+    "at": "2026-08-28T23:55:08.179Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Basic",
+    "x": 540,
+    "y": 540,
+    "cost": 120,
+    "tier": 3,
+    "wave": 18,
+    "at": "2026-08-28T23:55:08.746Z"
+  },
+  {
+    "action": "place",
+    "type": "Sniper",
+    "x": 780,
+    "y": 300,
+    "wave": 20,
+    "towersAfter": 9,
+    "at": "2026-08-28T23:56:09.166Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 780,
+    "y": 300,
+    "cost": 140,
+    "tier": 2,
+    "wave": 20,
+    "at": "2026-08-28T23:56:09.729Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 780,
+    "y": 300,
+    "cost": 210,
+    "tier": 3,
+    "wave": 20,
+    "at": "2026-08-28T23:56:10.278Z"
+  },
+  {
+    "action": "place",
+    "type": "Sniper",
+    "x": 820,
+    "y": 500,
+    "wave": 20,
+    "towersAfter": 10,
+    "at": "2026-08-28T23:56:10.851Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 820,
+    "y": 500,
+    "cost": 140,
+    "tier": 2,
+    "wave": 21,
+    "at": "2026-08-28T23:56:41.929Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 820,
+    "y": 500,
+    "cost": 210,
+    "tier": 3,
+    "wave": 21,
+    "at": "2026-08-28T23:56:42.495Z"
+  },
+  {
+    "action": "place",
+    "type": "Sniper",
+    "x": 380,
+    "y": 300,
+    "wave": 23,
+    "towersAfter": 11,
+    "at": "2026-08-28T23:57:27.132Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 380,
+    "y": 300,
+    "cost": 140,
+    "tier": 2,
+    "wave": 23,
+    "at": "2026-08-28T23:57:27.696Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 380,
+    "y": 300,
+    "cost": 210,
+    "tier": 3,
+    "wave": 24,
+    "at": "2026-08-28T23:57:32.379Z"
+  },
+  {
+    "action": "place",
+    "type": "Sniper",
+    "x": 380,
+    "y": 500,
+    "wave": 25,
+    "towersAfter": 12,
+    "at": "2026-08-28T23:58:05.396Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 380,
+    "y": 500,
+    "cost": 140,
+    "tier": 2,
+    "wave": 25,
+    "at": "2026-08-28T23:58:05.946Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Sniper",
+    "x": 380,
+    "y": 500,
+    "cost": 210,
+    "tier": 3,
+    "wave": 26,
+    "at": "2026-08-28T23:58:36.744Z"
+  },
+  {
+    "action": "place",
+    "type": "Laser",
+    "x": 1020,
+    "y": 220,
+    "wave": 30,
+    "towersAfter": 13,
+    "at": "2026-08-29T00:00:15.287Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 1020,
+    "y": 220,
+    "cost": 160,
+    "tier": 2,
+    "wave": 30,
+    "at": "2026-08-29T00:00:15.844Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 1020,
+    "y": 220,
+    "cost": 230,
+    "tier": 3,
+    "wave": 30,
+    "at": "2026-08-29T00:00:16.392Z"
+  },
+  {
+    "action": "place",
+    "type": "Laser",
+    "x": 100,
+    "y": 420,
+    "wave": 30,
+    "towersAfter": 14,
+    "at": "2026-08-29T00:00:16.966Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 100,
+    "y": 420,
+    "cost": 160,
+    "tier": 2,
+    "wave": 30,
+    "at": "2026-08-29T00:00:24.996Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 100,
+    "y": 420,
+    "cost": 230,
+    "tier": 3,
+    "wave": 31,
+    "at": "2026-08-29T00:00:55.361Z"
+  },
+  {
+    "action": "place",
+    "type": "Laser",
+    "x": 100,
+    "y": 620,
+    "wave": 32,
+    "towersAfter": 15,
+    "at": "2026-08-29T00:01:24.802Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 100,
+    "y": 620,
+    "cost": 160,
+    "tier": 2,
+    "wave": 33,
+    "at": "2026-08-29T00:01:30.960Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 100,
+    "y": 620,
+    "cost": 230,
+    "tier": 3,
+    "wave": 34,
+    "at": "2026-08-29T00:02:08.277Z"
+  },
+  {
+    "action": "place",
+    "type": "Laser",
+    "x": 1020,
+    "y": 620,
+    "wave": 35,
+    "towersAfter": 16,
+    "at": "2026-08-29T00:02:37.133Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 1020,
+    "y": 620,
+    "cost": 160,
+    "tier": 2,
+    "wave": 36,
+    "at": "2026-08-29T00:03:03.361Z"
+  },
+  {
+    "action": "upgrade",
+    "type": "Laser",
+    "x": 1020,
+    "y": 620,
+    "cost": 230,
+    "tier": 3,
+    "wave": 36,
+    "at": "2026-08-29T00:03:10.561Z"
+  }
+]

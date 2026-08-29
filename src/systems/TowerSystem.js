@@ -400,7 +400,7 @@ class TowerSystem {
       tower.beamTickMs = tier0.fireMs;
       tower.beamAcc = 0;
       tower.lockTarget = null;
-      tower.lockMs = 0;
+      tower.heatMs = 0;
       tower.beam = this.scene.add.graphics();
       tower.beam.setDepth(70).setVisible(false);
     }

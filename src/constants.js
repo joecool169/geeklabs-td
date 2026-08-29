@@ -53,7 +53,8 @@ const TOWER_DEFS = {
     armorPenetration: 3,
     maxPierce: 5,
     pierceFalloff: 0.7,
-    lockRampMs: 2000,
+    heatRampMs: 2000,
+    heatDecayMs: 1500,
     maxLockBonus: 1.5,
     tiers: [
       { cost: 220, damage: 6, range: 145, fireMs: 110, tint: 0xff6bff, scale: 1.05 },

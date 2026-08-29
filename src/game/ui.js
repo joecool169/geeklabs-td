@@ -58,7 +58,7 @@ function formatTowerSpecialty(type) {
   const def = TOWER_DEFS[type];
   if (!def) return "";
   if (type === "laser") {
-    return `Ignores ${def.armorPenetration} armor • Pierces ${def.maxPierce} (×${def.pierceFalloff} per hit) • Lock up to ×${1 + def.maxLockBonus} in ${def.lockRampMs * def.maxLockBonus / 1000}s`;
+    return `Ignores ${def.armorPenetration} armor • Pierces ${def.maxPierce} (×${def.pierceFalloff} per hit) • Heat up to ×${1 + def.maxLockBonus} in ${def.heatRampMs / 1000}s • Heat persists between targets`;
   }
   const bonuses = Object.entries(def.matchupDamage ?? {}).map(
     ([key, value]) => `×${value} vs ${ENEMY_DEFS[key].name}`

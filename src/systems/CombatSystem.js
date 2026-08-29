@@ -9,6 +9,21 @@ import * as Telemetry from "../game/telemetry.js";
 import { dist2, segCircleHit } from "../game/utils.js";
 import { ProjectileSystem } from "./ProjectileSystem.js";
 
+function getLaserHeatMultiplier(towerDef, heatMs) {
+  const rampMs = Math.max(1, towerDef?.heatRampMs ?? 2000);
+  const progress = Math.min(1, Math.max(0, heatMs ?? 0) / rampMs);
+  return 1 + progress * (towerDef?.maxLockBonus ?? 1.5);
+}
+
+function coolLaserHeat(tower, towerDef, dt) {
+  const rampMs = Math.max(1, towerDef?.heatRampMs ?? 2000);
+  const decayMs = Math.max(1, towerDef?.heatDecayMs ?? rampMs);
+  tower.heatMs = Math.max(
+    0,
+    (tower.heatMs ?? 0) - Math.max(0, dt) * (rampMs / decayMs)
+  );
+}
+
 class CombatSystem {
   constructor({
     scene,
@@ -50,8 +65,9 @@ class CombatSystem {
   }
 
   updateLaser(tower, dt) {
+    const towerDef = TOWER_DEFS[tower.type];
     const rangeSquared = tower.range * tower.range;
-    const hasTarget =
+    let hasTarget =
       tower.lockTarget?.active &&
       dist2(
         tower.x,
@@ -60,15 +76,24 @@ class CombatSystem {
         tower.lockTarget.y
       ) <= rangeSquared;
 
+    if (
+      hasTarget &&
+      tower.targetMode === "preferred" &&
+      tower.lockTarget.typeKey !== towerDef.preferredTargetType
+    ) {
+      const preferredTarget = this.enemySystem.findTarget(tower, "preferred");
+      if (preferredTarget?.typeKey === towerDef.preferredTargetType) {
+        tower.lockTarget = preferredTarget;
+        hasTarget = true;
+      }
+    }
+
     if (!hasTarget) {
       const nextTarget = this.enemySystem.findTarget(tower, tower.targetMode);
       if (!nextTarget) {
-        this.clearLaserLock(tower);
+        this.clearLaserTarget(tower);
+        coolLaserHeat(tower, towerDef, dt);
         return;
-      }
-      if (tower.lockTarget !== nextTarget) {
-        tower.lockMs = 0;
-        tower.beamAcc = 0;
       }
       tower.lockTarget = nextTarget;
     }
@@ -82,7 +107,10 @@ class CombatSystem {
     const endX = tower.x + (dx / length) * tower.range;
     const endY = tower.y + (dy / length) * tower.range;
     const origin = getMuzzlePoint(tower, target);
-    tower.lockMs += dt;
+    tower.heatMs = Math.min(
+      towerDef.heatRampMs ?? 2000,
+      (tower.heatMs ?? 0) + Math.max(0, dt)
+    );
     tower.beamAcc += dt;
 
     if (tower.beam) {
@@ -101,14 +129,13 @@ class CombatSystem {
       this.applyLaserTick(tower, tower.lockTarget, endX, endY);
     }
     if (tower.lockTarget && !tower.lockTarget.active) {
-      this.clearLaserLock(tower);
+      this.clearLaserTarget(tower, { resetBeamAccumulator: false });
     }
   }
 
-  clearLaserLock(tower) {
+  clearLaserTarget(tower, { resetBeamAccumulator = true } = {}) {
     tower.lockTarget = null;
-    tower.lockMs = 0;
-    tower.beamAcc = 0;
+    if (resetBeamAccumulator) tower.beamAcc = 0;
     tower.beam?.clear();
     tower.beam?.setVisible(false);
   }
@@ -129,7 +156,7 @@ class CombatSystem {
     hits.sort((a, b) => a.distanceSquared - b.distanceSquared);
     const primaryIndex = hits.findIndex(({ enemy }) => enemy === target);
     if (primaryIndex === -1) {
-      this.clearLaserLock(tower);
+      this.clearLaserTarget(tower);
       return;
     }
     if (primaryIndex > 0) {
@@ -137,12 +164,7 @@ class CombatSystem {
       hits.unshift(primary);
     }
 
-    const ramp =
-      1 +
-      Math.min(
-        tower.lockMs / (towerDef.lockRampMs ?? 2000),
-        towerDef.maxLockBonus ?? 1.5
-      );
+    const ramp = getLaserHeatMultiplier(towerDef, tower.heatMs);
     const falloff = towerDef.pierceFalloff ?? 0.7;
     const maxPierce = towerDef.maxPierce ?? 1;
     for (let index = 0; index < hits.length && index < maxPierce; index += 1) {
@@ -206,4 +228,4 @@ class CombatSystem {
   }
 }
 
-export { CombatSystem };
+export { CombatSystem, coolLaserHeat, getLaserHeatMultiplier };

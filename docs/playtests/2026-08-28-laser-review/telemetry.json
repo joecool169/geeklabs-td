@@ -1,0 +1,598 @@
+{
+  "version": 2,
+  "runId": "hard:laser-review-20260828:specialists-v0.4.0",
+  "runLabel": "laser-review-20260828",
+  "seed": "specialists-v0.4.0",
+  "difficultyKey": "hard",
+  "startingLives": 20,
+  "firstLeakWave": 1,
+  "totalLeaks": 20,
+  "escapedByType": {
+    "runner": 20
+  },
+  "escapesByWave": {
+    "1": 1,
+    "42": 5,
+    "43": 5,
+    "44": 9
+  },
+  "peakActiveEnemies": 77,
+  "peakActiveEnemiesSinceCheckpoint": 77,
+  "spawnedByType": {
+    "runner": 2066,
+    "sprinter": 294,
+    "brute": 177,
+    "armored": 44
+  },
+  "killedByType": {
+    "runner": 2022,
+    "sprinter": 294,
+    "brute": 175,
+    "armored": 42
+  },
+  "damageByTowerType": {
+    "basic": 157349.4894918939,
+    "rapid": 248217.36767857906,
+    "sniper": 401816.3984580981,
+    "laser": 192149.16031843433
+  },
+  "killsByTowerType": {
+    "basic": 743,
+    "rapid": 787,
+    "sniper": 747,
+    "laser": 256
+  },
+  "checkpoints": [
+    {
+      "wave": 10,
+      "money": 175,
+      "lives": 19,
+      "score": 3839,
+      "kills": 227,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 30,
+      "peakActiveEnemiesSinceLastCheckpoint": 30,
+      "towers": {
+        "total": 4,
+        "upgrades": 8,
+        "invested": 1030,
+        "byType": {
+          "basic": {
+            "total": 3,
+            "invested": 735,
+            "tiers": {
+              "3": 3
+            }
+          },
+          "rapid": {
+            "total": 1,
+            "invested": 295,
+            "tiers": {
+              "3": 1
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 228
+      },
+      "killedByType": {
+        "runner": 227
+      },
+      "damageByTowerType": {
+        "basic": 15571.5,
+        "rapid": 57.5
+      },
+      "killsByTowerType": {
+        "basic": 227
+      }
+    },
+    {
+      "wave": 15,
+      "money": 228,
+      "lives": 19,
+      "score": 6934,
+      "kills": 418,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 35,
+      "peakActiveEnemiesSinceLastCheckpoint": 35,
+      "towers": {
+        "total": 7,
+        "upgrades": 13,
+        "invested": 1775,
+        "byType": {
+          "basic": {
+            "total": 3,
+            "invested": 735,
+            "tiers": {
+              "3": 3
+            }
+          },
+          "rapid": {
+            "total": 4,
+            "invested": 1040,
+            "tiers": {
+              "2": 1,
+              "3": 3
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 417,
+        "sprinter": 2
+      },
+      "killedByType": {
+        "runner": 416,
+        "sprinter": 2
+      },
+      "damageByTowerType": {
+        "basic": 24083.3,
+        "rapid": 17009.8
+      },
+      "killsByTowerType": {
+        "basic": 334,
+        "rapid": 84
+      }
+    },
+    {
+      "wave": 20,
+      "money": 241,
+      "lives": 19,
+      "score": 10911,
+      "kills": 665,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 45,
+      "peakActiveEnemiesSinceLastCheckpoint": 45,
+      "towers": {
+        "total": 10,
+        "upgrades": 18,
+        "invested": 2690,
+        "byType": {
+          "basic": {
+            "total": 4,
+            "invested": 980,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "rapid": {
+            "total": 4,
+            "invested": 1180,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "sniper": {
+            "total": 2,
+            "invested": 530,
+            "tiers": {
+              "1": 1,
+              "3": 1
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 632,
+        "sprinter": 34
+      },
+      "killedByType": {
+        "runner": 631,
+        "sprinter": 34
+      },
+      "damageByTowerType": {
+        "basic": 38162.5,
+        "rapid": 43382.8,
+        "sniper": 1801.8
+      },
+      "killsByTowerType": {
+        "basic": 430,
+        "rapid": 231,
+        "sniper": 4
+      }
+    },
+    {
+      "wave": 25,
+      "money": 243,
+      "lives": 19,
+      "score": 15638,
+      "kills": 964,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 45,
+      "peakActiveEnemiesSinceLastCheckpoint": 41,
+      "towers": {
+        "total": 12,
+        "upgrades": 23,
+        "invested": 3710,
+        "byType": {
+          "basic": {
+            "total": 4,
+            "invested": 980,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "rapid": {
+            "total": 4,
+            "invested": 1180,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "sniper": {
+            "total": 4,
+            "invested": 1550,
+            "tiers": {
+              "2": 1,
+              "3": 3
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 866,
+        "sprinter": 98,
+        "brute": 1
+      },
+      "killedByType": {
+        "runner": 865,
+        "sprinter": 98,
+        "brute": 1
+      },
+      "damageByTowerType": {
+        "basic": 49598,
+        "rapid": 64912.8,
+        "sniper": 34960.3
+      },
+      "killsByTowerType": {
+        "basic": 492,
+        "rapid": 363,
+        "sniper": 109
+      }
+    },
+    {
+      "wave": 30,
+      "money": 195,
+      "lives": 19,
+      "score": 21327,
+      "kills": 1316,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 45,
+      "peakActiveEnemiesSinceLastCheckpoint": 43,
+      "towers": {
+        "total": 14,
+        "upgrades": 27,
+        "invested": 4910,
+        "byType": {
+          "basic": {
+            "total": 4,
+            "invested": 980,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "rapid": {
+            "total": 4,
+            "invested": 1180,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "sniper": {
+            "total": 4,
+            "invested": 1760,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "laser": {
+            "total": 2,
+            "invested": 990,
+            "tiers": {
+              "2": 1,
+              "3": 1
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 1133,
+        "sprinter": 157,
+        "brute": 27
+      },
+      "killedByType": {
+        "runner": 1132,
+        "sprinter": 157,
+        "brute": 27
+      },
+      "damageByTowerType": {
+        "basic": 65789.5,
+        "rapid": 95225.1,
+        "sniper": 96792.4,
+        "laser": 3102
+      },
+      "killsByTowerType": {
+        "basic": 555,
+        "rapid": 483,
+        "sniper": 275,
+        "laser": 3
+      }
+    },
+    {
+      "wave": 35,
+      "money": 392,
+      "lives": 19,
+      "score": 27973,
+      "kills": 1720,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 56,
+      "peakActiveEnemiesSinceLastCheckpoint": 56,
+      "towers": {
+        "total": 16,
+        "upgrades": 30,
+        "invested": 5970,
+        "byType": {
+          "basic": {
+            "total": 4,
+            "invested": 980,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "rapid": {
+            "total": 4,
+            "invested": 1180,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "sniper": {
+            "total": 4,
+            "invested": 1760,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "laser": {
+            "total": 4,
+            "invested": 2050,
+            "tiers": {
+              "1": 1,
+              "3": 3
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 1435,
+        "sprinter": 206,
+        "brute": 78,
+        "armored": 2
+      },
+      "killedByType": {
+        "runner": 1434,
+        "sprinter": 206,
+        "brute": 78,
+        "armored": 2
+      },
+      "damageByTowerType": {
+        "basic": 90817.4,
+        "rapid": 134867.2,
+        "sniper": 185250,
+        "laser": 32690.4
+      },
+      "killsByTowerType": {
+        "basic": 629,
+        "rapid": 588,
+        "sniper": 450,
+        "laser": 53
+      }
+    },
+    {
+      "wave": 40,
+      "money": 1331,
+      "lives": 19,
+      "score": 35499,
+      "kills": 2177,
+      "totalLeaks": 1,
+      "escapedByType": {
+        "runner": 1
+      },
+      "escapesByWave": {
+        "1": 1
+      },
+      "firstLeakWave": 1,
+      "activeEnemies": 0,
+      "peakActiveEnemies": 67,
+      "peakActiveEnemiesSinceLastCheckpoint": 67,
+      "towers": {
+        "total": 16,
+        "upgrades": 32,
+        "invested": 6360,
+        "byType": {
+          "basic": {
+            "total": 4,
+            "invested": 980,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "rapid": {
+            "total": 4,
+            "invested": 1180,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "sniper": {
+            "total": 4,
+            "invested": 1760,
+            "tiers": {
+              "3": 4
+            }
+          },
+          "laser": {
+            "total": 4,
+            "invested": 2440,
+            "tiers": {
+              "3": 4
+            }
+          }
+        }
+      },
+      "spawnedByType": {
+        "runner": 1772,
+        "sprinter": 256,
+        "brute": 132,
+        "armored": 18
+      },
+      "killedByType": {
+        "runner": 1771,
+        "sprinter": 256,
+        "brute": 132,
+        "armored": 18
+      },
+      "damageByTowerType": {
+        "basic": 123467.8,
+        "rapid": 189075.4,
+        "sniper": 294735.3,
+        "laser": 106929.5
+      },
+      "killsByTowerType": {
+        "basic": 699,
+        "rapid": 697,
+        "sniper": 608,
+        "laser": 173
+      }
+    }
+  ],
+  "final": {
+    "outcome": "game-over",
+    "wave": 44,
+    "money": 2297,
+    "lives": 0,
+    "score": 41452,
+    "kills": 2533,
+    "totalLeaks": 20,
+    "escapedByType": {
+      "runner": 20
+    },
+    "escapesByWave": {
+      "1": 1,
+      "42": 5,
+      "43": 5,
+      "44": 9
+    },
+    "firstLeakWave": 1,
+    "activeEnemies": 28,
+    "peakActiveEnemies": 77,
+    "towers": {
+      "total": 16,
+      "upgrades": 32,
+      "invested": 6360,
+      "byType": {
+        "basic": {
+          "total": 4,
+          "invested": 980,
+          "tiers": {
+            "3": 4
+          }
+        },
+        "rapid": {
+          "total": 4,
+          "invested": 1180,
+          "tiers": {
+            "3": 4
+          }
+        },
+        "sniper": {
+          "total": 4,
+          "invested": 1760,
+          "tiers": {
+            "3": 4
+          }
+        },
+        "laser": {
+          "total": 4,
+          "invested": 2440,
+          "tiers": {
+            "3": 4
+          }
+        }
+      }
+    },
+    "spawnedByType": {
+      "runner": 2066,
+      "sprinter": 294,
+      "brute": 177,
+      "armored": 44
+    },
+    "killedByType": {
+      "runner": 2022,
+      "sprinter": 294,
+      "brute": 175,
+      "armored": 42
+    },
+    "damageByTowerType": {
+      "basic": 157349.5,
+      "rapid": 248217.4,
+      "sniper": 401816.4,
+      "laser": 192149.2
+    },
+    "killsByTowerType": {
+      "basic": 743,
+      "rapid": 787,
+      "sniper": 747,
+      "laser": 256
+    }
+  }
+}

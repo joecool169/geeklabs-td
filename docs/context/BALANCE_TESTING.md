@@ -18,6 +18,26 @@ also included an early concurrent-wave test. Do not treat the three-wave gap as
 a platform or balance regression. No new controlled full-game matrix has been
 completed since these observations.
 
+### Laser effectiveness run — 2026-08-28
+
+A normal-speed Hard browser run used seed `specialists-v0.4.0` and four
+fully-upgraded towers of every type. From the wave-40 checkpoint through the
+fatal portion of wave 44, the build and targeting stayed fixed. Laser produced
+85,219.7 actual damage at 34.93 damage per invested credit: essentially equal
+to Basic (34.57), below Rapid (50.12), and below Sniper (60.84). Laser consumed
+38.4% of invested capital and produced 29.9% of interval damage. It visibly
+pierced road-aligned packs, so the result is not simply a deliberately poor
+placement. All 20 leaks were Runners.
+
+This pre-buff run supports the user's concern about Laser effectiveness. The
+selected first adjustment leaves cost, base damage, armor penetration, and
+pierce falloff unchanged: Laser heat now reaches its ×2.5 ceiling after two
+seconds, persists across target changes, cools while idle, and lets Armored
+Priority preempt a non-Armored target without losing heat. Repeat the seed on
+the revised build before making a second adjustment. Raw data, purchase order,
+limitations, and the full analysis are in
+[`docs/playtests/2026-08-28-laser-review/`](../playtests/2026-08-28-laser-review/).
+
 Next controlled matrix: use seeds `specialists-v0.4.0`, `hard-review-b`, and
 `hard-review-c`, with one mixed-specialist and one Basic-heavy run per seed.
 Use unique run labels (for example `review-b-mixed-1`), the same build, normal
