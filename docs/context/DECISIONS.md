@@ -1,5 +1,20 @@
 # Decision Log
 
+## 2026-09-02 — Remove free-form public leaderboard names
+
+**Decision:** Generate callsigns from a fixed application vocabulary and allow
+players to reroll them, rather than accepting arbitrary public text. Default
+online submission to off and require the player to select it before a score is
+sent.
+
+**Enforcement:** Validate the same generated format in the leaderboard API.
+Replace legacy names in API responses immediately and provide a backup-first
+database migration to make those replacements permanent.
+
+**Reason:** This preserves optional public standings without creating an
+unnecessary user-generated-content moderation surface or collecting names that
+players may associate with their identity.
+
 ## 2026-08-26 — Keep machine-specific deployment details out of Git
 
 **Decision:** Track only a generic deployment configuration example. Store the

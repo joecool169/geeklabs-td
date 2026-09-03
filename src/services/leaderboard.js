@@ -62,7 +62,7 @@ function recordLeaderboardScore({
   storage,
   entry,
   difficultyKey,
-  globalScoresEnabled = true,
+  globalScoresEnabled = false,
   fetchImpl = globalThis.fetch,
 }) {
   const localEntries = recordLocalScore(storage, entry, difficultyKey);

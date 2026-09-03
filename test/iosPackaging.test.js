@@ -7,9 +7,9 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf
 test('iOS privacy manifest declares leaderboard data and Preferences access', () => {
   const manifest = read('ios/App/App/PrivacyInfo.xcprivacy');
   assert.match(manifest, /<key>NSPrivacyTracking<\/key>\s*<false\/>/);
-  for (const type of ['GameplayContent', 'OtherUserContent']) {
-    assert.match(manifest, new RegExp(`NSPrivacyCollectedDataType${type}`));
-  }
+  assert.match(manifest, /NSPrivacyCollectedDataTypeGameplayContent/);
+  assert.doesNotMatch(manifest, /NSPrivacyCollectedDataTypeOtherUserContent/);
+  assert.match(manifest, /NSPrivacyCollectedDataTypeLinked<\/key>\s*<false\/>/);
   assert.match(manifest, /NSPrivacyCollectedDataTypePurposeAppFunctionality/);
   assert.match(manifest, /NSPrivacyAccessedAPICategoryUserDefaults/);
   assert.match(manifest, /<string>CA92\.1<\/string>/);

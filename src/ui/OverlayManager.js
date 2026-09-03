@@ -5,6 +5,7 @@ import {
   fetchGlobalLeaderboard,
   readLocalLeaderboard,
 } from "../services/leaderboard.js";
+import { generateCallsign } from "../services/callsigns.js";
 
 const BRAND_LOGO_URL = "/brand/defense-protocol.png";
 const PRIVACY_URL = "https://geeklabs.io/privacy/defense-protocol";
@@ -227,7 +228,7 @@ class OverlayManager {
     playerName,
     difficultyKey,
     soundEnabled = true,
-    globalScoresEnabled = true,
+    globalScoresEnabled = false,
     onToggleSound = () => soundEnabled,
     onStart,
   }) {
@@ -237,12 +238,20 @@ class OverlayManager {
       "start",
       "is-start"
     );
-    const nameLabel = element("label", "game-overlay-label", "Public callsign");
+    const nameLabel = element("div", "game-overlay-label", "Generated callsign");
+    const callsignRow = element("div", "game-overlay-callsign-row");
     const nameInput = element("input", "game-overlay-input");
     nameInput.type = "text";
     nameInput.value = playerName;
-    nameInput.placeholder = "Player";
-    nameLabel.append(nameInput);
+    nameInput.readOnly = true;
+    nameInput.setAttribute("aria-label", "Generated callsign");
+    const rerollCallsign = makeButton("Generate another", "neutral");
+    rerollCallsign.classList.add("is-callsign-reroll");
+    rerollCallsign.addEventListener("click", () => {
+      nameInput.value = generateCallsign();
+    });
+    callsignRow.append(nameInput, rerollCallsign);
+    nameLabel.append(callsignRow);
 
     const difficultyLabel = element(
       "div",
@@ -313,9 +322,6 @@ class OverlayManager {
         globalScoresEnabled: leaderboardCheckbox.checked,
       });
     startButton.addEventListener("click", start);
-    nameInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") start();
-    });
     panel.append(
       makeBrandHeader(true),
       nameLabel,
@@ -324,9 +330,6 @@ class OverlayManager {
       leaderboardSetting,
       startActions
     );
-    if (!document.documentElement.classList.contains("touch-ui")) {
-      nameInput.focus();
-    }
     return overlay;
   }
 
@@ -405,7 +408,7 @@ class OverlayManager {
   showPause({
     difficultyKey,
     soundEnabled = true,
-    globalScoresEnabled = true,
+    globalScoresEnabled = false,
     onToggleSound = () => soundEnabled,
     onToggleGlobalScores = () => globalScoresEnabled,
     onResume,

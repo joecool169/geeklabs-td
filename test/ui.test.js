@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { OverlayManager } from "../src/ui/OverlayManager.js";
+import { isGeneratedCallsign } from "../src/services/callsigns.js";
 
 import {
   formatHudText,
@@ -81,6 +82,54 @@ test("game-over overlay renders actual escapes and dispatches replay/change acti
     assert.equal(overlay.removed, true);
     nodes.find(node => node.textContent === "Change name / difficulty").listeners.click();
     assert.deepEqual(actions, ["restart", "change"]);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+});
+
+test("start overlay uses generated callsigns and requires leaderboard opt-in", () => {
+  const previousDocument = globalThis.document;
+  const makeNode = () => {
+    const node = {
+      children: [], style: {}, listeners: {}, attributes: {}, className: "",
+      append(...nodes) { this.children.push(...nodes); },
+      addEventListener(event, handler) { this.listeners[event] = handler; },
+      setAttribute(name, value) { this.attributes[name] = String(value); },
+      remove() { this.removed = true; },
+      querySelector() { return null; },
+      querySelectorAll() { return []; },
+    };
+    node.classList = {
+      add(...names) { node.className = `${node.className} ${names.join(" ")}`.trim(); },
+      toggle() {},
+    };
+    return node;
+  };
+  globalThis.document = { createElement: makeNode };
+  try {
+    const host = makeNode();
+    const manager = new OverlayManager({ host, storage: {} });
+    let startOptions;
+    const overlay = manager.showStart({
+      playerName: "Cobalt-Falcon-472",
+      difficultyKey: "easy",
+      onStart: options => { startOptions = options; },
+    });
+    const flatten = node => [node, ...node.children.flatMap(flatten)];
+    const nodes = flatten(overlay);
+    const callsign = nodes.find(node => node.attributes["aria-label"] === "Generated callsign");
+    const checkbox = nodes.find(node => node.type === "checkbox");
+    const reroll = nodes.find(node => node.textContent === "Generate another");
+    const engage = nodes.find(node => node.textContent === "Engage Protocol");
+
+    assert.equal(callsign.readOnly, true);
+    assert.equal(callsign.value, "Cobalt-Falcon-472");
+    assert.equal(checkbox.checked, false);
+    reroll.listeners.click();
+    assert.equal(isGeneratedCallsign(callsign.value), true);
+    engage.listeners.click();
+    assert.equal(startOptions.globalScoresEnabled, false);
+    assert.equal(startOptions.playerName, callsign.value);
   } finally {
     globalThis.document = previousDocument;
   }

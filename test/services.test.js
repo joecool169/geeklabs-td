@@ -18,6 +18,11 @@ import {
   normalizeDifficultyKey,
   normalizePlayerName,
 } from "../src/services/preferences.js";
+import {
+  generateCallsign,
+  isGeneratedCallsign,
+  normalizeCallsign,
+} from "../src/services/callsigns.js";
 import { readRunOptions } from "../src/services/runOptions.js";
 
 function createMemoryStorage(initial = {}) {
@@ -39,20 +44,32 @@ test("preferences preserve public storage keys and normalize inputs", () => {
   assert.equal(STORAGE_KEYS.leaderboard, "defense_protocol_leaderboard_v1");
   assert.equal(
     STORAGE_KEYS.globalScoresEnabled,
-    "defense_protocol_global_scores_enabled_v1"
+    "defense_protocol_global_scores_enabled_v2"
   );
   assert.equal(STORAGE_KEYS.soundEnabled, "defense_protocol_sound_enabled_v1");
   assert.equal(
     STORAGE_KEYS.balanceTelemetry,
     "defense_protocol_balance_telemetry_v2"
   );
-  assert.equal(normalizePlayerName("  heavy  "), "heavy");
-  assert.equal(normalizePlayerName("  "), "Player");
+  assert.equal(normalizePlayerName("  Cobalt-Falcon-472  "), "Cobalt-Falcon-472");
+  assert.ok(isGeneratedCallsign(normalizePlayerName("heavy")));
   assert.equal(normalizeDifficultyKey("hard"), "hard");
   assert.equal(normalizeDifficultyKey("impossible"), "easy");
   assert.equal(isPreferenceEnabled(null), true);
   assert.equal(isPreferenceEnabled("true"), true);
   assert.equal(isPreferenceEnabled("false"), false);
+  assert.equal(isPreferenceEnabled(null, false), false);
+});
+
+test("callsigns use only the fixed generated vocabulary", () => {
+  const values = [0, 0.5, 0.999999];
+  assert.equal(generateCallsign(() => values.shift()), "Amber-Ranger-999");
+  assert.equal(isGeneratedCallsign("Amber-Ranger-999"), true);
+  assert.equal(isGeneratedCallsign("anything a player typed"), false);
+  assert.equal(
+    normalizeCallsign("unsafe", () => 0),
+    "Amber-Aegis-100"
+  );
 });
 
 test("storage gateway isolates unavailable storage and mirrors successful writes", async () => {

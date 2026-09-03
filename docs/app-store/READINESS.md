@@ -1,16 +1,17 @@
-# iOS App Store readiness — 2026-08-26
+# iOS App Store readiness — updated 2026-09-02
 
 ## Completed preparation
 
 - Privacy manifest is included in the native Resources build phase. It declares
-  Gameplay Content and Other User Content for app functionality, conservatively
-  linked to the user, no tracking, and UserDefaults reason `CA92.1`.
+  unlinked Gameplay Content for app functionality, no tracking, and UserDefaults
+  reason `CA92.1`. App-generated callsigns replace free-form user content.
 - `ITSAppUsesNonExemptEncryption` is false for the platform-HTTPS-only app.
 - Runtime MIT notices are bundled. The existing GitHub footer image is bundled
   locally, eliminating an unnecessary remote image request from the native app.
-- Public privacy/support/credits pages describe automatic, enabled-by-default
-  online submission and the player's control over future submissions.
-- Public text-entry labels now say callsign, making public visibility clearer.
+- Online score submission is off until the player selects it and remains
+  controllable from the start and pause screens.
+- Callsigns use a fixed app-generated vocabulary with a reroll control. The
+  client normalizes older saved names and the API rejects arbitrary names.
 - Store description, subtitle, keywords, promotional text, release notes, review
   notes, age-rating facts, and the App Privacy worksheet are prepared in the
   sibling site's `docs/app-store-metadata.md`. Field length checks pass.
@@ -38,28 +39,25 @@
 
 ## Remaining owner decisions and release gates
 
-1. **Public callsign moderation.** Free-form public text creates a likely
-   [App Review guideline 1.2](https://developer.apple.com/app-store/review/guidelines/)
-   moderation obligation. Choose app-generated callsigns, or retain free-form
-   names and implement filtering, reporting, and abusive-user blocking. The
-   present 20-character/printable-text limits are not a complete moderation system.
-2. **Sound provenance.** Confirm the source/license or ownership of all seven
+1. **Sound provenance.** Confirm the source/license or ownership of all seven
    files under `public/sfx`: death, gameover, life, place, sell, upgrade, and wave.
    Their provenance is not documented. Do not claim clearance without evidence.
-3. **Final physical-device acceptance.** Complete the measured battery/heat and
+2. **Final physical-device acceptance.** Complete the measured battery/heat and
    dense-wave run, force-quit preference restoration, and final iPad acceptance
    on the release candidate. Simulator success does not substitute for these.
-4. **Privacy/account facts.** Confirm that `support@geeklabs.io` is monitored,
+3. **Privacy/account facts.** Confirm that `support@geeklabs.io` is monitored,
    review Cloudflare account-level retention, and approve the final privacy,
    content-rights, export-compliance, and age-rating answers.
-5. **App Store Connect.** Confirm developer membership/agreements, app record,
+4. **App Store Connect.** Confirm developer membership/agreements, app record,
    distribution signing, pricing/territories and optional Mac/Vision availability;
    upload a build, complete TestFlight acceptance, and submit for review.
-6. **Production durability/access.** Select an off-host/Proxmox backup destination
+5. **Production durability/access.** Select an off-host/Proxmox backup destination
    and approve a firewall/SSH access plan before tightening the VM's access.
 
-If the callsign flow changes, regenerate the archive and start-screen screenshots
-before submission. Use a new build number after any build has been uploaded.
+The callsign flow changed after the existing archive and screenshots were made.
+Regenerate both before submission, deploy the coordinated game/API/site update,
+then run the backup-first legacy-name migration. Use a new build number after
+any build has been uploaded.
 
 ## Production audit
 

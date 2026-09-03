@@ -99,7 +99,8 @@ export class GameScene extends Phaser.Scene {
       storage.read(STORAGE_KEYS.difficulty)
     );
     this.globalScoresEnabled = isPreferenceEnabled(
-      storage.read(STORAGE_KEYS.globalScoresEnabled)
+      storage.read(STORAGE_KEYS.globalScoresEnabled),
+      false
     );
     if (this.startOptions?.playerName) this.playerName = normalizePlayerName(this.startOptions.playerName);
     if (this.startOptions?.difficultyKey) this.difficultyKey = normalizeDifficultyKey(this.startOptions.difficultyKey);

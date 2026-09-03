@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-08-28**
+- Snapshot date: **2026-09-02**
 - Branch: **`main`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
@@ -76,6 +76,12 @@ See [balance testing](BALANCE_TESTING.md) before proposing stat changes.
 
 ## iOS state
 
+- Unreleased App Store hardening replaces free-form public names with fixed-
+  vocabulary generated callsigns, defaults online score submission to off, and
+  enforces the callsign format in the leaderboard API. Existing public rows have
+  a backup-first migration path. This coordinated game/site/API change still
+  requires deployment, new screenshots, and a fresh Release archive.
+
 - Playtest follow-up fixes compact results, restart teardown, and the
   change-difficulty return path. It adds deterministic next-wave counts,
   per-type/per-wave escape summaries, specialist bonus text, and clearer enemy
@@ -119,7 +125,7 @@ force-quit preference-restoration audit remain release gates; see
 1. Complete late-wave physical-device checks on both the installed iPhone and
    iPad, including battery, heat, touch selection, and visual density.
 2. Verify force-quit preference restoration on the release candidate.
-3. Resolve public free-form callsign moderation and document ownership or
+3. Deploy and migrate the generated-callsign flow, then document ownership or
    licensing of the seven shipped sound effects.
 4. Confirm the support mailbox and Cloudflare retention, approve final store
    declarations, and complete distribution signing, upload, and TestFlight.

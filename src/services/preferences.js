@@ -1,4 +1,5 @@
 import { DIFFICULTY_CONFIG } from "../game/config.js";
+import { normalizeCallsign } from "./callsigns.js";
 
 const DEFAULT_DIFFICULTY_KEY = "easy";
 
@@ -6,7 +7,7 @@ const STORAGE_KEYS = Object.freeze({
   playerName: "defense_protocol_player_name_v1",
   difficulty: "defense_protocol_difficulty_v1",
   leaderboard: "defense_protocol_leaderboard_v1",
-  globalScoresEnabled: "defense_protocol_global_scores_enabled_v1",
+  globalScoresEnabled: "defense_protocol_global_scores_enabled_v2",
   helpOverlay: "defense_protocol_help_overlay_v1",
   soundEnabled: "defense_protocol_sound_enabled_v1",
   balanceTelemetry: "defense_protocol_balance_telemetry_v2",
@@ -39,8 +40,7 @@ function createStorageGateway(
 }
 
 function normalizePlayerName(raw) {
-  const name = String(raw || "").trim();
-  return name.length ? name : "Player";
+  return normalizeCallsign(raw);
 }
 
 function normalizeDifficultyKey(key) {

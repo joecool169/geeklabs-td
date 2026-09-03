@@ -1,3 +1,4 @@
+- 2026-09-02 Replace free-form leaderboard names with generated callsigns and make online score submission opt-in
 - 2026-08-23 Release v0.10.0 with complete specialist/enemy production art, layered swiveling turret families, deployment-gate infrastructure, restrained enemy motion/damage states, and density-aware late-wave feedback
 - 2026-08-23 Release v0.9.1 with calibrated Basic tower mounting pivots and the command core centered on the already-blocked terminal path node
 - 2026-08-23 Release v0.9.0 with a defended command-core endpoint, integrity feedback, layered Basic towers, swiveling weapon heads, and barrel-aligned firing

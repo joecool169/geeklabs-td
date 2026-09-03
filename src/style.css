@@ -137,17 +137,30 @@ body {
   color: #9fb3d8;
   font-size: 14px;
 }
+.game-overlay-callsign-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
 .game-overlay-input {
   box-sizing: border-box;
   width: 100%;
-  margin-top: 8px;
-  margin-bottom: 16px;
+  margin: 0;
   padding: 12px 14px;
   border: 1px solid var(--dp-line-bright);
   border-radius: 2px;
   background: rgba(6, 12, 19, 0.92);
   color: var(--dp-text);
   font-size: 14px;
+}
+.game-overlay-input[readonly] {
+  cursor: default;
+  letter-spacing: 0.04em;
+}
+.game-overlay-button.is-callsign-reroll {
+  width: auto;
+  white-space: nowrap;
 }
 .difficulty-options {
   display: grid;
@@ -1495,9 +1508,11 @@ html.touch-ui .game-overlay-input {
   }
   html.touch-ui .game-overlay-panel.is-start .game-overlay-input {
     min-height: 44px;
-    margin-top: 4px;
-    margin-bottom: 9px;
+    margin: 0;
     padding: 9px 12px;
+  }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-callsign-row {
+    margin: 4px 0 9px;
   }
   html.touch-ui .game-overlay-panel.is-start .difficulty-options {
     margin-bottom: 9px;
