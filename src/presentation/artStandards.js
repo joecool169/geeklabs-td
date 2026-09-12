@@ -14,36 +14,60 @@ const PLACEMENT_GHOST_ALPHA = 0.44;
 
 const TOWER_ART_STANDARDS = Object.freeze({
   basic: Object.freeze({
+    // Mount centers in the padded 128px head artwork, one per upgrade.
+    headOrigins: Object.freeze({
+      1: Object.freeze({ x: 50 / 128, y: 54 / 128 }),
+      2: Object.freeze({ x: 49 / 128, y: 54 / 128 }),
+      3: Object.freeze({ x: 53 / 128, y: 57 / 128 }),
+    }),
     color: 0x3bd3ff,
     baseSizeByTier: Object.freeze({ 1: 68, 2: 72, 3: 76 }),
     headSize: 112,
     selectionRadius: 20,
     fallbackSizeByTier: Object.freeze({ 1: 40, 2: 42, 3: 46 }),
-    baseOrigin: Object.freeze({ x: 0.5, y: 0.344 }),
+    baseOrigin: Object.freeze({ x: 28 / 64, y: 20 / 64 }),
   }),
   rapid: Object.freeze({
+    // Mount centers in the padded 128px head artwork, one per upgrade.
+    headOrigins: Object.freeze({
+      1: Object.freeze({ x: 39 / 128, y: 57 / 128 }),
+      2: Object.freeze({ x: 37 / 128, y: 57 / 128 }),
+      3: Object.freeze({ x: 39 / 128, y: 59 / 128 }),
+    }),
     color: 0x39ff8f,
     baseSizeByTier: Object.freeze({ 1: 42, 2: 44, 3: 46 }),
     headSize: 60,
     selectionRadius: 20,
     fallbackSizeByTier: Object.freeze({ 1: 38, 2: 41, 3: 44 }),
-    baseOrigin: Object.freeze({ x: 0.5, y: 0.36 }),
+    baseOrigin: Object.freeze({ x: 32 / 64, y: 26 / 64 }),
   }),
   sniper: Object.freeze({
+    // Mount centers in the padded 128px head artwork, one per upgrade.
+    headOrigins: Object.freeze({
+      1: Object.freeze({ x: 40 / 128, y: 61 / 128 }),
+      2: Object.freeze({ x: 34 / 128, y: 67 / 128 }),
+      3: Object.freeze({ x: 50 / 128, y: 66 / 128 }),
+    }),
     color: 0xffc857,
     baseSizeByTier: Object.freeze({ 1: 42, 2: 44, 3: 45 }),
     headSize: 64,
     selectionRadius: 20,
     fallbackSizeByTier: Object.freeze({ 1: 40, 2: 43, 3: 46 }),
-    baseOrigin: Object.freeze({ x: 0.5, y: 0.36 }),
+    baseOrigin: Object.freeze({ x: 32 / 64, y: 20 / 64 }),
   }),
   laser: Object.freeze({
+    // Mount centers in the padded 128px head artwork, one per upgrade.
+    headOrigins: Object.freeze({
+      1: Object.freeze({ x: 38 / 128, y: 57 / 128 }),
+      2: Object.freeze({ x: 37 / 128, y: 59 / 128 }),
+      3: Object.freeze({ x: 40 / 128, y: 60 / 128 }),
+    }),
     color: 0xff6bff,
     baseSizeByTier: Object.freeze({ 1: 40, 2: 42, 3: 44 }),
     headSize: 60,
     selectionRadius: 21,
     fallbackSizeByTier: Object.freeze({ 1: 40, 2: 43, 3: 46 }),
-    baseOrigin: Object.freeze({ x: 0.5, y: 0.36 }),
+    baseOrigin: Object.freeze({ x: 32 / 64, y: 22 / 64 }),
   }),
 });
 

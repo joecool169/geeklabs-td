@@ -63,13 +63,14 @@ test("world renderer preserves map path and texture identities", () => {
   });
   assert.ok(getPathHardwareMarkers(createDefaultPath()).length > 20);
   assert.deepEqual(getBasicTowerArtOrigins(1), {
-    base: { x: 0.5, y: 0.344 },
-    head: { x: 0.485, y: 0.492 },
+    base: { x: 28 / 64, y: 20 / 64 },
+    head: { x: 50 / 128, y: 54 / 128 },
   });
-  assert.deepEqual(getBasicTowerArtOrigins(2).head, { x: 0.455, y: 0.492 });
+  assert.deepEqual(getBasicTowerArtOrigins(2).head, { x: 49 / 128, y: 54 / 128 });
+  assert.deepEqual(getBasicTowerArtOrigins(3).head, { x: 53 / 128, y: 57 / 128 });
   assert.deepEqual(getTowerArtOrigins("rapid", 2), {
-    base: { x: 0.5, y: 0.36 },
-    head: { x: 0.5, y: 0.5 },
+    base: { x: 32 / 64, y: 26 / 64 },
+    head: { x: 37 / 128, y: 57 / 128 },
   });
 });
 

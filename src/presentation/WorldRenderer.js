@@ -99,22 +99,14 @@ function getPathHardwareMarkers(path, spacing = 96) {
 }
 
 function getBasicTowerArtOrigins(tier = 1) {
-  const headOrigins = {
-    1: { x: 0.485, y: 0.492 },
-    2: { x: 0.455, y: 0.492 },
-    3: { x: 0.49, y: 0.49 },
-  };
-  return {
-    base: { x: 0.5, y: 0.344 },
-    head: headOrigins[tier] ?? headOrigins[1],
-  };
+  return getTowerArtOrigins("basic", tier);
 }
 
 function getTowerArtOrigins(type, tier = 1) {
-  if (type === "basic") return getBasicTowerArtOrigins(tier);
+  const art = getTowerArtStandard(type);
   return {
-    base: getTowerArtStandard(type).baseOrigin,
-    head: { x: 0.5, y: 0.5 },
+    base: art.baseOrigin,
+    head: art.headOrigins[tier] ?? art.headOrigins[1],
   };
 }
 
@@ -129,9 +121,10 @@ function drawBasicBaseTexture(graphics) {
   graphics.fillStyle(0x263448, 1);
   graphics.fillCircle(32, 36, 22);
   graphics.lineStyle(3, 0x3bd3ff, 0.75);
-  graphics.strokeCircle(32, 22, 12);
+  const mount = getTowerArtStandard("basic").baseOrigin;
+  graphics.strokeCircle(mount.x * 64, mount.y * 64, 12);
   graphics.fillStyle(0x0b0f14, 1);
-  graphics.fillCircle(32, 22, 7);
+  graphics.fillCircle(mount.x * 64, mount.y * 64, 7);
 }
 
 function drawBasicHeadTexture(graphics, tier = 1) {

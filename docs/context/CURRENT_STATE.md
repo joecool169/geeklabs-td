@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-09-11**
+- Snapshot date: **2026-09-12**
 - Branch: **`main`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
@@ -8,6 +8,31 @@
 This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
+
+## iPad gameplay acceptance — 2026-09-12
+
+- Owner reports reaching Wave 66 in approximately 30 minutes (duration is an
+  estimate), using 7 percentage points of battery, with testing otherwise good.
+- The reported turret appearance defect is addressed in the local correction
+  below. The owner accepted the installed turret correction on 2026-09-12.
+- This is user-reported gameplay acceptance, not instrumented thermal or frame
+  timing data, and does not establish separate force-quit persistence checks.
+
+## Accepted turret alignment correction — 2026-09-12
+
+- The owner reported Basic heads appearing detached during an iPad run.
+  Inspection found the sprite origins were ahead of the receivers. Rapid,
+  Sniper, and Laser also used image-center origins despite asymmetric artwork.
+- Added per-tier head mount coordinates and corrected base mount coordinates
+  in the shared art standards. Placed towers, upgrades, and placement previews
+  consume the same origins. Basic procedural fallback mounting follows them.
+- Rendered all four types at all three tiers and eight angles (96 views).
+  Heads remain seated in the corrected visual review. All 91 tests, web build,
+  native sync, and signed device build pass. Gameplay values are unchanged.
+- With owner approval after the playtest, installed over the existing iPad app
+  and launched successfully on 2026-09-12. The owner then confirmed that the
+  turret looks good, accepting the visual correction.
+  The correction is included in this revision; web deployment remains pending.
 
 ## Mobile branding release — 2026-09-11
 

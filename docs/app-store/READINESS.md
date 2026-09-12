@@ -1,4 +1,4 @@
-# iOS App Store readiness — updated 2026-09-11
+# iOS App Store readiness — updated 2026-09-12
 
 ## Completed preparation
 
@@ -44,14 +44,16 @@
 
 ## Remaining owner decisions and release gates
 
-1. **Final physical-device acceptance.** Complete the measured battery/heat and
-   dense-wave run, force-quit preference restoration, and final iPad acceptance
-   on the release candidate. Simulator success does not substitute for these.
+1. **Release-build device check.** Owner accepted iPhone and iPad gameplay
+   after roughly 30-minute runs to Wave 66, and accepted the corrected turret
+   artwork on iPad. Verify the final TestFlight build on both devices, including
+   force-quit preference restoration; see `docs/context/CURRENT_STATE.md`.
 2. **Privacy/account facts.** Confirm that `support@geeklabs.io` is monitored,
    review Cloudflare account-level retention, and approve the final privacy,
    content-rights, export-compliance, and age-rating answers.
-3. **App Store Connect.** Developer enrollment is pending per the owner on
-   2026-09-11. Confirm activation/agreements, app record,
+3. **App Store Connect.** Owner reports active membership on 2026-09-12;
+   Xcode shows the Developer Team selected with automatic signing. Confirm
+   outstanding agreements and the app record,
    distribution signing, pricing/territories and optional Mac/Vision availability;
    upload a build, complete TestFlight acceptance, and submit for review.
 4. **Production durability/access.** Select an off-host/Proxmox backup destination
