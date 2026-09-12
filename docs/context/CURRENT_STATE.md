@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-09-02**
+- Snapshot date: **2026-09-11**
 - Branch: **`main`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
@@ -9,7 +9,7 @@ This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
 
-## Local mobile follow-up — 2026-09-11
+## Mobile branding release — 2026-09-11
 
 - Owner accepted iPhone gameplay after a 30-minute Hard run to Wave 66, 5,354
   kills, and 86,896 score. Battery fell from 59% to 54%; no heat, stuttering,
@@ -18,8 +18,14 @@ and longer-term work live in the other documents linked from the
   dedicated logo column alongside controls. Browser checks at 956×440,
   667×375, 1366×1024, and 1440×900 show no base-menu clipping; expanded
   results scroll on the smaller phone. All 91 tests and signed device build pass.
-- These local changes are not published to the web or submitted to Apple.
-  New menu acceptance on physical devices remains pending.
+- Game revision `7bf5fb0` deployed successfully to production on 2026-09-11.
+  The deployment verified the VM revision and healthy game/gateway containers.
+  Direct HTTPS checks passed for the game and leaderboard; served JavaScript
+  and CSS match the locally verified build byte for byte.
+- The branded native build installed and launched successfully on the iPhone.
+  It has not been submitted to Apple. New menu acceptance on physical devices
+  remains pending. Subsequent documentation commits do not change the running
+  game revision above.
 
 ## Repository and validation
 
