@@ -9,6 +9,18 @@ This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
 
+## Local mobile follow-up — 2026-09-11
+
+- Owner accepted iPhone gameplay after a 30-minute Hard run to Wave 66, 5,354
+  kills, and 86,896 score. Battery fell from 59% to 54%; no heat, stuttering,
+  or control issues were reported. This was before the menu branding update.
+- Full original logo selected for the iOS icon. Landscape menus now use a
+  dedicated logo column alongside controls. Browser checks at 956×440,
+  667×375, 1366×1024, and 1440×900 show no base-menu clipping; expanded
+  results scroll on the smaller phone. All 91 tests and signed device build pass.
+- These local changes are not published to the web or submitted to Apple.
+  New menu acceptance on physical devices remains pending.
+
 ## Repository and validation
 
 - Forgejo is authoritative; GitHub mirrors reviewed revisions for public access.
@@ -125,8 +137,10 @@ force-quit preference-restoration audit remain release gates; see
 1. Complete late-wave physical-device checks on both the installed iPhone and
    iPad, including battery, heat, touch selection, and visual density.
 2. Verify force-quit preference restoration on the release candidate.
-3. Deploy and migrate the generated-callsign flow, then document ownership or
-   licensing of the seven shipped sound effects.
+3. Deploy and migrate the generated-callsign flow. The sound-source documentation
+   gate was resolved on 2026-09-11: an independent sine-wave generator reproduces
+   all seven shipped WAV files byte for byte; see
+   [the reconstruction record](../app-store/SOUND_PROVENANCE.md).
 4. Confirm the support mailbox and Cloudflare retention, approve final store
    declarations, and complete distribution signing, upload, and TestFlight.
 5. Harden the VM and establish an off-host or Proxmox-level backup before the

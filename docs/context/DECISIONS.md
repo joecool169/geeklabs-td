@@ -1,5 +1,19 @@
 # Decision Log
 
+## 2026-09-11 — Preserve original branding on mobile
+
+**Decision:** Use the owner-preferred full original logo for the iOS icon and
+place it in a dedicated left column on landscape start, pause, and game-over
+menus. Keep controls in a separate right column with scrolling for expanded
+content on short screens. Preserve the existing gameplay layout.
+
+**Reason:** The earlier compact-menu changes hid the artwork across mobile
+screens. The owner explicitly requested prominent, professionally integrated
+branding and preferred the full logo over the generated monogram icon.
+
+**Validation:** Browser layout checks cover iPhone, smaller phone, iPad, and
+desktop sizes. Physical iPad acceptance of these new menus remains pending.
+
 ## 2026-09-02 — Remove free-form public leaderboard names
 
 **Decision:** Generate callsigns from a fixed application vocabulary and allow

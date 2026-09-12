@@ -322,14 +322,15 @@ class OverlayManager {
         globalScoresEnabled: leaderboardCheckbox.checked,
       });
     startButton.addEventListener("click", start);
-    panel.append(
-      makeBrandHeader(true),
+    const body = element("div", "game-overlay-body");
+    body.append(
       nameLabel,
       difficultyLabel,
       difficultyOptions,
       leaderboardSetting,
       startActions
     );
+    panel.append(makeBrandHeader(true), body);
     return overlay;
   }
 
@@ -393,8 +394,8 @@ class OverlayManager {
       byWave.append(element("span", null, `W${wave}: ${count}`));
     }
     losses.append(byWave);
-    panel.append(
-      makeBrandHeader(),
+    const body = element("div", "game-overlay-body");
+    body.append(
       title,
       detail,
       stats,
@@ -402,6 +403,7 @@ class OverlayManager {
       losses,
       leaderboardPanel.element
     );
+    panel.append(makeBrandHeader(), body);
     return overlay;
   }
 
@@ -436,6 +438,7 @@ class OverlayManager {
     const sound = makeButton("", "neutral");
     const globalScores = makeButton("", "neutral");
     resume.classList.add("is-resume");
+    change.classList.add("is-change-menu");
     controls.classList.add("is-keyboard-controls");
     let isSoundEnabled = soundEnabled !== false;
     const renderSoundButton = () => {
@@ -488,8 +491,8 @@ class OverlayManager {
       restart,
       change
     );
-    panel.append(
-      makeBrandHeader(),
+    const body = element("div", "game-overlay-body");
+    body.append(
       title,
       detail,
       buttons,
@@ -497,6 +500,7 @@ class OverlayManager {
       leaderboardPanel.element,
       makePrivacyLink()
     );
+    panel.append(makeBrandHeader(), body);
     return true;
   }
 

@@ -1,6 +1,11 @@
-# iOS App Store readiness — updated 2026-09-02
+# iOS App Store readiness — updated 2026-09-11
 
 ## Completed preparation
+
+- All seven sound effects have a documented synthesis source. The independent
+  generator reproduces the shipped WAV files byte for byte without recordings
+  or sample libraries. See [sound reconstruction evidence](SOUND_PROVENANCE.md)
+  for the historical limits, hashes, and verification command.
 
 - Privacy manifest is included in the native Resources build phase. It declares
   unlinked Gameplay Content for app functionality, no tracking, and UserDefaults
@@ -39,19 +44,17 @@
 
 ## Remaining owner decisions and release gates
 
-1. **Sound provenance.** Confirm the source/license or ownership of all seven
-   files under `public/sfx`: death, gameover, life, place, sell, upgrade, and wave.
-   Their provenance is not documented. Do not claim clearance without evidence.
-2. **Final physical-device acceptance.** Complete the measured battery/heat and
+1. **Final physical-device acceptance.** Complete the measured battery/heat and
    dense-wave run, force-quit preference restoration, and final iPad acceptance
    on the release candidate. Simulator success does not substitute for these.
-3. **Privacy/account facts.** Confirm that `support@geeklabs.io` is monitored,
+2. **Privacy/account facts.** Confirm that `support@geeklabs.io` is monitored,
    review Cloudflare account-level retention, and approve the final privacy,
    content-rights, export-compliance, and age-rating answers.
-4. **App Store Connect.** Confirm developer membership/agreements, app record,
+3. **App Store Connect.** Developer enrollment is pending per the owner on
+   2026-09-11. Confirm activation/agreements, app record,
    distribution signing, pricing/territories and optional Mac/Vision availability;
    upload a build, complete TestFlight acceptance, and submit for review.
-5. **Production durability/access.** Select an off-host/Proxmox backup destination
+4. **Production durability/access.** Select an off-host/Proxmox backup destination
    and approve a firewall/SSH access plan before tightening the VM's access.
 
 The callsign flow changed after the existing archive and screenshots were made.

@@ -1630,3 +1630,97 @@ html.touch-ui .game-overlay-input {
   html.touch-ui #hud-wave-preview,
   html.touch-ui #touch-tower-specialty { font-size: 10px; }
 }
+
+/* Mobile menus give the original artwork a dedicated brand column. */
+@media (orientation: landscape) {
+  html.touch-ui .game-overlay {
+    box-sizing: border-box;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  html.touch-ui .game-overlay .game-overlay-panel {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.8fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0;
+    width: min(100%, 940px);
+    min-width: 0;
+    max-height: 100%;
+    padding: 0;
+    overflow: hidden;
+    border-top: 2px solid var(--dp-teal);
+    border-radius: 10px;
+  }
+  html.touch-ui .game-overlay.is-gameover .game-overlay-panel {
+    border-top-color: var(--dp-red);
+  }
+  html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand {
+    display: flex;
+    justify-content: center;
+    min-height: 0;
+    margin: 0;
+    padding: 18px 12px;
+    border-right: 1px solid rgba(91, 183, 176, 0.2);
+    background: radial-gradient(ellipse at 50% 50%, rgba(40, 112, 105, 0.12), transparent 75%), #090e13;
+  }
+  html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand img {
+    display: block;
+    width: 100%;
+    max-width: 245px;
+    max-height: 58dvh;
+    object-fit: contain;
+    margin: 0;
+  }
+  html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand-title,
+  html.touch-ui .game-overlay .game-overlay-eyebrow {
+    display: none;
+  }
+  html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand-tagline {
+    max-width: 200px;
+    margin: 10px 0 0;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #a1b5bd;
+  }
+  html.touch-ui .game-overlay-body {
+    min-width: 0;
+    min-height: 0;
+    padding: 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  html.touch-ui .game-overlay .game-overlay-title {
+    text-align: left;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  html.touch-ui .game-overlay .game-overlay-detail {
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+  }
+  html.touch-ui .game-overlay .game-overlay-button,
+  html.touch-ui .game-overlay .difficulty-option {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  html.touch-ui .game-overlay-panel.is-pause .game-overlay-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  html.touch-ui .game-overlay-panel.is-pause .is-resume,
+  html.touch-ui .game-overlay-panel.is-pause .is-change-menu { grid-column: 1 / -1; }
+  html.touch-ui .game-overlay-panel.is-pause .is-keyboard-controls { display: none; }
+  html.touch-ui .game-overlay-panel.is-pause .game-overlay-body > .game-overlay-link {
+    display: inline-block;
+    margin-top: 12px;
+  }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html.touch-ui .game-overlay-body { padding: 14px 18px; }
+  html.touch-ui .game-overlay .game-overlay-label { font-size: 12px; margin-bottom: 4px; }
+  html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand { padding: 12px; }
+  html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand-tagline { font-size: 10px; }
+  html.touch-ui .game-overlay .game-overlay-stats { margin-bottom: 12px; }
+}
