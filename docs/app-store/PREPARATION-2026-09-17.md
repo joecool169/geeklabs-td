@@ -136,3 +136,12 @@ DSA follow-up: Joe explicitly selected “Non-trader — personal, non-business
 distribution.” Saved that selection. Apple now shows Digital Services Act
 Compliance completed and Active for 27 countries/regions. This supersedes the
 pending-declaration note above; no public trader contact information was added.
+
+## Submitted for public App Review — September 18
+
+Joe authorized submission after reviewing preparation. Submitted iOS version
+1.0 (build 3); Apple visibly confirmed “1 Item Submitted.” Submission ID:
+`e673c879-964d-41dd-a333-5df1475d6e24`. Apple says review can take up to 48
+hours and will email when complete. Manual release remains selected, so
+approval does not automatically publish the app. This supersedes the earlier
+draft-only status. Regional availability/licensing notes remain applicable.
