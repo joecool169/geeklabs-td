@@ -106,3 +106,33 @@ the 13-inch slot. Originals are preserved in `screenshots/2026-09-18-ipad/`.
 Order: wave 32, wave 7, pause menu, tower placement. This supersedes the earlier
 missing-iPad screenshot note. Privacy policy/manifest reconciliation and final
 privacy publication remain outstanding; no review submission was sent.
+
+## September 18 completed preparation — build 3
+
+This update supersedes earlier outstanding privacy/build notes above.
+
+- Published App Privacy responses were visibly confirmed in App Store Connect:
+  User ID, Gameplay Content, Coarse Location, Other Diagnostic Data; all linked,
+  none used for tracking. Joe explicitly approved publishing the agreement.
+- Public privacy policy updated and verified HTTP 200 at
+  https://geeklabs.io/privacy/defense-protocol. Production website commit
+  `89b3b6a772cb670be6be700d6c1892498a9450e3`; local equivalent `a001851`.
+- Native manifest reconciled with those disclosures. Version 1.0 build 3 signed,
+  archived, successfully uploaded, processed by Apple, and saved as the selected
+  App Store build. Build ID: `a31eaeb8-3dcf-4e55-803f-6e8864804e48`.
+- Game/source preparation commit `87e4715` pushed to Forgejo and GitHub.
+  Game tests, production build, manifest lint, strict signature verification,
+  and website tests passed. All 45 packaged public/gameplay files match build 2.
+- Add for Review validation passed. Draft Submission shows “Item Ready to
+  Submit”, iOS App 1.0, build 1.0 (3). Final Submit for Review was NOT clicked.
+  Manual release remains selected.
+- Free Apps Agreement active. DSA setup initially failed at Apple, but retry
+  opened trader/non-trader form successfully. Awaiting Joe's declaration;
+  no trader choice or public contact details submitted. Regional licensing
+  eligibility (including China/Vietnam) and final device acceptance still need
+  resolution before claiming all-region launch readiness.
+
+DSA follow-up: Joe explicitly selected “Non-trader — personal, non-business
+distribution.” Saved that selection. Apple now shows Digital Services Act
+Compliance completed and Active for 27 countries/regions. This supersedes the
+pending-declaration note above; no public trader contact information was added.

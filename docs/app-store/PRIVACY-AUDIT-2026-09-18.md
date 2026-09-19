@@ -75,3 +75,17 @@ and were visibly verified. Gameplay Content linkage was changed to linked
 through callsign, with App Functionality and no tracking retained; Save clicked.
 The four-category draft is not published. Public policy and native manifest
 reconciliation remain required preparation tasks.
+
+## Completion — September 18
+
+The four-category privacy inventory above is now published, verified by App
+Store Connect's “Published” status and matching product-page preview. Joe
+approved the publication agreement. All categories are linked, not tracking;
+Coarse Location purposes are Analytics and App Functionality; other categories
+are App Functionality only.
+
+The public policy corrections described above are live and verified. Native
+PrivacyInfo.xcprivacy matches the inventory in signed build 1.0 (3), which Apple
+processed and which is attached to the draft App Store submission. Public
+review submission has not been sent. See PREPARATION-2026-09-17.md for release
+commits and remaining regional/account gates.
