@@ -32,3 +32,14 @@ The v0.8.0–v0.10.0 production graphics use OpenAI's built-in image generation.
 - Deployment gate: `public/art/structures/deployment-gate-v1.png`
 
 Every runtime bitmap has a procedural fallback so a missing image cannot prevent play.
+
+## Original logo credit
+
+Logo design: **Brooklyn Davis**.
+
+On September 18, 2026, Joe confirmed that Brooklyn was an employee of
+GeekLabs.io, created the logo on company time, and that Joe assigned the work.
+This records the owner-reported basis for treating the logo as employer-owned
+work made for hire; it is not an independently reviewed employment agreement.
+Joe reports that ChatGPT suggested the game name. That origin does not establish
+exclusive trademark rights or replace trademark clearance.
