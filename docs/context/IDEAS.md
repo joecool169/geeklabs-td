@@ -37,6 +37,8 @@ Owner-defined rules:
 
 - Participating turrets must be nearby and at their maximum upgrade level.
 - Linking is explicitly **player-activated**, not automatic.
+- While linked, the **combined attack replaces the participating turrets' normal
+  attacks**; they do not continue firing those attacks alongside it.
 - Turrets need a **link range** that determines which nearby turrets are
   eligible. Its value and whether it varies by turret type remain undecided;
   do not assume it equals attack range.
@@ -47,7 +49,6 @@ Owner-defined rules:
 Open design questions:
 
 - Other eligible combinations, link costs, and maximum links per turret.
-- Whether linked turrets retain their individual attacks.
 - Whether links can be removed or reassigned, and what selling a linked turret does.
 - How link range, eligible partners, and active links are shown clearly with
   both mouse and touch controls.
