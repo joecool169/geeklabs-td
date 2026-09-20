@@ -33,7 +33,7 @@ has been verified for this note.
 
 ### Turret linking
 
-Owner-defined rules:
+Owner-defined general rules (laser-to-laser exception below):
 
 - Participating turrets must be nearby and at their maximum upgrade level.
 - Linking is explicitly **player-activated**, not automatic.
@@ -46,7 +46,26 @@ Owner-defined rules:
   **Rocket + Laser → rockets with lasers**. The exact projectile/beam behavior
   and which turret fires the combined attack still need definition.
 
-Open design questions:
+#### Laser-to-laser linking exception
+
+The owner wants nearby laser turrets to combine into a stronger laser attack
+once linking is implemented:
+
+- A supporting laser turret fires into the nearest eligible laser turret
+  instead of directly attacking an enemy.
+- The receiving laser turret that attacks the enemy becomes substantially
+  more powerful while retaining the existing laser attack features.
+- The supporting turret redirects its attack; it does not also fire a separate
+  normal attack at enemies. The receiving turret delivers the amplified beam.
+- Exact amplification and how existing laser properties scale remain undefined.
+
+Clarify whether this exception also changes player activation or maximum-upgrade
+eligibility; neither exemption has been confirmed. Do not assume automatic
+linking or lower-tier eligibility. Link-range values, selection of the final
+attacking turret, multi-turret chains, and prevention of circular links also
+remain open. This is future design intent, not implemented behavior.
+
+#### Open design questions
 
 - Other eligible combinations, link costs, and maximum links per turret.
 - Whether links can be removed or reassigned, and what selling a linked turret does.
