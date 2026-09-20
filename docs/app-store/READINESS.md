@@ -5,8 +5,9 @@
 Version **1.0 (build 3)** was submitted for public App Review on September 18
 with Joe's authorization. Apple confirmed “1 Item Submitted”; submission ID
 `e673c879-964d-41dd-a333-5df1475d6e24`. **Manual release** remains selected.
-This is the latest committed evidence, not a fresh check of Apple's review
-status. Check App Store Connect before claiming approval or publishing.
+Live App Store Connect check on September 20 confirmed **Waiting for Review**,
+selected build **3**, and **Manually release this version**. No Apple settings
+were changed. Check again before claiming approval or publishing.
 
 See [the preparation record](PREPARATION-2026-09-17.md), especially its final
 September 18 sections. Those updates supersede the old build-2 processing,

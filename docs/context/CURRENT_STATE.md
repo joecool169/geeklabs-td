@@ -9,6 +9,33 @@ This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
 
+## Verified web catch-up deployment — 2026-09-20
+
+- Owner authorized bringing the live web game up to date. Deployed reviewed
+  commit `da828e114edbe3d8a7188099d5415572c67984d5` through the existing script.
+  Release tag: `web/v0.10.0-20260920`. The UI version remains v0.10.0.
+- Shared change since the previous web release: corrected tower head/base
+  mounting across all four tower types, upgrades, previews, and Basic fallback
+  rendering. Gameplay balance, waves, scoring, and leaderboard contract unchanged.
+- Platform review: Docker excludes the iOS tree. Privacy manifest, signing,
+  native version/build settings, and orientation configuration remain iOS-only.
+  Native preference mirroring and lifecycle listeners are guarded by
+  `isNativePlatform()` and remain inactive in the browser. Web mouse/keyboard
+  and responsive touch controls remain available.
+- All **91 tests** and the production build passed. VM checkout matched the
+  requested commit. Game and gateway became healthy; leaderboard remained healthy.
+- Public JavaScript `index-B6Md-UYt.js` and CSS `index-D4B_JORn.css` match the
+  validated local build byte for byte. Main JS SHA-256:
+  `465c43245eec81ddf74a90b5204edcd8f4a20fc10fd21161e317ec394b6d6a8b`.
+  Running image:
+  `sha256:7068f5b716d9024310ad04e3d82ac2e83e3bade8995e6be64c834c7ce4c9eee0`.
+- Public leaderboard GET succeeded. Browser menu and game entry passed with
+  online submission disabled; no test score submitted. This was a smoke check,
+  not a new full-length playtest or physical-device acceptance run.
+- Live Apple check: iOS version 1.0, build 3 is **Waiting for Review**;
+  manual release remains selected. No Apple settings or submission changed.
+- Subsequent documentation commits do not change this deployed revision.
+
 ## Release direction — 2026-09-20
 
 Features and updates will be validated on the web before later App Store
@@ -28,7 +55,8 @@ workflow and the existing, unimplemented mobile monetization proposal.
 - Read [REMOTE_DEVELOPMENT.md](REMOTE_DEVELOPMENT.md) for setup, Mac-only
   artifacts, service boundaries, and outstanding access checks.
 - Latest recorded Apple status: version 1.0 build 3 submitted September 18;
-  manual release selected. Review outcome has not been checked September 20.
+  manual release selected. Live check September 20 confirms **Waiting for Review**
+  with build 3 selected and manual release enabled.
   See [readiness](../app-store/READINESS.md) and the final sections of
   [preparation](../app-store/PREPARATION-2026-09-17.md).
 - Older entries below are dated historical evidence. The September 11 release
@@ -59,7 +87,7 @@ workflow and the existing, unimplemented mobile monetization proposal.
 - With owner approval after the playtest, installed over the existing iPad app
   and launched successfully on 2026-09-12. The owner then confirmed that the
   turret looks good, accepting the visual correction.
-  The correction is included in this revision; web deployment remains pending.
+  The correction was subsequently deployed to web on September 20; see above.
 
 ## Mobile branding release — 2026-09-11
 
