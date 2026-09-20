@@ -12,8 +12,9 @@
 ## Owner-requested future features — September 20, 2026
 
 The owner wants to add a **rocket turret** and **turret linking** at some point.
-These are recorded future directions, with no implementation date, priority,
-mechanics, or balance values agreed. They are not implemented by this entry.
+These are recorded future directions. Initial linking rules are agreed below;
+implementation date, priority, detailed attack behavior, and balance values
+remain open. They are not implemented by this entry.
 
 The original product intent was to combine features the owner enjoys in other
 tower-defense games. **Onslaught 2** is one of their favorites and a named
@@ -32,14 +33,27 @@ has been verified for this note.
 
 ### Turret linking
 
-- Clarify what linking means to the owner: combination attacks, shared boosts,
-  coordinated targeting, or another interaction. These are questions, not specs.
-- Decide eligible tower combinations, proximity/placement rules, automatic vs
-  manual activation, costs, limits, and clear visual feedback.
-- Consider the rocket turret when designing compatibility, without making
-  either feature depend on the other before that dependency is justified.
-- Keep interactions readable with both mouse and touch. Follow the web-first
-  testing and later native-release workflow.
+Owner-defined rules:
+
+- Participating turrets must be nearby and at their maximum upgrade level.
+- Linking is explicitly **player-activated**, not automatic.
+- Turrets need a **link range** that determines which nearby turrets are
+  eligible. Its value and whether it varies by turret type remain undecided;
+  do not assume it equals attack range.
+- Linking creates combination attacks. The first specified example is
+  **Rocket + Laser → rockets with lasers**. The exact projectile/beam behavior
+  and which turret fires the combined attack still need definition.
+
+Open design questions:
+
+- Other eligible combinations, link costs, and maximum links per turret.
+- Whether linked turrets retain their individual attacks.
+- Whether links can be removed or reassigned, and what selling a linked turret does.
+- How link range, eligible partners, and active links are shown clearly with
+  both mouse and touch controls.
+
+Follow the web-first testing and later native-release workflow. These rules
+record future design intent, not approval to implement or deploy the feature.
 
 These owner requests do not adopt the older speculative sequencing below.
 

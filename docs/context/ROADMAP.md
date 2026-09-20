@@ -116,7 +116,9 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 Owner-requested future additions (September 20, 2026; mechanics and order TBD):
 
 - **Rocket turret** — establish its role and tradeoffs before implementation.
-- **Turret linking** — clarify the intended combinations and linking behavior.
+- **Turret linking** — player-activated combinations between fully upgraded
+  turrets within link range. First example: Rocket + Laser produces rockets
+  with lasers. Range values, costs, limits, and attack details remain open.
 - **Inspiration:** Onslaught 2 and other tower-defense games the owner enjoys.
   See [design questions](IDEAS.md#owner-requested-future-features--september-20-2026).
 
