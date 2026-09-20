@@ -8,6 +8,9 @@ read `docs/app-store/READINESS.md` and the latest dated preparation entries.
 - Forgejo is authoritative; GitHub is a public secondary mirror. Never commit
   credentials, SSH keys, signing material, local deployment configuration, or
   private customer/account data.
+- Primary complete workspace remains the Mac; Linux development is optional.
+- Follow `docs/context/RELEASE_STRATEGY.md`: web-first features, frozen native
+  release candidates, one shared game core. Monetization remains planned only.
 - Remote development checkout: `/home/joe/projects/geeklabs-td-dev` on SSH host
   `geeklabs-td`. Production checkout: `/home/joe/projects/geeklabs-td`.
   Keep development edits out of the production checkout and stack.

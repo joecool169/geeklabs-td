@@ -1,5 +1,27 @@
 # Decision Log
 
+## 2026-09-20 — Web-first updates and shared mobile releases
+
+**Owner direction:** New gameplay features and updates reach the web game first
+for testing and iteration, then reach the App Store after acceptance. The web
+game is expected to remain free and open source. Preserve one shared game core.
+
+**Recommended Git procedure:** Short-lived feature branches feed reviewed
+`main` web releases. Freeze a web-tested commit on an iOS release branch for
+TestFlight, device checks, and App Review while web development continues.
+Record immutable tags and source commits for each shipped web build and native
+upload; return release fixes to `main`. See `RELEASE_STRATEGY.md`. This records
+the procedure; no release branches, tags, or deployments were created today.
+
+**Monetization status:** The July trial/permanent-unlock direction remains a
+proposal for later work. The submitted 1.0 build is configured as free. Price,
+trial limits, paid value, and treatment of early free users remain undecided;
+this discussion does not authorize a paywall or a store pricing change.
+
+**Workspace:** The owner elected to retain the Mac as the primary complete
+workspace. The prepared Linux development checkout is optional; native builds,
+signing, and uploads remain on the Mac.
+
 ## 2026-09-11 — Preserve original branding on mobile
 
 **Decision:** Use the owner-preferred full original logo for the iOS icon and

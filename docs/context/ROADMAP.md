@@ -115,6 +115,10 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - onboarding/tutorial refinement
 - replay and endurance testing
 - additional maps, modes, towers, or progression only when supported by playtest evidence
-- free web version with a polished mobile edition considered later
+- web-first feature validation followed by stabilized App Store releases; see
+  [release strategy](RELEASE_STRATEGY.md)
+- keep the web game free/open source under the current direction; evaluate the
+  proposed permanent mobile unlock after retention evidence, with price, scope,
+  and existing-user treatment decided before implementation
 
 See [IDEAS.md](IDEAS.md) for non-binding gameplay possibilities.

@@ -9,9 +9,17 @@ This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
 
+## Release direction — 2026-09-20
+
+Features and updates will be validated on the web before later App Store
+releases. The web game is expected to remain free and open source. Read
+[RELEASE_STRATEGY.md](RELEASE_STRATEGY.md) for the recommended branch/tag
+workflow and the existing, unimplemented mobile monetization proposal.
+
 ## Remote development handoff — 2026-09-20
 
-- Development moves to `geeklabs-td` using a separate checkout at
+- The Mac remains the primary complete workspace by owner preference. Optional
+  remote development is ready on `geeklabs-td` in a separate checkout at
   `/home/joe/projects/geeklabs-td-dev`. The existing
   `/home/joe/projects/geeklabs-td` remains the production deployment checkout.
 - Remote validation: Node 22.23.2, clean `npm ci` with zero reported

@@ -7,6 +7,9 @@ Git is authoritative for Defense Protocol. Forgejo is the primary remote and Git
 For the current remote workspace and Mac release boundary, read
 [REMOTE_DEVELOPMENT.md](REMOTE_DEVELOPMENT.md).
 
+See [RELEASE_STRATEGY.md](RELEASE_STRATEGY.md) for the web-first schedule,
+iOS stabilization branches, and per-platform release tags.
+
 ## Starting a development session
 
 ```bash

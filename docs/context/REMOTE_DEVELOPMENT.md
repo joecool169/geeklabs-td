@@ -1,5 +1,9 @@
 # Remote development handoff — September 20, 2026
 
+The owner elected to keep the Mac as the primary complete workspace. The
+server checkout remains available for optional remote development; no move
+is required. Adding it to Codex is optional.
+
 ## Working locations and source of truth
 
 | Purpose | Location |
@@ -99,7 +103,7 @@ the Mac's SSH alias configuration does not automatically exist on Linux.
 
 ## Outstanding checks
 
-- Select/add this remote development folder in Codex; existing local tasks stay local.
+- Optionally add this remote development folder in Codex; existing local tasks stay local.
 - Configure direct GitHub push authentication if desired; Mac mirroring remains usable.
 - Confirm a durable backup of signed Mac archives and signing recovery material.
 - Check Apple's current review result before the next release action.
