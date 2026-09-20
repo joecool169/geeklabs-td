@@ -120,10 +120,11 @@ Owner-requested future additions (September 20, 2026; mechanics and order TBD):
   turrets within link range. First example: Rocket + Laser produces rockets
   with lasers. Combined attacks replace the linked turrets' normal attacks.
   Range values, costs, limits, and attack details remain open.
-- **Laser-to-laser exception** — a supporting laser fires into the nearest
+- **Automatic laser-to-laser exception** — a supporting laser fires into the nearest
   eligible laser turret rather than an enemy, amplifying the receiving
   turret's enemy-facing laser attack while retaining existing laser features.
-  Activation/upgrade exceptions and chaining rules still need clarification.
+  Automatic activation is intended to avoid an unnecessary player action.
+  Upgrade eligibility, amplification values, and chaining rules remain open.
 - **Inspiration:** Onslaught 2 and other tower-defense games the owner enjoys.
   See [design questions](IDEAS.md#owner-requested-future-features--september-20-2026).
 

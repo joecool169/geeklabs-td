@@ -51,6 +51,12 @@ Owner-defined general rules (laser-to-laser exception below):
 The owner wants nearby laser turrets to combine into a stronger laser attack
 once linking is implemented:
 
+- Laser-to-laser linking is **automatic** when eligible turrets are within link
+  range. Other combinations remain player-activated.
+- Design rationale: the owner intends the amplified attack to be strong enough
+  that activating an eligible laser link is always desirable. This is a balance
+  goal to validate, not a measured result.
+
 - A supporting laser turret fires into the nearest eligible laser turret
   instead of directly attacking an enemy.
 - The receiving laser turret that attacks the enemy becomes substantially
@@ -59,11 +65,10 @@ once linking is implemented:
   normal attack at enemies. The receiving turret delivers the amplified beam.
 - Exact amplification and how existing laser properties scale remain undefined.
 
-Clarify whether this exception also changes player activation or maximum-upgrade
-eligibility; neither exemption has been confirmed. Do not assume automatic
-linking or lower-tier eligibility. Link-range values, selection of the final
-attacking turret, multi-turret chains, and prevention of circular links also
-remain open. This is future design intent, not implemented behavior.
+Clarify whether laser-to-laser linking also exempts turrets from maximum-upgrade
+eligibility; lower-tier linking has not been agreed. Link-range values, selection
+of the final attacking turret, multi-turret chains, prevention of circular links,
+and interaction with player-activated mixed-turret links remain open. This is future design intent, not implemented behavior.
 
 #### Open design questions
 
