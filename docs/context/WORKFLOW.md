@@ -4,6 +4,9 @@
 
 Git is authoritative for Defense Protocol. Forgejo is the primary remote and GitHub is a secondary mirror. Project context files summarize a committed revision; they never override current source or Git history.
 
+For the current remote workspace and Mac release boundary, read
+[REMOTE_DEVELOPMENT.md](REMOTE_DEVELOPMENT.md).
+
 ## Starting a development session
 
 ```bash
@@ -71,7 +74,7 @@ The required variables are `DEPLOY_HOST`, `REMOTE_REPO`, and `REMOTE_STACK`.
 `DEPLOY_BRANCH` and `SOURCE_REMOTE` retain their normal tracked defaults.
 
 The deployment script refuses a dirty working tree or non-`main` branch, runs
-the tests and production build on the Mac, pushes the exact commit to Forgejo,
+the tests and production build on the invoking workstation, pushes the exact commit to Forgejo,
 fast-forwards the VM checkout, rebuilds only the game container, refreshes the
 gateway, and checks the public game and leaderboard API:
 

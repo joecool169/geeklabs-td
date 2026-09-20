@@ -1,6 +1,11 @@
 # GeekLabs-TD AI Context
 
-Snapshot date: **2026-08-22**
+Historical gameplay snapshot: **2026-08-22**.
+
+Start with `AGENTS.md`, `docs/context/CURRENT_STATE.md`, and
+`docs/context/REMOTE_DEVELOPMENT.md` for current operating context. Release,
+validation, native, and workflow statements below are historical; newer dated
+records take precedence.
 
 ## Project identity
 

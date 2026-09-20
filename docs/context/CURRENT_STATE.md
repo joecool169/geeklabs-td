@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-09-12**
+- Snapshot date: **2026-09-20**
 - Branch: **`main`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
@@ -8,6 +8,25 @@
 This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
+
+## Remote development handoff — 2026-09-20
+
+- Development moves to `geeklabs-td` using a separate checkout at
+  `/home/joe/projects/geeklabs-td-dev`. The existing
+  `/home/joe/projects/geeklabs-td` remains the production deployment checkout.
+- Remote validation: Node 22.23.2, clean `npm ci` with zero reported
+  vulnerabilities, all 91 tests passed, production build passed. Forgejo
+  push dry-run succeeded. GitHub fetch works; direct server push setup is pending.
+- Read [REMOTE_DEVELOPMENT.md](REMOTE_DEVELOPMENT.md) for setup, Mac-only
+  artifacts, service boundaries, and outstanding access checks.
+- Latest recorded Apple status: version 1.0 build 3 submitted September 18;
+  manual release selected. Review outcome has not been checked September 20.
+  See [readiness](../app-store/READINESS.md) and the final sections of
+  [preparation](../app-store/PREPARATION-2026-09-17.md).
+- Older entries below are dated historical evidence. The September 11 release
+  record supersedes the August deployed revision; the September 18 submission
+  supersedes older “not submitted” statements. A fresh Git checkout is not
+  proof of a newly deployed game image.
 
 ## iPad gameplay acceptance — 2026-09-12
 

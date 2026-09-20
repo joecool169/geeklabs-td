@@ -1,6 +1,8 @@
 # Privacy and content-rights audit — September 18, 2026
 
-Status: evidence collected; final App Store label remains unpublished.
+Status: historical audit with completion updates below. The label was later
+published and build 3 submitted September 18; see the final sections of
+[preparation](PREPARATION-2026-09-17.md).
 
 ## Verified application and live service
 

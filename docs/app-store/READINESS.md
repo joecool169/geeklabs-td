@@ -1,70 +1,68 @@
-# iOS App Store readiness — updated 2026-09-12
+# iOS App Store readiness — reconciled 2026-09-20
+
+## Latest recorded release status
+
+Version **1.0 (build 3)** was submitted for public App Review on September 18
+with Joe's authorization. Apple confirmed “1 Item Submitted”; submission ID
+`e673c879-964d-41dd-a333-5df1475d6e24`. **Manual release** remains selected.
+This is the latest committed evidence, not a fresh check of Apple's review
+status. Check App Store Connect before claiming approval or publishing.
+
+See [the preparation record](PREPARATION-2026-09-17.md), especially its final
+September 18 sections. Those updates supersede the old build-2 processing,
+unpublished-privacy, missing-screenshot, and not-submitted notes.
 
 ## Completed preparation
 
-- All seven sound effects have a documented synthesis source. The independent
-  generator reproduces the shipped WAV files byte for byte without recordings
-  or sample libraries. See [sound reconstruction evidence](SOUND_PROVENANCE.md)
-  for the historical limits, hashes, and verification command.
+- App record: [Defense Protocol](https://appstoreconnect.apple.com/apps/6811413986/distribution),
+  Apple ID `6811413986`, bundle `tv.geekstreet.td`, SKU `defense-protocol-ios`.
+- Build 3 was signed, archived, uploaded, processed, and selected for version 1.0.
+  Local archive: `ios/Archives/DefenseProtocol-1.0-3.xcarchive`.
+  Earlier archives remain historical artifacts.
+- Privacy disclosures were published with owner approval: User ID, Gameplay
+  Content, Coarse Location, and Other Diagnostic Data; linked, no tracking.
+  The native manifest and live privacy policy were reconciled with that inventory.
+  See [privacy audit](PRIVACY-AUDIT-2026-09-18.md).
+- Current owner-supplied iPhone and iPad screenshots were uploaded and accepted;
+  originals are tracked under `screenshots/2026-09-18-iphone/` and
+  `screenshots/2026-09-18-ipad/`.
+- Store metadata, Content Rights, pricing, age rating, and review notes saved.
+  Free pricing and manual release selected. Initial targets are iPhone/iPad;
+  Apple Silicon Mac and Vision Pro availability disabled.
+- Joe confirmed `support@geeklabs.io` is monitored. DSA non-trader declaration
+  was saved and verified Active for 27 countries/regions.
+- Seven sounds have reproducible synthesis provenance; see
+  [sound evidence](SOUND_PROVENANCE.md). Artwork/branding attribution and
+  bundled third-party notices are documented.
+- Global scores remain opt-in; callsigns are generated and enforced by the API.
+  Local scores remain available without opting into online submission.
 
-- Privacy manifest is included in the native Resources build phase. It declares
-  unlinked Gameplay Content for app functionality, no tracking, and UserDefaults
-  reason `CA92.1`. App-generated callsigns replace free-form user content.
-- `ITSAppUsesNonExemptEncryption` is false for the platform-HTTPS-only app.
-- Runtime MIT notices are bundled. The existing GitHub footer image is bundled
-  locally, eliminating an unnecessary remote image request from the native app.
-- Online score submission is off until the player selects it and remains
-  controllable from the start and pause screens.
-- Callsigns use a fixed app-generated vocabulary with a reroll control. The
-  client normalizes older saved names and the API rejects arbitrary names.
-- Store description, subtitle, keywords, promotional text, release notes, review
-  notes, age-rating facts, and the App Privacy worksheet are prepared in the
-  sibling site's `docs/app-store-metadata.md`. Field length checks pass.
-- Four native Release screenshots are ready in [screenshots](screenshots/README.md):
-  iPhone 6.9-inch and iPad 13-inch, with start and gameplay screens for each.
-- A signed Release archive is available locally:
-  `ios/Archives/DefenseProtocol-1.0-1-local-assets.xcarchive`.
-  The earlier `DefenseProtocol-1.0-1.xcarchive` is superseded.
+## Validation and retained evidence
 
-## Archive and test evidence
+- Build-3 preparation passed game tests, production build, manifest lint, strict
+  signature verification, and website tests. All 45 packaged public/gameplay
+  files matched build 2. See the dated preparation record for exact scope.
+- iOS target is 15.0, iPhone/iPad, landscape left/right.
+- Owner previously accepted roughly 30-minute iPhone/iPad runs to Wave 66 and
+  the corrected iPad turret artwork. These reports do not establish final
+  build-3 force-quit persistence or instrumented thermal validation.
+- Signed archives and Xcode build outputs are ignored local files. Preserve the
+  Mac checkout for native builds and release evidence; Git cloning omits them.
 
-- Xcode archive: succeeded, version `1.0 (1)`, bundle `tv.geekstreet.td`.
-- iOS deployment target: 15.0; device families: iPhone and iPad.
-- Orientations: landscape left and right for both device families.
-- Code signature: strict/deep verification passed; Apple Development signing.
-- Binary and dSYM UUIDs match: `48ABAFC1-0597-367D-B528-D0D67B549B9C` (arm64).
-- Packaged privacy manifest exactly matches the reviewed source; local branding
-  image exactly matches its bundled source.
-- Game suite: 77 tests passed; production build passed; production dependency
-  audit found zero vulnerabilities.
-- Simulator validation passed, including packaged manifest/notices checks.
-- Public-site suite: 9 tests passed; production build passed.
-- App Store Connect upload/distribution validation has **not** been performed.
-  A development-signed archive is not a submitted or approved App Store build.
+## Remaining release and operational gates
 
-## Remaining owner decisions and release gates
+1. Check Apple's current review result; resolve any review feedback. Approval
+   does not publish automatically under the recorded manual-release setting.
+2. Confirm final TestFlight/build-3 acceptance on both device families, including
+   force-quit preference restoration.
+3. Resolve regional availability/licensing constraints, including China/Vietnam,
+   before claiming an all-region launch.
+4. Confirm production game/API state separately from repository status. The
+   development move does not deploy the game or migrate service data.
+5. Verify an off-host backup and agree an access/recovery plan before changing
+   production firewall or SSH settings. The audit below is historical.
 
-1. **Release-build device check.** Owner accepted iPhone and iPad gameplay
-   after roughly 30-minute runs to Wave 66, and accepted the corrected turret
-   artwork on iPad. Verify the final TestFlight build on both devices, including
-   force-quit preference restoration; see `docs/context/CURRENT_STATE.md`.
-2. **Privacy/account facts.** Confirm that `support@geeklabs.io` is monitored,
-   review Cloudflare account-level retention, and approve the final privacy,
-   content-rights, export-compliance, and age-rating answers.
-3. **App Store Connect.** Owner reports active membership on 2026-09-12;
-   Xcode shows the Developer Team selected with automatic signing. Confirm
-   outstanding agreements and the app record,
-   distribution signing, pricing/territories and optional Mac/Vision availability;
-   upload a build, complete TestFlight acceptance, and submit for review.
-4. **Production durability/access.** Select an off-host/Proxmox backup destination
-   and approve a firewall/SSH access plan before tightening the VM's access.
-
-The callsign flow changed after the existing archive and screenshots were made.
-Regenerate both before submission, deploy the coordinated game/API/site update,
-then run the backup-first legacy-name migration. Use a new build number after
-any build has been uploaded.
-
-## Production audit
+## Historical production audit — 2026-09-02
 
 - The application containers expose no host ports; Cloudflare Tunnel remains
   the public ingress. No tunnel configuration change was required.
