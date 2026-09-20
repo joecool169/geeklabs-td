@@ -9,6 +9,43 @@ This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
 
+## Read-only VM audit — 2026-09-20
+
+Follow-up tasks: [VM maintenance checklist](VM_MAINTENANCE.md). Audit only;
+no packages, services, firewall, SSH settings, or backups were changed.
+
+- Confirmed VM 108 on WorkLab Proxmox node hpe-pve2; 2 vCPUs, 4 GB configured
+  RAM, 60 GB disk. Ubuntu 26.04.1; running kernel 7.0.0-30-generic.
+- Website, game, and leaderboard returned HTTP 200. Containers healthy; no
+  failed systemd units or broken package state. Time synchronized. Disk 29%
+  used with about 40 GB available; roughly 2.3 GB memory available.
+- Docker, Compose, Git, Python, SQLite, curl, compression/archive utilities,
+  rsync, user-local Node 22/npm, and QEMU guest agent are present.
+- Nightly leaderboard backup succeeded September 20 at 03:20 UTC. Live database
+  quick-check passed. Latest gzip backup decompressed and passed SQLite
+  quick-check in memory after normalizing WAL header flags in the validation
+  copy only. Original backup unchanged; no full restore test performed.
+- Backup script retains daily database snapshots locally for roughly 31 days.
+  Proxmox cluster backup job list was empty; no VM 108 backup appeared in the
+  host's configured backup storage. Off-VM recovery coverage remains unverified.
+- UFW inactive; Proxmox firewall status disabled/running. VM input policies
+  default ACCEPT with Tailscale rules. SSH listens on all IPv4/IPv6 interfaces,
+  accepts passwords, permits root keys (not root passwords), and allows
+  unrestricted passwordless sudo for joe. Upstream exposure was not audited.
+- SSH key/authorized-key permissions restricted; tunnel token permissions
+  restricted and mounted read-only. No token contents exposed. SSH logs showed
+  zero failed-password/invalid-user events in the preceding seven days; this
+  is not a compromise assessment.
+- Containers publish no host web ports, are not privileged, and use
+  no-new-privileges plus rotated logs. Most roots are read-only; leaderboard and
+  tunnel run as non-root. No explicit container memory/process limits found.
+- Automatic updates active; package lists refreshed that day. 22 updates pending,
+  including Docker components, networking packages, and Tailscale. Reboot required
+  for installed kernel 7.0.0-31 and system-library updates.
+- Persistent priority-2500 LAN route rule present and LAN routing correct.
+  About 5 GB build cache reclaimable; cleanup optional. External alert coverage
+  and container vulnerability status were not comprehensively verified.
+
 ## Verified web catch-up deployment — 2026-09-20
 
 - Owner authorized bringing the live web game up to date. Deployed reviewed

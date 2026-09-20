@@ -107,7 +107,8 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 - confirm the support mailbox is monitored and complete the factual/legal review
   of privacy, credits, licenses, known issues, and supported devices
 - finish App Store metadata, screenshots, privacy declarations, signing, and TestFlight
-- harden the production VM and add an off-host or Proxmox-level backup
+- complete the prioritized [VM maintenance checklist](VM_MAINTENANCE.md):
+  recovery coverage, access/firewall hardening, updates/reboot, and monitoring
 - polish the public site with authentic gameplay media and the App Store badge when available
 
 ## Later product work

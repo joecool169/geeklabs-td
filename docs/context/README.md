@@ -11,6 +11,7 @@ secrets, or other private operational data.
 | --- | --- | --- |
 | [REMOTE_DEVELOPMENT.md](REMOTE_DEVELOPMENT.md) | Remote checkout, Mac release boundary, and move checklist | Development host or access changes |
 | [RELEASE_STRATEGY.md](RELEASE_STRATEGY.md) | Web-first release branches, tags, and monetization direction | Release policy or business model changes |
+| [VM_MAINTENANCE.md](VM_MAINTENANCE.md) | Prioritized VM recovery, security, updates, and monitoring checklist | Maintenance work is planned or verified |
 | [CURRENT_STATE.md](CURRENT_STATE.md) | Volatile release, validation, deployment, and next-gate snapshot | A material release, deploy, device result, or operational state changes |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Stable game, platform, service, and repository boundaries | A durable responsibility or integration boundary changes |
 | [ROADMAP.md](ROADMAP.md) | Completed milestones and remaining product work | A phase begins, completes, or materially changes |
