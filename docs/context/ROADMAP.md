@@ -113,6 +113,15 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 
 ## Later product work
 
+Owner-requested future additions (September 20, 2026; mechanics and order TBD):
+
+- **Rocket turret** — establish its role and tradeoffs before implementation.
+- **Turret linking** — clarify the intended combinations and linking behavior.
+- **Inspiration:** Onslaught 2 and other tower-defense games the owner enjoys.
+  See [design questions](IDEAS.md#owner-requested-future-features--september-20-2026).
+
+Other future work:
+
 - onboarding/tutorial refinement
 - replay and endurance testing
 - additional maps, modes, towers, or progression only when supported by playtest evidence

@@ -9,6 +9,42 @@
 
 ---
 
+## Owner-requested future features — September 20, 2026
+
+The owner wants to add a **rocket turret** and **turret linking** at some point.
+These are recorded future directions, with no implementation date, priority,
+mechanics, or balance values agreed. They are not implemented by this entry.
+
+The original product intent was to combine features the owner enjoys in other
+tower-defense games. **Onslaught 2** is one of their favorites and a named
+inspiration. Ask which interactions they want to capture before assuming how
+its mechanics should translate to Defense Protocol. No reference-game behavior
+has been verified for this note.
+
+### Rocket turret
+
+- Define a distinct tactical role alongside Basic, Rapid, Sniper, and Laser.
+- Discuss whether rockets should be single-target, splash damage, homing,
+  volleys, or another model; none of these mechanics is selected yet.
+- Decide unlock wave, cost, upgrades, targeting, and tradeoffs through design
+  and web playtesting. Preserve existing tower roles rather than simply adding
+  a stronger replacement.
+
+### Turret linking
+
+- Clarify what linking means to the owner: combination attacks, shared boosts,
+  coordinated targeting, or another interaction. These are questions, not specs.
+- Decide eligible tower combinations, proximity/placement rules, automatic vs
+  manual activation, costs, limits, and clear visual feedback.
+- Consider the rocket turret when designing compatibility, without making
+  either feature depend on the other before that dependency is justified.
+- Keep interactions readable with both mouse and touch. Follow the web-first
+  testing and later native-release workflow.
+
+These owner requests do not adopt the older speculative sequencing below.
+
+---
+
 ## Background Problem Statement
 
 Current gameplay reaches a saturation point between approximately **Wave 50–100** where:
