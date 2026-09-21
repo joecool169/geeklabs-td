@@ -22,6 +22,28 @@ inspiration. Ask which interactions they want to capture before assuming how
 its mechanics should translate to Defense Protocol. No reference-game behavior
 has been verified for this note.
 
+### New map — broad S route selected
+
+The owner selected **Option A: Broad S** from the two schematic route concepts.
+The alternative tight five-pass serpentine was not selected.
+
+- One entrance, one exit, and one fixed route with three horizontal passes
+  joined by two bends.
+- Entry at the upper left; route crosses the upper section, doubles back
+  through the middle, and crosses the lower section toward the core.
+- Broad building areas between passes leave room for turret groups and
+  potential future linking. Outer positions should remain useful too.
+- This is an additional map concept, not a replacement for the existing map.
+- Use existing towers and waves as the initial comparison baseline; validate
+  route length, coverage overlap, buildable space, and difficulty through web
+  playtesting before accepting balance. The sketch is not a measured layout.
+- Exact dimensions, name, setting/artwork, map selection, and score comparison
+  rules remain undecided. The map should not require unimplemented rocket or
+  linking features to be playable.
+
+Selection records design direction only; no implementation or deployment has
+been authorized by this preference.
+
 ### Rocket turret
 
 - Define a distinct tactical role alongside Basic, Rapid, Sniper, and Laser.
