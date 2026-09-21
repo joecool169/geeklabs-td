@@ -22,10 +22,11 @@ inspiration. Ask which interactions they want to capture before assuming how
 its mechanics should translate to Defense Protocol. No reference-game behavior
 has been verified for this note.
 
-### New map — broad S route selected
+### New map — Relay Yard (broad S route)
 
 The owner selected **Option A: Broad S** from the two schematic route concepts.
-The alternative tight five-pass serpentine was not selected.
+The alternative tight five-pass serpentine was not selected. The owner then
+accepted **Relay Yard**, an industrial sci-fi power relay yard, as its setting.
 
 - One entrance, one exit, and one fixed route with three horizontal passes
   joined by two bends.
@@ -37,9 +38,22 @@ The alternative tight five-pass serpentine was not selected.
 - Use existing towers and waves as the initial comparison baseline; validate
   route length, coverage overlap, buildable space, and difficulty through web
   playtesting before accepting balance. The sketch is not a measured layout.
-- Exact dimensions, name, setting/artwork, map selection, and score comparison
+- Exact dimensions, final artwork, map selection, and score comparison
   rules remain undecided. The map should not require unimplemented rocket or
   linking features to be playable.
+
+Accepted visual direction:
+
+- A service road winds between two large equipment platforms, from a breached
+  entrance gate toward a reactor or command core (final endpoint design open).
+- Uncluttered concrete pads form the buildable areas; worn pavement and hazard
+  markings distinguish the route from buildable ground.
+- Transformers, cooling equipment, cables, and restrained warning lights sit
+  around the edges, preserving gameplay readability.
+- Cooler blue-green lighting and pale concrete distinguish this map while
+  retaining Defense Protocol's industrial sci-fi identity.
+- Scenery is decorative initially: no new terrain effects, hazards, or required
+  linking mechanics. Evaluate the route using existing gameplay first.
 
 Selection records design direction only; no implementation or deployment has
 been authorized by this preference.

@@ -115,9 +115,10 @@ See `IOS_POC.md` for the exact validation commands and device checklist.
 
 Owner-requested future additions (September 20, 2026; mechanics and order TBD):
 
-- **New map: broad S route (Option A selected)** — three passes, two bends,
-  and broad building areas. Dimensions, theme, and balance remain to be designed
-  and tested; preserve the existing map.
+- **New map: Relay Yard (broad S / Option A)** — industrial sci-fi power yard
+  with three passes, two bends, and broad concrete building areas. Decorative
+  scenery initially; dimensions, final artwork, and balance need development
+  and testing. Preserve the existing map.
 - **Rocket turret** — establish its role and tradeoffs before implementation.
 - **Turret linking** — player-activated combinations between fully upgraded
   turrets within link range. First example: Rocket + Laser produces rockets
