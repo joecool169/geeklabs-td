@@ -1,15 +1,35 @@
 # Current State
 
 - Snapshot date: **2026-09-20**
-- Branch: **`codex/relay-yard-map`**
-- Current release: **`v0.10.0` production graphics pass**
+- Branch: **`main`**
+- Current web release: **Relay Yard update (`9fecd09`); UI version `v0.10.0`**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
 
 This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
 
-## Relay Yard candidate — 2026-09-20 (not deployed)
+## Relay Yard web deployment — 2026-09-20
+
+- Owner authorized live deployment. Game source `9fecd09` was merged into main
+  and deployed using `npm run deploy`; all 95 tests and the production build pass.
+  Release tag: `web/v0.10.0-relay-yard-20260920`.
+- Companion site/API deployed first at `140190a` (same tree as local `6c75349`).
+  Live database backup `pre-relay-yard-20260921.sqlite3` is in the VM leaderboard
+  backup directory and passes quick_check. Migration retains all 16 original
+  rows unchanged as `classic`; live database quick_check passes.
+- Public API confirms separate classic and Relay Yard boards. Public website
+  map selector works. Browser entered Relay Yard with online submission off;
+  no test score posted and no browser errors observed.
+- Served JS `index-JOKqZrN_.js` and CSS `index-C4xXH-Eo.css` match local production
+  artifacts byte for byte. JS SHA-256:
+  `0f2f64a79fd102c8c12850b4c9ad95cda9fa92c339cdd147c3850eb9f4660c84`.
+- iOS stabilization branch `codex/release-ios-1.0` now points to recorded build-3
+  source `87e4715` on Forgejo and GitHub. No native build/sync/archive, App Store
+  change, or new native feature release occurred. Full-run map balance testing
+  remains future web playtesting work.
+
+## Relay Yard implementation and pre-release validation — 2026-09-20
 
 - Added the approved broad S route with three passes, two bends, two concrete
   platforms, and blue-green industrial scenery. Defense Grid remains available.
@@ -23,8 +43,8 @@ and longer-term work live in the other documents linked from the
   `codex/relay-yard-leaderboards`. It adds a default-classic database migration,
   per-map retention and filtering, and a public leaderboard map selector.
 - Release order: back up the live leaderboard database, deploy/review the
-  compatible API and site, then deploy the game candidate. No VM checkout,
-  database, container, Apple submission, or native archive was changed here.
+  compatible API and site, then deploy the game candidate. At candidate preparation, no live or native changes were made. The authorized
+  web deployment is recorded above.
 - Validation: 95 game tests and production build; companion site build, 9
   rendered-page checks, and 5 API tests including legacy-schema migration,
   map/difficulty isolation, invalid maps, and per-map score retention.

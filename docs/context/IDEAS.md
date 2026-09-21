@@ -56,8 +56,8 @@ Accepted visual direction:
 - Scenery is decorative initially: no new terrain effects, hazards, or required
   linking mechanics. Evaluate the route using existing gameplay first.
 
-Implementation authorized September 20, 2026. A local web candidate is prepared
-on `codex/relay-yard-map`; it has not been deployed or shipped to iOS. Full-run
+Implementation authorized September 20, 2026. The web implementation from
+`codex/relay-yard-map` was deployed as `9fecd09`; it has not shipped to iOS. Full-run
 web playtesting and final visual/balance acceptance remain pending.
 
 ### Rocket turret

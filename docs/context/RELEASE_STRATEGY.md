@@ -14,7 +14,11 @@ open source. This document recommends the Git procedure for that direction.
 | `web/v<version>` | Immutable tag identifying a verified deployed web revision |
 | `ios/v<version>-build-<number>` | Immutable tag identifying the exact source of an uploaded native build |
 
-Names above are patterns, not refs created by this documentation change.
+The naming patterns above define the workflow. On September 20, 2026,
+`codex/release-ios-1.0` was created from `87e4715`, the recorded build-3 source,
+and pushed to Forgejo and GitHub before deploying Relay Yard from main.
+Keep this branch frozen except for explicitly requested iOS release fixes.
+The current App Store upload is unchanged by web deployments.
 Keep existing historical tags. Web and App Store version numbers may differ;
 record both along with the commit SHA instead of assuming equal versions mean
 equal code. Forgejo is authoritative; mirror reviewed branches/tags to GitHub.
