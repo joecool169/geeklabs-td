@@ -49,12 +49,13 @@ test("game-over overlay renders actual escapes and dispatches replay/change acti
   const previousDocument = globalThis.document;
   const makeNode = () => ({
     children: [], style: {}, listeners: {},
+    setAttribute() {},
     append(...nodes) { this.children.push(...nodes); },
     addEventListener(event, handler) { this.listeners[event] = handler; },
     remove() { this.removed = true; },
     querySelector() { return null; },
   });
-  globalThis.document = { createElement: makeNode };
+  globalThis.document = { createElement: makeNode, createElementNS: (_namespace, _tag) => makeNode() };
   try {
     const manager = new OverlayManager({ host: makeNode(), storage: {} });
     const actions = [];
@@ -80,7 +81,7 @@ test("game-over overlay renders actual escapes and dispatches replay/change acti
     assert.ok(nodes.indexOf(buttons) < nodes.indexOf(losses), "replay precedes expandable detail");
     nodes.find(node => node.textContent === "Re-engage").listeners.click();
     assert.equal(overlay.removed, true);
-    nodes.find(node => node.textContent === "Change name / difficulty").listeners.click();
+    nodes.find(node => node.textContent === "Change map / difficulty").listeners.click();
     assert.deepEqual(actions, ["restart", "change"]);
   } finally {
     globalThis.document = previousDocument;
@@ -105,7 +106,7 @@ test("start overlay uses generated callsigns and requires leaderboard opt-in", (
     };
     return node;
   };
-  globalThis.document = { createElement: makeNode };
+  globalThis.document = { createElement: makeNode, createElementNS: (_namespace, _tag) => makeNode() };
   try {
     const host = makeNode();
     const manager = new OverlayManager({ host, storage: {} });
@@ -127,7 +128,12 @@ test("start overlay uses generated callsigns and requires leaderboard opt-in", (
     assert.equal(checkbox.checked, false);
     reroll.listeners.click();
     assert.equal(isGeneratedCallsign(callsign.value), true);
+    const relay = nodes.find(node => node.type === "radio" && node.value === "relay-yard");
+    assert.ok(relay, "Relay Yard is selectable");
+    relay.checked = true;
+    relay.listeners.change();
     engage.listeners.click();
+    assert.equal(startOptions.mapKey, "relay-yard");
     assert.equal(startOptions.globalScoresEnabled, false);
     assert.equal(startOptions.playerName, callsign.value);
   } finally {

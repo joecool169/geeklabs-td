@@ -117,8 +117,10 @@ Owner-requested future additions (September 20, 2026; mechanics and order TBD):
 
 - **New map: Relay Yard (broad S / Option A)** — industrial sci-fi power yard
   with three passes, two bends, and broad concrete building areas. Decorative
-  scenery initially; dimensions, final artwork, and balance need development
-  and testing. Preserve the existing map.
+  scenery and map selection implemented on `codex/relay-yard-map`. Separate
+  scores and compatible server changes are prepared. Local smoke checks pass;
+  web release, full-run playtesting, and visual/balance acceptance remain pending.
+  The existing Defense Grid map is preserved.
 - **Rocket turret** — establish its role and tradeoffs before implementation.
 - **Turret linking** — player-activated combinations between fully upgraded
   turrets within link range. First example: Rocket + Laser produces rockets

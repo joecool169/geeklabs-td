@@ -1,3 +1,4 @@
+import { DEFAULT_MAP_KEY, normalizeMapKey } from "./maps.js";
 const BALANCE_CHECKPOINT_WAVES = Object.freeze([
   10, 15, 20, 25, 30, 35, 40, 45, 50,
 ]);
@@ -11,16 +12,20 @@ const incrementCount = (counts, key) => {
 function createRunTelemetry({
   seed,
   difficultyKey,
+  mapKey = DEFAULT_MAP_KEY,
   runLabel = "unlabeled",
   startingLives = 20,
 }) {
   const normalizedLabel = String(runLabel || "unlabeled").trim() || "unlabeled";
+  const normalizedMap = normalizeMapKey(mapKey);
+  const mapPrefix = normalizedMap === DEFAULT_MAP_KEY ? "" : `${normalizedMap}:`;
   return {
     version: TELEMETRY_VERSION,
-    runId: `${difficultyKey}:${normalizedLabel}:${seed}`,
+    runId: `${mapPrefix}${difficultyKey}:${normalizedLabel}:${seed}`,
     runLabel: normalizedLabel,
     seed,
     difficultyKey,
+    mapKey: normalizedMap,
     startingLives,
     firstLeakWave: null,
     totalLeaks: 0,

@@ -38,9 +38,10 @@ accepted **Relay Yard**, an industrial sci-fi power relay yard, as its setting.
 - Use existing towers and waves as the initial comparison baseline; validate
   route length, coverage overlap, buildable space, and difficulty through web
   playtesting before accepting balance. The sketch is not a measured layout.
-- Exact dimensions, final artwork, map selection, and score comparison
-  rules remain undecided. The map should not require unimplemented rocket or
-  linking features to be playable.
+- Initial implementation uses a 3,260-pixel route, matching Defense Grid travel
+  length. The setup menu offers both maps and remembers the selection. Local
+  and online scores are separated by map and difficulty; old scores remain
+  Defense Grid. Neither rockets nor linking are required.
 
 Accepted visual direction:
 
@@ -55,8 +56,9 @@ Accepted visual direction:
 - Scenery is decorative initially: no new terrain effects, hazards, or required
   linking mechanics. Evaluate the route using existing gameplay first.
 
-Selection records design direction only; no implementation or deployment has
-been authorized by this preference.
+Implementation authorized September 20, 2026. A local web candidate is prepared
+on `codex/relay-yard-map`; it has not been deployed or shipped to iOS. Full-run
+web playtesting and final visual/balance acceptance remain pending.
 
 ### Rocket turret
 

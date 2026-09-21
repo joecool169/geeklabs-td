@@ -1724,3 +1724,34 @@ html.touch-ui .game-overlay-input {
   html.touch-ui .game-overlay .game-overlay-panel .game-overlay-brand-tagline { font-size: 10px; }
   html.touch-ui .game-overlay .game-overlay-stats { margin-bottom: 12px; }
 }
+
+/* Map selection belongs to setup; a running game's map never changes. */
+.map-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.map-option { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 10px; border: 1px solid #365058; border-radius: 5px; background: #0e1b23; cursor: pointer; }
+.map-option.is-active { border-color: var(--dp-teal); background: #17302f; }
+.map-option:focus-within { outline: 2px solid var(--dp-teal); outline-offset: 2px; }
+.map-option-title { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.map-option input { accent-color: #78d9bc; }
+.map-option svg { width: 100%; height: 66px; background: #111d25; border-radius: 3px; }
+.map-route { fill: none; stroke: #79c9c5; stroke-width: 24; stroke-linejoin: round; }
+.map-core { fill: #f5c870; }
+.map-description { font-size: 11px; line-height: 1.4; color: #bed0d7; }
+.game-overlay-panel.is-start { box-sizing: border-box; max-height: calc(100% - 24px); overflow-y: auto; }
+@media (min-width: 900px) and (min-height: 650px) {
+  html:not(.touch-ui) .game-overlay-panel.is-start { display: grid; grid-template-columns: 170px minmax(0, 420px); gap: 24px; padding: 24px; }
+  html:not(.touch-ui) .game-overlay-panel.is-start .game-overlay-brand { justify-content: center; }
+  html:not(.touch-ui) .game-overlay-panel.is-start .game-overlay-brand img { max-width: 160px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .map-option { padding: 7px; }
+  .map-option svg { height: 42px; }
+  .map-description { display: none; }
+  .map-options { margin-bottom: 10px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  html.touch-ui .is-start .map-option { display: grid; grid-template-columns: minmax(0, 1fr) 64px; align-items: center; min-height: 44px; padding: 4px 7px; box-sizing: border-box; }
+  html.touch-ui .is-start .map-option svg { height: 30px; }
+  html.touch-ui .is-start .map-options { margin-bottom: 6px; }
+  html.touch-ui .is-start .game-overlay-body { padding: 8px 18px; }
+  html.touch-ui .game-overlay-panel.is-start .game-overlay-setting { margin-bottom: 6px; padding: 5px 9px; }
+}

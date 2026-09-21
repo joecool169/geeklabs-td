@@ -1,3 +1,4 @@
+import { getMap, normalizeMapKey } from "./game/maps.js";
 import Phaser from "phaser";
 import {
   DIFFICULTY_CONFIG,
@@ -94,6 +95,7 @@ export class GameScene extends Phaser.Scene {
     const overlayHost = this.game?.canvas?.parentElement;
     this.overlays = new OverlayManager({ host: overlayHost, storage });
 
+    this.mapKey = normalizeMapKey(this.startOptions?.mapKey ?? storage.read(STORAGE_KEYS.map));
     this.playerName = normalizePlayerName(storage.read(STORAGE_KEYS.playerName));
     this.difficultyKey = normalizeDifficultyKey(
       storage.read(STORAGE_KEYS.difficulty)
@@ -268,6 +270,7 @@ export class GameScene extends Phaser.Scene {
       (a, b) => Number(a.hotkey) - Number(b.hotkey)
     );
     this.domView = new GameDomView();
+    if (this.domView.refs.hudMapEl) this.domView.refs.hudMapEl.textContent = getMap(this.mapKey).label;
     this.domView.bind({
       towerDefs: this.buildTowerDefs,
       onSelectTowerType: (towerType) =>
@@ -516,6 +519,7 @@ export class GameScene extends Phaser.Scene {
     this.runTelemetry = Telemetry.createRunTelemetry({
       seed: this.runSeed,
       difficultyKey: normalized,
+      mapKey: this.mapKey,
       runLabel: this.runLabel,
       startingLives: this.lives,
     });
@@ -537,16 +541,23 @@ export class GameScene extends Phaser.Scene {
     this.overlays.showStart({
       playerName: this.playerName,
       difficultyKey: this.difficultyKey,
+      mapKey: this.mapKey,
       soundEnabled: this.audioController.enabled,
       globalScoresEnabled: this.globalScoresEnabled,
       onToggleSound: () => this.toggleSound(),
-      onStart: ({ playerName, difficultyKey, globalScoresEnabled }) => {
+      onStart: ({ playerName, difficultyKey, mapKey, globalScoresEnabled }) => {
         const name = normalizePlayerName(playerName);
         this.playerName = name;
         storage.write(STORAGE_KEYS.playerName, name);
         this.setGlobalScoresEnabled(globalScoresEnabled);
-        this.applyDifficulty(difficultyKey);
         storage.write(STORAGE_KEYS.difficulty, difficultyKey);
+        storage.write(STORAGE_KEYS.map, mapKey);
+        if (mapKey !== this.mapKey) {
+          this.scene.restart({ skipStartScreen: true, playerName: name, difficultyKey,
+            mapKey, runSeed: this.runSeed, runLabel: this.runLabel });
+          return;
+        }
+        this.applyDifficulty(difficultyKey);
         this.runController.startGame();
         this.inputController?.setKeyboardEnabled(true);
         this.overlays.remove("defense-protocol-start-overlay");
@@ -559,6 +570,7 @@ export class GameScene extends Phaser.Scene {
       result: {
         playerName: this.playerName,
         difficultyKey: this.difficultyKey,
+        mapKey: this.mapKey,
         difficultyLabel: this.difficultyLabel,
         wave: this.wave,
         kills: this.killCount,
@@ -567,11 +579,13 @@ export class GameScene extends Phaser.Scene {
         escapesByWave: this.runTelemetry?.final?.escapesByWave,
       },
       currentEntry: this.lastLeaderboardEntry,
+      globalSubmission: this.globalSubmission,
       onRestart: () => {
         this.scene.restart({
           skipStartScreen: true,
           playerName: this.playerName,
           difficultyKey: this.difficultyKey,
+          mapKey: this.mapKey,
         });
       },
       onChange: () => this.scene.restart({ skipStartScreen: false }),
@@ -582,6 +596,7 @@ export class GameScene extends Phaser.Scene {
     if (this.isStartScreenActive || this.isGameOver) return;
     this.overlays?.showPause({
       difficultyKey: this.difficultyKey,
+      mapKey: this.mapKey,
       soundEnabled: this.audioController.enabled,
       globalScoresEnabled: this.globalScoresEnabled,
       onToggleSound: () => this.toggleSound(),
@@ -595,6 +610,7 @@ export class GameScene extends Phaser.Scene {
           skipStartScreen: true,
           playerName: this.playerName,
           difficultyKey: this.difficultyKey,
+          mapKey: this.mapKey,
         });
       },
       onChange: () => {
@@ -731,15 +747,18 @@ export class GameScene extends Phaser.Scene {
       wave: this.wave,
       kills: this.killCount,
       difficultyKey: this.difficultyKey,
+      mapKey: this.mapKey,
       difficultyLabel: this.difficultyLabel,
       dateISO: new Date().toISOString(),
     };
-    recordLeaderboardScore({
+    const recordedScore = recordLeaderboardScore({
       storage,
       entry: this.lastLeaderboardEntry,
       difficultyKey: this.difficultyKey,
+      mapKey: this.mapKey,
       globalScoresEnabled: this.globalScoresEnabled,
     });
+    this.globalSubmission = recordedScore.globalSubmission;
     this.showGameOverScreen();
   }
 

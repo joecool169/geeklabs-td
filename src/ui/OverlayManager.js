@@ -1,3 +1,4 @@
+import { DEFAULT_MAP_KEY, MAPS, getMap, normalizeMapKey } from "../game/maps.js";
 import { DIFFICULTY_CONFIG } from "../game/config.js";
 import { ENEMY_DEFS } from "../constants.js";
 import {
@@ -105,11 +106,11 @@ function renderLeaderboardEntries(container, entries, currentEntry) {
   });
 }
 
-function makeLeaderboardPanel(storage, difficultyKey, currentEntry = null) {
+function makeLeaderboardPanel(storage, difficultyKey, currentEntry = null, mapKey = DEFAULT_MAP_KEY) {
   const panel = element("div", "game-overlay-subpanel");
   panel.hidden = true;
   const header = element("div", "game-overlay-subpanel-header");
-  header.append(element("div", "game-overlay-subpanel-title", "Top 10"));
+  header.append(element("div", "game-overlay-subpanel-title", `${getMap(mapKey).label} · Top 10`));
   const toggles = element("div", "game-overlay-toggles");
   const localButton = makeButton("Local", "toggle");
   const globalButton = makeButton("Global", "toggle");
@@ -123,18 +124,18 @@ function makeLeaderboardPanel(storage, difficultyKey, currentEntry = null) {
   const render = () => {
     localButton.classList.toggle("is-active", mode === "local");
     globalButton.classList.toggle("is-active", mode === "global");
+    const currentRequest = (requestId += 1);
     if (mode === "local") {
-      const entries = readLocalLeaderboard(storage, difficultyKey).sort(
+      const entries = readLocalLeaderboard(storage, difficultyKey, mapKey).sort(
         compareLeaderboardEntries
       );
       renderLeaderboardEntries(list, entries, currentEntry);
       return;
     }
-    const currentRequest = (requestId += 1);
     list.replaceChildren(
       element("div", "game-overlay-muted", "Loading...")
     );
-    fetchGlobalLeaderboard(difficultyKey, 10)
+    fetchGlobalLeaderboard(difficultyKey, 10, globalThis.fetch, mapKey)
       .then((entries) => {
         if (currentRequest !== requestId) return;
         renderLeaderboardEntries(
@@ -143,13 +144,13 @@ function makeLeaderboardPanel(storage, difficultyKey, currentEntry = null) {
           null
         );
       })
-      .catch(() => {
+      .catch((error) => {
         if (currentRequest !== requestId) return;
         list.replaceChildren(
           element(
             "div",
             "game-overlay-muted",
-            "Global leaderboard unavailable."
+            error.message || "Global leaderboard unavailable."
           )
         );
       });
@@ -227,6 +228,7 @@ class OverlayManager {
   showStart({
     playerName,
     difficultyKey,
+    mapKey = DEFAULT_MAP_KEY,
     soundEnabled = true,
     globalScoresEnabled = false,
     onToggleSound = () => soundEnabled,
@@ -238,6 +240,45 @@ class OverlayManager {
       "start",
       "is-start"
     );
+    const mapLabel = element("div", "game-overlay-label", "Choose map");
+    const mapOptions = element("div", "map-options");
+    mapOptions.setAttribute("role", "radiogroup");
+    mapOptions.setAttribute("aria-label", "Map");
+    let selectedMap = normalizeMapKey(mapKey);
+    Object.values(MAPS).forEach((map) => {
+      const option = element("label", "map-option");
+      const radio = element("input");
+      radio.type = "radio";
+      radio.name = "map";
+      radio.value = map.key;
+      radio.checked = map.key === selectedMap;
+      radio.setAttribute("aria-label", map.label);
+      const preview = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      preview.setAttribute("viewBox", "0 120 1080 600");
+      preview.setAttribute("aria-hidden", "true");
+      const route = document.createElementNS(preview.namespaceURI, "polyline");
+      route.setAttribute("points", map.path.map(({x, y}) => `${Math.max(25, x)},${y}`).join(" "));
+      route.setAttribute("class", "map-route");
+      preview.append(route);
+      const end = map.path.at(-1);
+      const core = document.createElementNS(preview.namespaceURI, "circle");
+      core.setAttribute("cx", end.x);
+      core.setAttribute("cy", end.y);
+      core.setAttribute("r", "25");
+      core.setAttribute("class", "map-core");
+      preview.append(core);
+      const heading = element("span", "map-option-title");
+      heading.append(radio, element("strong", null, map.label));
+      option.append(heading, preview, element("span", "map-description", map.description));
+      option.classList.toggle("is-active", radio.checked);
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        selectedMap = map.key;
+        mapOptions.querySelectorAll(".map-option").forEach(node =>
+          node.classList.toggle("is-active", node.querySelector("input").checked));
+      });
+      mapOptions.append(option);
+    });
     const nameLabel = element("div", "game-overlay-label", "Generated callsign");
     const callsignRow = element("div", "game-overlay-callsign-row");
     const nameInput = element("input", "game-overlay-input");
@@ -319,11 +360,14 @@ class OverlayManager {
       onStart({
         playerName: nameInput.value,
         difficultyKey: selectedDifficulty,
+        mapKey: selectedMap,
         globalScoresEnabled: leaderboardCheckbox.checked,
       });
     startButton.addEventListener("click", start);
     const body = element("div", "game-overlay-body");
     body.append(
+      mapLabel,
+      mapOptions,
       nameLabel,
       difficultyLabel,
       difficultyOptions,
@@ -334,7 +378,7 @@ class OverlayManager {
     return overlay;
   }
 
-  showGameOver({ result, currentEntry, onRestart, onChange }) {
+  showGameOver({ result, currentEntry, globalSubmission, onRestart, onChange }) {
     if (!this.host) return false;
     const { overlay, panel } = this.mount(
       "defense-protocol-gameover-overlay",
@@ -344,8 +388,18 @@ class OverlayManager {
     const detail = element(
       "div",
       "game-overlay-detail is-danger",
-      `${result.playerName} • ${result.difficultyLabel} • Defense line breached`
+      `${result.playerName} • ${getMap(result.mapKey).label} • ${result.difficultyLabel} • Defense line breached`
     );
+    const submissionStatus = element("div", "game-overlay-muted", "Score saved locally for this map.");
+    submissionStatus.setAttribute("role", "status");
+    if (globalSubmission) {
+      submissionStatus.textContent = "Score saved locally. Sending online…";
+      globalSubmission.then(status => {
+        submissionStatus.textContent = status?.submitted
+          ? "Score saved locally and submitted online."
+          : "Score saved locally. Online submission unavailable for this run.";
+      });
+    }
     const stats = element("div", "game-overlay-stats");
     [
       ["Wave", result.wave],
@@ -362,12 +416,13 @@ class OverlayManager {
 
     const buttons = element("div", "game-overlay-actions");
     const restart = makeButton("Re-engage", "primary");
-    const change = makeButton("Change name / difficulty", "neutral");
+    const change = makeButton("Change map / difficulty", "neutral");
     const leaderboard = makeButton("Leaderboard", "gold");
     const leaderboardPanel = makeLeaderboardPanel(
       this.storage,
       result.difficultyKey,
-      currentEntry
+      currentEntry,
+      result.mapKey
     );
     restart.addEventListener("click", () => {
       overlay.remove();
@@ -401,7 +456,8 @@ class OverlayManager {
       stats,
       buttons,
       losses,
-      leaderboardPanel.element
+      leaderboardPanel.element,
+      submissionStatus
     );
     panel.append(makeBrandHeader(), body);
     return overlay;
@@ -409,6 +465,7 @@ class OverlayManager {
 
   showPause({
     difficultyKey,
+    mapKey = DEFAULT_MAP_KEY,
     soundEnabled = true,
     globalScoresEnabled = false,
     onToggleSound = () => soundEnabled,
@@ -427,14 +484,14 @@ class OverlayManager {
     const detail = element(
       "div",
       "game-overlay-detail desktop-instruction",
-      "P / ESC TO RESUME"
+      `${getMap(mapKey).label} · P / ESC TO RESUME`
     );
     const buttons = element("div", "game-overlay-actions");
     const resume = makeButton("Resume", "primary");
     const controls = makeButton("Controls", "neutral");
     const leaderboard = makeButton("Leaderboard", "gold");
     const restart = makeButton("Restart", "primary");
-    const change = makeButton("Change name / difficulty", "neutral");
+    const change = makeButton("Change map / difficulty", "neutral");
     const sound = makeButton("", "neutral");
     const globalScores = makeButton("", "neutral");
     resume.classList.add("is-resume");
@@ -468,7 +525,9 @@ class OverlayManager {
     const controlsPanel = makeControlsPanel();
     const leaderboardPanel = makeLeaderboardPanel(
       this.storage,
-      difficultyKey
+      difficultyKey,
+      null,
+      mapKey
     );
 
     resume.addEventListener("click", onResume);

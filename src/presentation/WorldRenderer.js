@@ -1,3 +1,4 @@
+import { createMapPath } from "../game/maps.js";
 import { ENEMY_DEFS, TOWER_DEFS } from "../constants.js";
 import { GRID, TOP_UI } from "../game/config.js";
 import {
@@ -21,14 +22,7 @@ const COMMAND_CORE_TEXTURE_KEY = "command_core";
 const DEPLOYMENT_GATE_TEXTURE_KEY = "deployment_gate";
 
 function createDefaultPath() {
-  return [
-    { x: -120, y: 120 + TOP_UI - GRID / 2 },
-    { x: 980, y: 120 + TOP_UI - GRID / 2 },
-    { x: 980, y: 520 + TOP_UI - GRID / 2 },
-    { x: 140, y: 520 + TOP_UI - GRID / 2 },
-    { x: 140, y: 320 + TOP_UI - GRID / 2 },
-    { x: 860, y: 320 + TOP_UI - GRID / 2 },
-  ];
+  return createMapPath("classic");
 }
 
 function pointToSegmentDistance(px, py, ax, ay, bx, by) {
@@ -196,7 +190,7 @@ function drawTowerTexture(graphics, type) {
 }
 
 class WorldRenderer {
-  constructor(scene, path = createDefaultPath()) {
+  constructor(scene, path = createMapPath(scene.mapKey)) {
     this.scene = scene;
     this.path = path;
     this.graphics = null;
@@ -220,6 +214,10 @@ class WorldRenderer {
   }
 
   drawFloor() {
+    if (this.scene.mapKey === "relay-yard") {
+      this.drawRelayYard();
+      return;
+    }
     if (!this.scene.textures.exists(PLAYFIELD_TEXTURE_KEY)) return;
     const width = this.scene.scale.width;
     const height = this.scene.scale.height - TOP_UI;
@@ -229,6 +227,39 @@ class WorldRenderer {
       .setDepth(-20)
       .setAlpha(0.38);
     this.floor.setTileScale(0.72);
+  }
+
+  drawRelayYard() {
+    const g = this.scene.add.graphics().setDepth(-20);
+    this.floor = g;
+    const width = this.scene.scale.width;
+    const height = this.scene.scale.height;
+    g.fillStyle(0x182d32, 1);
+    g.fillRect(0, TOP_UI, width, height - TOP_UI);
+    // Concrete platforms are decorative and do not change placement rules.
+    for (const y of [250, 450]) {
+      g.fillStyle(0x425658, 1);
+      g.fillRoundedRect(110, y, 820, 140, 8);
+      g.lineStyle(2, 0x78948e, 0.4);
+      g.strokeRoundedRect(110, y, 820, 140, 8);
+      g.lineStyle(1, 0x263f43, 0.7);
+      for (let x = 150; x < 930; x += 160) g.lineBetween(x, y, x, y + 140);
+    }
+    // Low-profile perimeter equipment stays outside the main building pads.
+    // It is decorative; towers can still occupy perimeter cells.
+    for (const y of [130, 705]) {
+      g.lineStyle(3, 0x457c7b, 0.8);
+      g.lineBetween(80, y + 8, 940, y + 8);
+      for (const x of [180, 420, 660, 900]) {
+        g.fillStyle(0x101f27, 1);
+        g.fillRoundedRect(x - 28, y, 56, 16, 3);
+        g.lineStyle(1, 0x84a5a2, 0.6);
+        g.strokeRoundedRect(x - 28, y, 56, 16, 3);
+        for (let dx = -18; dx <= 18; dx += 9) g.lineBetween(x + dx, y + 3, x + dx, y + 13);
+        g.fillStyle(0x56d9bd, 0.9);
+        g.fillCircle(x + 23, y + 4, 2);
+      }
+    }
   }
 
   makeTextures() {

@@ -10,6 +10,7 @@ class GameDomView {
     this.refs = {
       gameHudEl: root.getElementById("game-hud"),
       hudMoneyEl: root.getElementById("hud-money"),
+      hudMapEl: root.getElementById("hud-map"),
       hudLivesEl: root.getElementById("hud-lives"),
       hudWaveEl: root.getElementById("hud-wave"),
       hudTowersEl: root.getElementById("hud-towers"),

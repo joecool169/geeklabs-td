@@ -5,6 +5,7 @@ const DEFAULT_DIFFICULTY_KEY = "easy";
 
 const STORAGE_KEYS = Object.freeze({
   playerName: "defense_protocol_player_name_v1",
+  map: "defense_protocol_map_v1",
   difficulty: "defense_protocol_difficulty_v1",
   leaderboard: "defense_protocol_leaderboard_v1",
   globalScoresEnabled: "defense_protocol_global_scores_enabled_v2",

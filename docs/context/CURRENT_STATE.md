@@ -1,13 +1,36 @@
 # Current State
 
 - Snapshot date: **2026-09-20**
-- Branch: **`main`**
+- Branch: **`codex/relay-yard-map`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
 
 This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
+
+## Relay Yard candidate — 2026-09-20 (not deployed)
+
+- Added the approved broad S route with three passes, two bends, two concrete
+  platforms, and blue-green industrial scenery. Defense Grid remains available.
+  Both routes are 3,260 pixels; tower balance and waves are unchanged.
+- Setup offers route previews, map and difficulty selection, and remembered map.
+  Replay retains the map; change-map returns to setup. HUD, results, local
+  standings, and telemetry identify the map. Old local scores retain their keys.
+- Online Relay Yard reads/submissions require the server to confirm map support;
+  an older server cannot silently mix them into Defense Grid standings.
+- Companion site/API work is in the Mac `geeklabs-site` repository on
+  `codex/relay-yard-leaderboards`. It adds a default-classic database migration,
+  per-map retention and filtering, and a public leaderboard map selector.
+- Release order: back up the live leaderboard database, deploy/review the
+  compatible API and site, then deploy the game candidate. No VM checkout,
+  database, container, Apple submission, or native archive was changed here.
+- Validation: 95 game tests and production build; companion site build, 9
+  rendered-page checks, and 5 API tests including legacy-schema migration,
+  map/difficulty isolation, invalid maps, and per-map score retention.
+- Local browser checks: route rendering, tower placement, remembered selection,
+  replay, and map switching. Landscape phone menu fits at 844×390; this is browser
+  validation, not physical iOS validation or a full-run balance acceptance test.
 
 ## Read-only VM audit — 2026-09-20
 
