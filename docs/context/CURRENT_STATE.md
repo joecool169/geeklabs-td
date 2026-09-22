@@ -1,13 +1,29 @@
 # Current State
 
-- Snapshot date: **2026-09-12**
-- Branch: **`main`**
+- Snapshot date: **2026-09-22**
+- Branch: **`codex/release-ios-1.0`**
 - Current release: **`v0.10.0` production graphics pass**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
 
 This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
+
+## iOS 27 review fix — September 22, 2026
+
+Apple rejected 1.0 (3) for crashing on launch. Both reports match the retained
+archive and identify UIKit's missing-scene-lifecycle assertion. The failure was
+reproduced on an iPad Air 11-inch (M3) simulator running iPadOS 27.0.
+
+Native fix `e5d84fc` adopts a single-window scene lifecycle and advances the
+candidate to 1.0 (4). All 91 tests, native builds, signed archive, and code
+signature checks pass. Corrected simulator launch/rendering, background pause,
+and force-quit preference retention pass. Physical-device acceptance remains
+pending (locked iPhone; iPad connection timeout). No upload/resubmission or
+production deployment occurred. All 45 packaged gameplay files match build 3.
+
+See [review evidence and remaining gates](../app-store/REVIEW-2026-09-22.md).
+Older release entries below are historical; current web state lives on `main`.
 
 ## iPad gameplay acceptance — 2026-09-12
 
