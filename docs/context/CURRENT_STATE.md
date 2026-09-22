@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-09-20**
+- Snapshot date: **2026-09-22**
 - Branch: **`main`**
 - Current web release: **Relay Yard update (`9fecd09`); UI version `v0.10.0`**
 - Preserved balance baseline: **`v0.3.0-balance-checkpoint`**
@@ -8,6 +8,23 @@
 This is the volatile operational snapshot. Architecture, historical rationale,
 and longer-term work live in the other documents linked from the
 [context index](README.md).
+
+## iOS App Review crash fix — September 22, 2026
+
+- Live Apple status: 1.0 (3) **Rejected** for launch crash on iPad Air 11-inch
+  (M3), iPadOS 27.0. Both reports identify the missing UIKit scene lifecycle.
+- The native fix originated at `e5d84fc` on `codex/release-ios-1.0` and is ported
+  to main. No Relay Yard feature changes entered the frozen iOS branch.
+- Signed archive `ios/Archives/DefenseProtocol-1.0-4.xcarchive` passes signature
+  verification; its 45 packaged public/gameplay files exactly match build 3.
+- 91 release-branch tests and native builds pass. Matching-model iPadOS 27
+  simulator reproduces the old failure and verifies corrected launch/rendering,
+  background pause and force-quit settings retention.
+- Physical-device acceptance is pending: iPhone installation succeeded but its
+  screen was locked; iPad connection timed out. Build 4 is not uploaded or
+  resubmitted. Manual release remains selected; no production deployment.
+- See [review evidence](../app-store/REVIEW-2026-09-22.md). This supersedes older
+  Waiting for Review status below.
 
 ## Relay Yard web deployment — 2026-09-20
 

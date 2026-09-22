@@ -1,17 +1,15 @@
-# iOS App Store readiness — reconciled 2026-09-20
+# iOS App Store readiness — reconciled 2026-09-22
 
 ## Latest recorded release status
 
-Version **1.0 (build 3)** was submitted for public App Review on September 18
-with Joe's authorization. Apple confirmed “1 Item Submitted”; submission ID
-`e673c879-964d-41dd-a333-5df1475d6e24`. **Manual release** remains selected.
-Live App Store Connect check on September 20 confirmed **Waiting for Review**,
-selected build **3**, and **Manually release this version**. No Apple settings
-were changed. Check again before claiming approval or publishing.
-
-See [the preparation record](PREPARATION-2026-09-17.md), especially its final
-September 18 sections. Those updates supersede the old build-2 processing,
-unpublished-privacy, missing-screenshot, and not-submitted notes.
+Live review check September 22: **version 1.0 (3) rejected** under Guideline
+2.1(a) after crashing on iPadOS 27. Both crash reports identify the missing
+UIKit scene lifecycle. The frozen iOS branch now contains the fix and a signed
+**1.0 (4)** archive. Matching-model iPadOS 27 simulator reproduction and corrected
+launch, rendering, background pause, and relaunch checks pass. Physical-device
+acceptance is pending because the iPhone was locked and iPad access timed out.
+Build 4 is **not uploaded or resubmitted**; manual release remains selected.
+See [September 22 review and fix evidence](REVIEW-2026-09-22.md).
 
 ## Completed preparation
 
