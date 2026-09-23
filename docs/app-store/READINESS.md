@@ -2,14 +2,17 @@
 
 ## Latest recorded release status
 
-Live review check September 22: **version 1.0 (3) rejected** under Guideline
-2.1(a) after crashing on iPadOS 27. Both crash reports identify the missing
-UIKit scene lifecycle. The frozen iOS branch now contains the fix and a signed
-**1.0 (4)** archive. Matching-model iPadOS 27 simulator reproduction and corrected
-launch, rendering, background pause, and relaunch checks pass. Physical-device
-acceptance is pending because the iPhone was locked and iPad access timed out.
-Build 4 is **not uploaded or resubmitted**; manual release remains selected.
-See [September 22 review and fix evidence](REVIEW-2026-09-22.md).
+Version **1.0 (4)** was uploaded, processed, selected, and resubmitted with
+Joe's authorization on September 22. Live App Store Connect confirms
+**Waiting for Review**. **Manual release** remains selected. The prior build-3
+rejection is historical; build 4 adopts the UIKit scene lifecycle required
+for iOS/iPadOS 27.
+
+Native launch/rendering was verified on both physical devices. Joe confirmed
+gameplay, sound, and background/resume worked on iPhone and iPad. Simulator
+checks also cover reproduction of the old crash and force-quit preference
+retention. Source tag: `ios/v1.0-build-4` at `e5d84fc`.
+See [September 22 review and resubmission evidence](REVIEW-2026-09-22.md).
 
 ## Completed preparation
 
