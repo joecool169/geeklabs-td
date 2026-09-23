@@ -1,5 +1,14 @@
 # Current State
 
+## Latest Apple status — September 22 resubmission
+
+Version **1.0 (4)** is **Waiting for Review**, verified live after authorized
+resubmission. Manual release remains enabled. Physical launch/rendering passed
+on both devices, and Joe confirmed gameplay, sound, and background/resume.
+Upload source: `ios/v1.0-build-4` at `e5d84fc`. No public release or web deploy.
+This supersedes the earlier pending-device/upload notes below. See
+[review record](../app-store/REVIEW-2026-09-22.md).
+
 - Snapshot date: **2026-09-22**
 - Branch: **`main`**
 - Current web release: **Relay Yard update (`9fecd09`); UI version `v0.10.0`**
