@@ -13,7 +13,7 @@ const PRIVACY_URL = "https://geeklabs.io/privacy/defense-protocol";
 const CONTROLS = Object.freeze([
   ["T", "Toggle placement mode"],
   ["Click", "Place tower"],
-  ["1 / 2 / 3 / 4", "Select tower"],
+  ["1 / 2 / 3 / 4 / 5", "Select tower"],
   ["Space", "Start wave"],
   ["U", "Upgrade (selected tower)"],
   ["X", "Sell (selected tower)"],

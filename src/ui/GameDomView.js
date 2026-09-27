@@ -108,6 +108,7 @@ class GameDomView {
           rapid: "Anti-fast",
           sniper: "Anti-heavy",
           laser: "Anti-armor",
+          rocket: "Anti-group",
         }[def.key] ?? "Defense";
         identity.append(title, role);
         header.append(icon, identity);

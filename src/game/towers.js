@@ -20,7 +20,7 @@ function applyTowerTier(t, tierIdx) {
   t.range = tier.range;
   t.fireMs = tier.fireMs;
   if (t.type === "laser") t.beamTickMs = tier.fireMs;
-  t.nextShotAt = 0;
+  if (t.type !== "rocket") t.nextShotAt = 0;
   t.sprite.setTint(tier.tint);
   t.sprite.setScale(tier.scale ?? 1);
   if (t.badge) t.badge.setDepth(t.sprite.depth + 1);
@@ -52,6 +52,7 @@ function trySellTower(t) {
 
 function getTargetModes(t) {
   const def = TOWER_DEFS[t?.type];
+  if (t?.type === "rocket") return ["dense", ...TARGET_MODES];
   if (!def?.preferredTargetType) return TARGET_MODES;
   const genericModes =
     def.preferredTargetType === "armored"
@@ -67,6 +68,7 @@ function getTargetModeLabel(t) {
     return `${enemyName} Priority`;
   }
   const labels = {
+    dense: "Densest Group",
     first: "First",
     close: "Close",
     strong: "Strong",

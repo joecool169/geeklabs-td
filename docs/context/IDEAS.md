@@ -9,6 +9,12 @@
 
 ---
 
+## September 27 update
+
+The standalone Rocket design below has since been selected and implemented as
+a web candidate; see [its design and test record](../playtests/2026-09-27-rocket/README.md).
+The September 20 questions are historical. Linking remains unimplemented.
+
 ## Owner-requested future features — September 20, 2026
 
 The owner wants to add a **rocket turret** and **turret linking** at some point.

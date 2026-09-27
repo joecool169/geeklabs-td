@@ -677,7 +677,7 @@ body {
 }
 #tower-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   height: 100%;
 }
@@ -1485,7 +1485,7 @@ html.touch-ui .game-overlay-input {
   }
   html.touch-ui #tower-strip {
     grid-auto-flow: row;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: repeat(2, minmax(58px, 1fr));
     overflow: visible;
     touch-action: manipulation;
@@ -1611,7 +1611,7 @@ html.touch-ui .game-overlay-input {
   html.touch-ui #bottom-bar { grid-column: 3; }
   html.touch-ui #touch-tower-actions[hidden] + #bottom-bar { grid-column: 2 / -1; }
   html.touch-ui #touch-tower-actions[hidden] + #bottom-bar #tower-strip {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: 1fr;
   }
   html.touch-ui #touch-tower-summary { padding-inline: 0; }
@@ -1754,4 +1754,22 @@ html.touch-ui .game-overlay-input {
   html.touch-ui .is-start .map-options { margin-bottom: 6px; }
   html.touch-ui .is-start .game-overlay-body { padding: 8px 18px; }
   html.touch-ui .game-overlay-panel.is-start .game-overlay-setting { margin-bottom: 6px; padding: 5px 9px; }
+}
+
+.tower-card[data-tower-key="rocket"] { --tower-accent: #ff8844; }
+html.touch-ui #touch-tower-actions[data-tower-type="rocket"] { border-left: 3px solid #ff8844; }
+
+/* Five tower choices stay readable and reachable on short landscape screens. */
+@media (orientation: landscape) and (max-height: 600px) {
+  html.touch-ui #touch-controls .touch-control:not(#touch-place) small { display: none; }
+  html.touch-ui #touch-place small { font-size: 7px; letter-spacing: 0; }
+  html.touch-ui #touch-controls .touch-control { font-size: 12px; white-space: nowrap; padding: 6px 2px; }
+  html.touch-ui #tower-strip { grid-template-rows: repeat(2, minmax(44px, 1fr)); }
+  html.touch-ui #bottom-bar { min-height: 104px; }
+  html.touch-ui .tower-card-icon,
+  html.touch-ui .tower-card-role { display: none; }
+  html.touch-ui .tower-card-header { min-width: 0; gap: 0; }
+  html.touch-ui .tower-card-title { font-size: 10px; }
+  html.touch-ui .tower-card { padding: 5px 3px; }
+  html.touch-ui #touch-tower-actions[data-tower-type="rocket"] #touch-tower-specialty { font-size: 8px; }
 }

@@ -59,7 +59,7 @@ class TowerSystem {
 
   getPlacementKeyHint() {
     const def = this.getPlaceDef();
-    return def.hotkey || "1 / 2 / 3 / 4";
+    return def.hotkey || "1 / 2 / 3 / 4 / 5";
   }
 
   trySetPlaceType(type) {

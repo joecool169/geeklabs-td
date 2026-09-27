@@ -55,6 +55,14 @@ const TOWER_ART_STANDARDS = Object.freeze({
     fallbackSizeByTier: Object.freeze({ 1: 40, 2: 43, 3: 46 }),
     baseOrigin: Object.freeze({ x: 32 / 64, y: 20 / 64 }),
   }),
+  rocket: Object.freeze({
+    headOrigins: Object.freeze({ 1: { x: 0.5, y: 0.5 }, 2: { x: 0.5, y: 0.5 }, 3: { x: 0.5, y: 0.5 } }),
+    color: 0xff8844,
+    baseSizeByTier: Object.freeze({ 1: 42, 2: 44, 3: 46 }),
+    headSize: 60, selectionRadius: 22,
+    fallbackSizeByTier: Object.freeze({ 1: 40, 2: 42, 3: 44 }),
+    baseOrigin: Object.freeze({ x: 0.5, y: 0.5 }),
+  }),
   laser: Object.freeze({
     // Mount centers in the padded 128px head artwork, one per upgrade.
     headOrigins: Object.freeze({

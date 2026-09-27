@@ -49,6 +49,10 @@ function formatWaveHint({
 }
 
 function formatTouchTowerStats(tower) {
+  if (tower.type === "rocket") {
+    const tier = TOWER_DEFS.rocket.tiers[tower.tier - 1];
+    return `${tier.rockets} ROCKETS × ${tower.damage} DMG • RNG ${tower.range} • RELOAD ${tower.fireMs / 1000}s`;
+  }
   const shotsPerSecond = 1000 / tower.fireMs;
   const dps = tower.damage * shotsPerSecond;
   return `DMG ${tower.damage}  •  RNG ${tower.range}  •  RATE ${round1(shotsPerSecond)}/s  •  BASE DPS ${round1(dps)}`;
@@ -57,6 +61,7 @@ function formatTouchTowerStats(tower) {
 function formatTowerSpecialty(type) {
   const def = TOWER_DEFS[type];
   if (!def) return "";
+  if (type === "rocket") return "Homing splash • Edge falloff • Retargets • Normal armor";
   if (type === "laser") {
     return `Ignores ${def.armorPenetration} armor • Pierces ${def.maxPierce} (×${def.pierceFalloff} per hit) • Heat up to ×${1 + def.maxLockBonus} in ${def.heatRampMs / 1000}s • Heat persists between targets`;
   }
@@ -414,7 +419,9 @@ function updateUI(scene) {
   const t = scene.selectedTower;
   const def = TOWER_DEFS[t.type];
   const sps = 1000 / t.fireMs;
-  const dps = t.damage * sps;
+  const volleySize = def.tiers[t.tier - 1]?.rockets ?? 1;
+  const cycleMs = t.fireMs + (volleySize - 1) * (def.volleyIntervalMs ?? 0);
+  const dps = t.damage * volleySize * 1000 / cycleMs;
   const nextCost = getNextUpgradeCost(t);
   const nextText = nextCost === null ? "Max" : `$${nextCost}`;
   const refund = Math.floor((t.spent || 0) * 0.7);
@@ -448,7 +455,7 @@ function updateUI(scene) {
   if (scene.selectedTowerNameEl) scene.selectedTowerNameEl.textContent = `${def.name} (T${t.tier})`;
   if (scene.selectedTowerTargetEl) scene.selectedTowerTargetEl.textContent = targetLabel;
   if (scene.selectedTowerDmgEl) scene.selectedTowerDmgEl.textContent = `${t.damage}`;
-  if (scene.selectedTowerFireEl) scene.selectedTowerFireEl.textContent = `${t.fireMs}ms (${round1(sps)}/s)`;
+  if (scene.selectedTowerFireEl) scene.selectedTowerFireEl.textContent = t.type === "rocket" ? `${volleySize} rockets / ${t.fireMs / 1000}s reload` : `${t.fireMs}ms (${round1(sps)}/s)`;
   if (scene.selectedTowerRangeEl) scene.selectedTowerRangeEl.textContent = `${t.range}`;
   if (scene.selectedTowerDpsEl) scene.selectedTowerDpsEl.textContent = `${round1(dps)}`;
   if (scene.selectedTowerUpgradeEl) scene.selectedTowerUpgradeEl.textContent = `${nextText}`;

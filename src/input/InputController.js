@@ -18,6 +18,7 @@ class InputController {
       ["basic", keyCodes.ONE, GAME_ACTIONS.SELECT_TOWER_TYPE, { towerType: "basic" }],
       ["rapid", keyCodes.TWO, GAME_ACTIONS.SELECT_TOWER_TYPE, { towerType: "rapid" }],
       ["sniper", keyCodes.THREE, GAME_ACTIONS.SELECT_TOWER_TYPE, { towerType: "sniper" }],
+      ["rocket", keyCodes.FIVE, GAME_ACTIONS.SELECT_TOWER_TYPE, { towerType: "rocket" }],
       ["laser", keyCodes.FOUR, GAME_ACTIONS.SELECT_TOWER_TYPE, { towerType: "laser" }],
       ["pause", keyCodes.P, GAME_ACTIONS.TOGGLE_PAUSE],
       ["help", keyCodes.H, GAME_ACTIONS.TOGGLE_HELP],

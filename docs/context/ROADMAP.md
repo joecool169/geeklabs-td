@@ -1,5 +1,13 @@
 # Roadmap
 
+## Current web feature — Rocket turret playtest candidate
+
+Standalone Wave 40 Rocket is implemented on `codex/rocket-turret` with homing
+volleys, splash damage, upgrades and touch controls. Automated and browser
+checks pass; full-run playtesting and tuning on both maps are next. Linking
+is deferred. See [candidate notes](../playtests/2026-09-27-rocket/README.md).
+This has not been deployed or added to the submitted mobile release.
+
 ## Phase 1 — Responsive layout and interaction clarity — completed baseline
 
 The responsive desktop/laptop layout, contextual sidebar, bottom tower strip, primitive-rendered game silhouettes, and improved wave-state presentation are established. Additional layout work should now be driven by mobile and touch requirements.

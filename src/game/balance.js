@@ -42,8 +42,8 @@ function computeTowerDps(towerKey, tierIndex, enemyKey, damageMultiplier = 1) {
       tier.damage * damageMultiplier,
       enemyKey
     ) *
-    1000 /
-    tier.fireMs
+    (tier.rockets ?? 1) * 1000 /
+    (tier.fireMs + ((tier.rockets ?? 1) - 1) * (TOWER_DEFS[towerKey].volleyIntervalMs ?? 0))
   );
 }
 

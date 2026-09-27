@@ -247,6 +247,21 @@ function enemyProgressScore(path, e) {
 }
 
 function findTarget({ path, enemies }, tower, mode) {
+  if (mode === "dense") {
+    const active = [];
+    enemies.children.iterate(enemy => { if (enemy?.active) active.push(enemy); });
+    const radius = TOWER_DEFS[tower.type]?.splashRadius ?? 58;
+    let best = null, bestCount = -1, bestProgress = -Infinity;
+    for (const enemy of active) {
+      if (dist2(tower.x, tower.y, enemy.x, enemy.y) > tower.range ** 2) continue;
+      const count = active.filter(other => dist2(enemy.x, enemy.y, other.x, other.y) <= radius ** 2).length;
+      const progress = enemyProgressScore(path, enemy);
+      if (count > bestCount || (count === bestCount && progress > bestProgress)) {
+        best = enemy; bestCount = count; bestProgress = progress;
+      }
+    }
+    return best;
+  }
   if (mode === "preferred") {
     const preferredType = TOWER_DEFS[tower?.type]?.preferredTargetType;
     if (preferredType) {

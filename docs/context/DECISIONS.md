@@ -1,5 +1,16 @@
 # Decision Log
 
+## 2026-09-27 — Rocket turret first, then playtest tuning
+
+The owner selected a Wave 40, long-range group-clearing turret with short
+focused homing volleys, nearby retargeting on target death, a long reload,
+splash damage falling toward the edge, more rockets per upgrade, and normal
+armor reduction. Remaining initial choices were delegated, with tuning after
+gameplay tests. Default Densest Group targeting and prototype numbers are
+recorded in [the candidate notes](../playtests/2026-09-27-rocket/README.md).
+Implement the standalone turret on web first; turret linking and final art
+polish follow after its behavior is tested. Existing tower values stay intact.
+
 ## 2026-09-20 — Web-first updates and shared mobile releases
 
 **Owner direction:** New gameplay features and updates reach the web game first

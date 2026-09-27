@@ -7,6 +7,7 @@ import {
 } from "../game/bullets.js";
 import * as Telemetry from "../game/telemetry.js";
 import { dist2, segCircleHit } from "../game/utils.js";
+import { RocketSystem } from "./RocketSystem.js";
 import { ProjectileSystem } from "./ProjectileSystem.js";
 
 function getLaserHeatMultiplier(towerDef, heatMs) {
@@ -39,6 +40,11 @@ class CombatSystem {
     this.runController = runController;
     this.getDifficulty = getDifficulty;
     this.getTelemetry = getTelemetry;
+    this.rockets = new RocketSystem({
+      scene,
+      getEnemies: () => this.enemySystem.group.getChildren().filter(enemy => enemy.active),
+      onHit: (tower, enemy, damage) => this.applyDamage(tower, enemy, damage),
+    });
     this.projectiles = new ProjectileSystem({
       scene,
       onHit: (tower, enemy, rawDamage) =>
@@ -52,6 +58,13 @@ class CombatSystem {
         this.updateLaser(tower, dt);
         continue;
       }
+      if (tower.type === "rocket") {
+        tower.rocketReloadMs = Math.max(0, (tower.rocketReloadMs ?? 0) - dt);
+        if (tower.rocketReloadMs > 0 || this.rockets.volleys.some(volley => volley.tower === tower)) continue;
+        const target = this.enemySystem.findTarget(tower, tower.targetMode);
+        if (target) this.rockets.fire(tower, target);
+        continue;
+      }
       if (time < tower.nextShotAt) continue;
       const target = this.enemySystem.findTarget(tower, tower.targetMode);
       if (!target) continue;
@@ -62,6 +75,7 @@ class CombatSystem {
       this.projectiles.fire(tower, target);
     }
     this.projectiles.update(time, dt);
+    this.rockets.update(dt);
   }
 
   updateLaser(tower, dt) {
@@ -225,6 +239,7 @@ class CombatSystem {
 
   destroy() {
     this.projectiles.destroy();
+    this.rockets.destroy();
   }
 }
 

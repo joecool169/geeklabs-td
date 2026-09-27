@@ -283,6 +283,34 @@ class WorldRenderer {
       drawBasicHeadTexture(graphics, tier);
       graphics.generateTexture(headKey, 128, 128);
     }
+    // Prototype launcher art uses the same layered, rotating-head contract.
+    if (!this.scene.textures.exists("tower_rocket_base")) {
+      graphics.clear();
+      graphics.fillStyle(0x111820, 1); graphics.fillRoundedRect(5, 9, 54, 50, 10);
+      graphics.fillStyle(0x52616a, 1); graphics.fillRoundedRect(8, 6, 48, 48, 8);
+      graphics.lineStyle(3, 0xff8844, 0.85); graphics.strokeRoundedRect(8, 6, 48, 48, 8);
+      graphics.fillStyle(0x25323b, 1); graphics.fillCircle(32, 32, 20);
+      for (const x of [13, 51]) for (const y of [12, 48]) {
+        graphics.fillStyle(0xaab6bb, 1); graphics.fillCircle(x, y, 2);
+      }
+      graphics.generateTexture("tower_rocket_base", 64, 64);
+    }
+    for (const tier of [1, 2, 3]) {
+      const key = getTowerHeadTextureKey("rocket", tier);
+      if (this.scene.textures.exists(key)) continue;
+      const tubes = tier + 2, height = tubes * 12;
+      graphics.clear();
+      graphics.fillStyle(0x19232d, 1); graphics.fillRoundedRect(29, 64 - height / 2 - 5, 70, height + 10, 7);
+      graphics.lineStyle(2, 0xff8844, 1); graphics.strokeRoundedRect(29, 64 - height / 2 - 5, 70, height + 10, 7);
+      for (let i = 0; i < tubes; i++) {
+        const y = 64 - height / 2 + i * 12;
+        graphics.fillStyle(0x6e8088, 1); graphics.fillRoundedRect(34, y, 62, 9, 3);
+        graphics.fillStyle(0xb8c3c8, 1); graphics.fillRect(40, y + 1, 43, 2);
+        graphics.fillStyle(0x111921, 1); graphics.fillRect(87, y + 1, 8, 7);
+        graphics.fillStyle(0xff8844, 1); graphics.fillRect(35, y + 2, 5, 5);
+      }
+      graphics.generateTexture(key, 128, 128);
+    }
     for (const type of Object.keys(ENEMY_DEFS)) {
       const key = getEnemyTextureKey(type);
       if (this.scene.textures.exists(key)) continue;
@@ -290,6 +318,17 @@ class WorldRenderer {
       graphics.generateTexture(key, 24, 24);
     }
     const textureDefinitions = [
+      ["projectile_rocket", 30, 10, () => {
+        graphics.clear(); graphics.fillStyle(0xff7833, 0.4); graphics.fillTriangle(0, 5, 16, 1, 16, 9);
+        graphics.fillStyle(0xffd487, 1); graphics.fillTriangle(8, 5, 18, 3, 18, 7);
+        graphics.fillStyle(0xdce4e8, 1); graphics.fillRoundedRect(15, 2, 11, 6, 2);
+        graphics.fillStyle(0xff8844, 1); graphics.fillTriangle(25, 2, 30, 5, 25, 8);
+      }],
+      ["impact_rocket", 64, 64, () => {
+        graphics.clear(); graphics.fillStyle(0xff7833, 0.18); graphics.fillCircle(32, 32, 29);
+        graphics.lineStyle(2, 0xffaa55, 0.8); graphics.strokeCircle(32, 32, 27);
+        graphics.fillStyle(0xffd796, 0.6); graphics.fillCircle(32, 32, 10);
+      }],
       ["projectile_basic", 10, 6, () => {
         graphics.clear(); graphics.fillStyle(0xffffff, 1); graphics.fillRoundedRect(0, 1, 10, 4, 2);
       }],

@@ -1,5 +1,17 @@
 # Current State
 
+## Rocket web candidate — September 27, 2026
+
+Implemented the owner-approved Wave 40 Rocket on `codex/rocket-turret`: focused
+homing volleys, density targeting, splash falloff, nearby retargeting, three
+upgrade tiers, and five-second reload. Temporary launcher artwork and desktop/
+touch controls are included. All 104 tests and production build pass; browser
+combat checks cover both maps and desktop/phone/tablet layouts. Full-run balance
+tuning remains pending. See [prototype record](../playtests/2026-09-27-rocket/README.md).
+No public deployment, native sync/build, or App Store change. The iOS release
+branch remains separate. Older deployment and Apple statuses below are dated
+records and were not reverified for this feature.
+
 ## Latest Apple status — September 22 resubmission
 
 Version **1.0 (4)** is **Waiting for Review**, verified live after authorized

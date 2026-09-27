@@ -21,6 +21,7 @@ const MUZZLE_OFFSETS = Object.freeze({
   rapid: Object.freeze([24, 26, 28]),
   sniper: Object.freeze([27, 29, 31]),
   laser: Object.freeze([22, 25, 28]),
+  rocket: Object.freeze([22, 24, 26]),
 });
 
 const getMuzzlePoint = (tower, target) => {
