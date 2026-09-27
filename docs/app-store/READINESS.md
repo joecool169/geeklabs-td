@@ -1,6 +1,15 @@
-# iOS App Store readiness — reconciled 2026-09-22
+# iOS App Store readiness — reconciled 2026-09-27
 
 ## Latest recorded release status
+
+With Joe's authorization, **1.0 (4)** was manually released on September 27.
+Live App Store Connect confirmed **Ready for Distribution** at 17:47 UTC
+(1:47 PM EDT). The US public listing initially returned “An Error Occurred”;
+public download availability remains unverified. Apple's release confirmation
+listed 175 countries/regions, which is not proof of availability in every region.
+See [release evidence](RELEASE-2026-09-27.md).
+
+### September 22 resubmission history
 
 Version **1.0 (4)** was uploaded, processed, selected, and resubmitted with
 Joe's authorization on September 22. Live App Store Connect confirms
@@ -53,10 +62,11 @@ See [September 22 review and resubmission evidence](REVIEW-2026-09-22.md).
 
 ## Remaining release and operational gates
 
-1. Check Apple's current review result; resolve any review feedback. Approval
-   does not publish automatically under the recorded manual-release setting.
-2. Confirm final TestFlight/build-3 acceptance on both device families, including
-   force-quit preference restoration.
+1. Verify the public App Store listing and download availability following the
+   September 27 manual release. Apple review and manual release are complete.
+2. Physical build-4 launch/rendering and owner-reported gameplay, sound, and
+   background/resume passed. Physical force-quit preference restoration remains
+   unreported; the simulator check passed.
 3. Resolve regional availability/licensing constraints, including China/Vietnam,
    before claiming an all-region launch.
 4. Confirm production game/API state separately from repository status. The

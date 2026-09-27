@@ -1,5 +1,16 @@
 # Current State
 
+## Latest Apple status — September 27, 2026
+
+Joe authorized and completed manual release of **1.0 (4)**. Live App Store
+Connect confirmed **Ready for Distribution** on September 27 at 17:47 UTC
+(1:47 PM EDT). Apple's confirmation listed 175 countries/regions; actual
+availability in each region is not verified. The US public listing initially
+returned “An Error Occurred,” so public download availability remains unverified.
+Source remains `ios/v1.0-build-4` at `e5d84fc`; no native rebuild or web deployment.
+See [release record](../app-store/RELEASE-2026-09-27.md). This supersedes the
+September 22 review status below.
+
 ## Rocket web candidate — September 27, 2026
 
 Implemented the owner-approved Wave 40 Rocket on `codex/rocket-turret`: focused
