@@ -1,5 +1,26 @@
 # Current State
 
+## Rocket reload playtest — September 30, 2026
+
+Following the owner's report that rockets felt weak at Wave 53 on Relay Yard
+Hard, and explicit preference to shorten the pause, the local candidate now uses
+a three-second reload after the final launch at every tier (previously five).
+Damage, splash, price, range and volley size remain at the original candidate
+values. The card describes the new reload. Pause/upgrade reload regression
+coverage uses the new interval. Full-run balance acceptance remains pending;
+this is a local preview change, not a public or native release.
+
+## Rocket preview controls correction — September 30, 2026
+
+Local Rocket preview now explicitly restores keyboard input when a scene starts
+directly in gameplay. Choosing a different map in setup restarted the scene with
+Phaser's retained keyboard plugin still disabled, blocking Space and other
+shortcuts. Browser regression checks reproduced the failure in both map-switch
+directions with the previous code, then verified Wave 1 launch, pause/resume,
+keyboard tower selection and mouse placement with the correction. All 104 tests,
+production build and diff checks pass. Local preview only; no public deployment
+or native sync/build. Owner confirmation remains pending.
+
 ## Latest Apple status — September 27, 2026
 
 Joe authorized and completed manual release of **1.0 (4)**. Live App Store

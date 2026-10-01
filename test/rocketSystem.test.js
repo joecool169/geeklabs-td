@@ -36,7 +36,7 @@ test("all rocket tiers launch a focused, spaced volley with damage fixed at laun
     assert.equal(rockets.volleys[0].remaining, tier);
     for (let i = 0; i < tier; i++) rockets.update(180);
     assert.equal(rockets.volleys.length, 0);
-    assert.equal(tower.rocketReloadMs, 5000);
+    assert.equal(tower.rocketReloadMs, 3000);
     assert.ok(rockets.rockets.every(shot => shot.target === enemies[0] && shot.damage === damage));
   }
 });
@@ -95,22 +95,22 @@ test("densest targeting counts active neighbors and breaks ties by route progres
   assert.deepEqual(getTargetModes({ type: "rocket" }), ["dense", "first", "close", "strong", "armored"]);
 });
 
-test("reload lasts five active seconds after final rocket and survives upgrade", () => {
+test("reload lasts three active seconds after final rocket and survives upgrade", () => {
   const { enemies, scene, tower } = setup();
   const combat = new CombatSystem({ scene, towerSystem: { towers: [tower] },
     enemySystem: { group: { getChildren: () => enemies }, findTarget: () => enemies[0] },
     runController: {}, getDifficulty: () => ({}), getTelemetry: () => null });
   combat.update(0, 0); combat.update(180, 180); combat.update(360, 180);
-  assert.equal(tower.rocketReloadMs, 5000);
+  assert.equal(tower.rocketReloadMs, 3000);
   assert.equal(combat.rockets.volleys.length, 0);
   // A huge wall-clock jump with no active delta models pause/resume.
   combat.update(100000, 0);
-  assert.equal(tower.rocketReloadMs, 5000);
+  assert.equal(tower.rocketReloadMs, 3000);
   tower.sprite.setTint = () => {}; tower.sprite.setScale = () => {};
   applyTowerTier(tower, 1);
-  combat.update(104999, 4999);
+  combat.update(102999, 2999);
   assert.equal(combat.rockets.volleys.length, 0);
-  combat.update(105000, 1);
+  combat.update(103000, 1);
   assert.equal(combat.rockets.volleys[0].remaining, 3);
 });
 

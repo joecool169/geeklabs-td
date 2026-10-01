@@ -64,14 +64,14 @@ const TOWER_DEFS = {
   },
   rocket: {
     key: "rocket", name: "Rocket",
-    desc: "Homing volleys clear dense groups. Long reload.",
+    desc: "Homing volleys clear dense groups. 3-second reload.",
     hotkey: "5", unlockWave: 40, defaultTargetMode: "dense",
     volleyIntervalMs: 180, splashRadius: 58, splashEdgeMultiplier: 0.25,
     retargetRadius: 90, projectileSpeed: 350, projectileLifetimeMs: 4000,
     tiers: [
-      { cost: 320, damage: 105, rockets: 3, range: 155, fireMs: 5000, tint: 0xff8844, scale: 1 },
-      { cost: 260, damage: 140, rockets: 4, range: 175, fireMs: 5000, tint: 0xffaa66, scale: 1 },
-      { cost: 380, damage: 180, rockets: 5, range: 195, fireMs: 5000, tint: 0xffcc88, scale: 1 },
+      { cost: 320, damage: 105, rockets: 3, range: 155, fireMs: 3000, tint: 0xff8844, scale: 1 },
+      { cost: 260, damage: 140, rockets: 4, range: 175, fireMs: 3000, tint: 0xffaa66, scale: 1 },
+      { cost: 380, damage: 180, rockets: 5, range: 195, fireMs: 3000, tint: 0xffcc88, scale: 1 },
     ],
   },
 };

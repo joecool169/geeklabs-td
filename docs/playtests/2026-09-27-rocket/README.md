@@ -7,6 +7,12 @@ remaining tuning choices. Full-run balance acceptance is pending.
 
 ## Starting configuration
 
+Historical baseline below. September 30 playtest adjustment: reload is now
+**3 seconds at every tier**, following owner feedback about the long pause.
+All other balance values below remain unchanged. Compare pacing and survival
+against the original five-second candidate; improved full-run results are not
+yet established.
+
 | Setting | Tier 1 | Tier 2 | Tier 3 |
 | --- | --- | --- | --- |
 | Purchase / upgrade cost | $320 | $260 | $380 |
@@ -63,3 +69,21 @@ Before public release, decide whether existing leaderboard scores should share
 standings with runs using the new turret; this candidate has not changed the API
 or established a new score season. Any later mobile release needs its own native
 and device validation.
+# September 30 preview controls correction
+
+Changing the selected map before engaging restarted the scene while Phaser's
+keyboard plugin was disabled by setup. Direct gameplay entry now restores it.
+Regression procedure: in a fresh browser select Relay Yard, engage, press Space,
+pause/resume with P/Resume, select Basic with 1 and place it with the mouse. Reload
+and switch back to Defense Grid, repeating the same interactions. Both directions
+failed to start Wave 1 with the old code and passed with the correction. All 104
+tests and the production build pass. This correction is local and awaits owner
+acceptance; no public or native release was made.
+
+## September 30 web release approval
+
+Owner accepted the three-second reload candidate for public web release, including
+the map-switch keyboard fix. Existing map-separated leaderboard history is retained
+for this release; no reset or new score season is introduced. Scores span gameplay
+versions and should not be treated as controlled balance comparisons. Native release
+remains separate. Release verification is recorded in CURRENT_STATE.md.

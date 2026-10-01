@@ -370,6 +370,9 @@ export class GameScene extends Phaser.Scene {
     if (this.isStartScreenActive) {
       this.showStartScreen();
     } else {
+      // Phaser retains the keyboard plugin across scene restarts. Map selection
+      // can restart directly into play while the setup screen has it disabled.
+      this.inputController.setKeyboardEnabled(true);
       this.applyDifficulty(this.difficultyKey);
     }
   }
