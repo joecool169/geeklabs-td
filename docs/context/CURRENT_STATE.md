@@ -1,5 +1,27 @@
 # Current State
 
+## Verified Rocket web release — September 30, 2026
+
+Owner approved public release of v0.11.0, source `e29264a4a43487ba701d7566a8e9952607406cdf`.
+Rocket unlocks at Wave 40 with a three-second reload at every tier; map-switch
+keyboard restoration is included. All 104 tests and production build passed.
+Public JS `index-Ci1_06KM.js` and CSS `index-BEFZq_yD.css` match the local build
+byte for byte. JS SHA-256: `7a2952ea0a65ab803d0a3131ccc433a0795afbfe86711e29d31e7f7e3ba4b8e3`.
+Public browser checks passed map switching in both directions, Wave 1 start,
+pause/resume and keyboard selection/mouse tower placement. Online scores stayed
+off during checks. Website, Bubble Garden and leaderboard GET checks pass.
+
+Deployment exposed ambiguous Docker DNS: both games had the service alias `game`
+on networks reachable by the gateway. The gateway briefly served Bubble Garden
+at the play hostname. Its upstream now uses unique `defense-protocol:80`, tested
+and restarted; companion site source fix `e4f4e47` preserves the configuration.
+Runtime config backup: `gateway/nginx.conf.pre-rocket-20260930` in the web stack.
+Previous game image retained as `defense-protocol:pre-rocket-20260930`.
+Existing leaderboard history is retained across game versions. No native sync,
+archive, upload or App Store release was performed. Further balance remains web
+playtesting. Release tag: `web/v0.11.0-rocket-20260930`.
+
+
 ## Rocket reload playtest — September 30, 2026
 
 Following the owner's report that rockets felt weak at Wave 53 on Relay Yard
